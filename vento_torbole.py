@@ -64,13 +64,13 @@ for s in dati_spots:
 ax1.set_title("Raffiche vento (10m) · Area Torbole / Riva", fontsize=13, pad=10, color="#222")
 ax1.set_ylabel("Nodi (kn)", color="#444")
 ax1.tick_params(colors="#444")
-ax1.legend(facecolor="white", edgecolor="#ccc", loc="upper right")
+ax1.legend(facecolor="white", edgecolor="#ccc", loc="upper left")
 ax1.grid(True, alpha=0.3, color="#aaa")
 for spine in ax1.spines.values():
     spine.set_edgecolor("#ccc")
 ax1.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%H"))
-ax1.tick_params(axis="x", labelsize=10, labelcolor="#444", rotation=90)
+ax1.tick_params(axis="x", labelsize=14, labelcolor="#444", rotation=90)
 
 # --- Pannello 2: direzione (Conca d'Oro come riferimento) ---
 ref = dati_spots[3]  # Conca d'Oro è l'ultimo della lista
@@ -94,7 +94,7 @@ for o, d in zip(ore, ref["direzione"]):
 
 ax2.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 ax2.xaxis.set_major_formatter(mdates.DateFormatter("%H"))
-ax2.tick_params(axis="x", labelsize=10, labelcolor="#444", rotation=90)
+ax2.tick_params(axis="x", labelsize=14, labelcolor="#444", rotation=90)
 
 # Linee verticali e nomi giorni
 giorni_visti = set()
