@@ -64,7 +64,7 @@ for s in dati_spots:
 ax1.set_title("Raffiche vento (10m) · Area Torbole / Riva", fontsize=13, pad=10, color="#222")
 ax1.set_ylabel("Nodi (kn)", color="#444")
 ax1.tick_params(colors="#444")
-ax1.legend(facecolor="white", edgecolor="#ccc", loc="upper left")
+ax1.legend(facecolor="white", edgecolor="#ccc", loc="upper left", bbox_to_anchor=(0, 1.08), ncol=4)
 ax1.grid(True, alpha=0.3, color="#aaa")
 for spine in ax1.spines.values():
     spine.set_edgecolor("#ccc")
