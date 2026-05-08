@@ -9,10 +9,10 @@ ORE_OFFSET = 2
 
 # Punti di interesse
 SPOTS = [
-    {"nome": "Spiaggia Lucertole", "lat": 45.84928, "lon": 10.86224, "colore": "#2e7d32"},
-    {"nome": "Hotel Pièr",         "lat": 45.84487, "lon": 10.82867, "colore": "#c62828"},
+    {"nome": "Spiaggia Lucertole", "lat": 45.84928, "lon": 10.86224, "colore": "#ebc402"},
+    {"nome": "Hotel Pièr",         "lat": 45.84487, "lon": 10.82867, "colore": "#0901fc"},
     {"nome": "Terrazza Ponale",    "lat": 45.87807, "lon": 10.83904, "colore": "#e65100"},
-    {"nome": "Conca d'Oro",        "lat": 45.86212, "lon": 10.87536, "colore": "#1565c0"},
+    {"nome": "Conca d'Oro",        "lat": 45.86212, "lon": 10.87536, "colore": "#15b101"},
 ]
 
 url = "https://api.open-meteo.com/v1/forecast"
@@ -57,7 +57,7 @@ fig.patch.set_facecolor("white")
 # --- Pannello 1: raffiche ---
 ax1.set_facecolor("white")
 for s in dati_spots:
-    spessore = 2.8 if s["nome"] == "Conca d'Oro" else 1.5
+    spessore = 2.8
     ax1.plot(ore, s["raffiche"], color=s["colore"], linewidth=spessore,
              label=s["nome"], alpha=0.85)
 
