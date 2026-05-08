@@ -130,17 +130,18 @@
     }
 
     .img-scroll {
-    overflow-x: auto;
+    overflow-x: scroll;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-}
+    max-width: 100%;
+    display: block;
+    }
 
-.img-scroll img {
-    width: auto !important;
-    min-width: 1200px;
-    max-width: none;
+    .img-scroll img {
+    width: 1000px !important;
+    max-width: 1000px !important;
     height: auto;
-}
+    }
 
     .card-footer {
       padding: .55rem 1.1rem;

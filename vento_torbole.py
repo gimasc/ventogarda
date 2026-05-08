@@ -50,7 +50,7 @@ def dir_nome(gradi):
     return nomi[round(gradi / 45) % 8]
 
 # Crea figura con due pannelli sovrapposti
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(90, 15), sharex=False,
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(36, 10), sharex=False,
                                 gridspec_kw={"height_ratios": [3, 1]})
 fig.patch.set_facecolor("white")
 
