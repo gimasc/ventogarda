@@ -50,7 +50,7 @@ def dir_nome(gradi):
     return nomi[round(gradi / 45) % 8]
 
 # Crea figura con due pannelli sovrapposti
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(18, 8), sharex=False,
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(90, 15), sharex=False,
                                 gridspec_kw={"height_ratios": [3, 1]})
 fig.patch.set_facecolor("white")
 
@@ -70,7 +70,7 @@ for spine in ax1.spines.values():
     spine.set_edgecolor("#ccc")
 ax1.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%H"))
-ax1.tick_params(axis="x", labelsize=7, labelcolor="#444", rotation=90)
+ax1.tick_params(axis="x", labelsize=10, labelcolor="#444", rotation=90)
 
 # --- Pannello 2: direzione (Conca d'Oro come riferimento) ---
 ref = dati_spots[3]  # Conca d'Oro è l'ultimo della lista
@@ -90,11 +90,11 @@ for spine in ax2.spines.values():
 for o, d in zip(ore, ref["direzione"]):
     if o.hour % 3 == 0:
         ax2.annotate(dir_nome(d), (o, d), textcoords="offset points",
-                     xytext=(0, 6), ha="center", fontsize=7, color="#1565c0")
+                     xytext=(0, 6), ha="center", fontsize=9, color="#1565c0")
 
 ax2.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 ax2.xaxis.set_major_formatter(mdates.DateFormatter("%H"))
-ax2.tick_params(axis="x", labelsize=7, labelcolor="#444", rotation=90)
+ax2.tick_params(axis="x", labelsize=10, labelcolor="#444", rotation=90)
 
 # Linee verticali e nomi giorni
 giorni_visti = set()
