@@ -1,10 +1,11 @@
 import requests
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime
-import pytz
+from datetime import datetime, timedelta
 
-TZ_ITALIA = pytz.timezone("Europe/Rome")
+# Fuso orario: aggiungiamo 2 ore (ora legale italiana, UTC+2)
+# A novembre cambia in UTC+1: basta modificare hours=2 in hours=1
+ORE_OFFSET = 2
 
 # Punti di interesse
 SPOTS = [
@@ -33,7 +34,8 @@ for spot in SPOTS:
     r = requests.get(url, params=params)
     d = r.json()
     if ore is None:
-        ore = [pytz.utc.localize(datetime.fromisoformat(t)).astimezone(TZ_ITALIA) for t in d["hourly"]["time"]]
+        ore = [datetime.fromisoformat(t) + timedelta(hours=ORE_OFFSET)
+               for t in d["hourly"]["time"]]
     dati_spots.append({
         "nome":      spot["nome"],
         "colore":    spot["colore"],
@@ -47,7 +49,7 @@ def dir_nome(gradi):
     nomi = ["N","NE","E","SE","S","SW","W","NW","N"]
     return nomi[round(gradi / 45) % 8]
 
-# Figura: pannello raffiche + pannello direzione
+# Crea figura con due pannelli sovrapposti
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(18, 8), sharex=False,
                                 gridspec_kw={"height_ratios": [3, 1]})
 fig.patch.set_facecolor("white")
@@ -70,8 +72,8 @@ ax1.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%H"))
 ax1.tick_params(axis="x", labelsize=7, labelcolor="#444", rotation=90)
 
-# --- Pannello 2: direzione (solo Conca d'Oro come riferimento) ---
-ref = dati_spots[0]
+# --- Pannello 2: direzione (Conca d'Oro come riferimento) ---
+ref = dati_spots[3]  # Conca d'Oro è l'ultimo della lista
 ax2.set_facecolor("#f7f9fc")
 ax2.scatter(ore, ref["direzione"], color="#1565c0", s=12, zorder=3)
 ax2.plot(ore, ref["direzione"], color="#1565c0", linewidth=1, alpha=0.4)
@@ -94,7 +96,7 @@ ax2.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 ax2.xaxis.set_major_formatter(mdates.DateFormatter("%H"))
 ax2.tick_params(axis="x", labelsize=7, labelcolor="#444", rotation=90)
 
-# Linee verticali e nomi giorni su entrambi i pannelli
+# Linee verticali e nomi giorni
 giorni_visti = set()
 for o in ore:
     giorno = o.date()
