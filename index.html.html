@@ -129,6 +129,19 @@
       height: auto;
     }
 
+    .img-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.img-scroll img {
+    width: auto !important;
+    min-width: 1200px;
+    max-width: none;
+    height: auto;
+}
+
     .card-footer {
       padding: .55rem 1.1rem;
       display: flex;
@@ -235,12 +248,11 @@
     <span class="label">Raffiche · Area Torbole / Riva</span>
     <span class="sub">Previsione 3 giorni · Open-Meteo ICON</span>
   </div>
-    <div class="img-wrap" style="overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;">
+ <div class="img-wrap img-scroll">
   <img
     src="vento_torbole.png"
     referrerpolicy="no-referrer"
-    alt="Grafico raffiche vento Torbole"
-    style="min-width: 1200px; max-width: none; width: auto; height: auto;">
+    alt="Grafico raffiche vento Torbole">
 </div>
   <div class="card-footer">
     <span>Aggiornato ogni ora</span>
