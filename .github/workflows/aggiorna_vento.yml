@@ -21,6 +21,8 @@ jobs:
         run: pip install requests matplotlib pytz
 
       - name: Genera grafico
+        env:
+          TZ: Europe/Rome
         run: python vento_torbole.py
 
       - name: Salva il PNG nel repository
