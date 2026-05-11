@@ -28,7 +28,7 @@ for spot in SPOTS:
         "longitude": spot["lon"],
         "hourly": "windgusts_10m,winddirection_10m",
         "windspeed_unit": "kn",
-        "forecast_days": 3,
+        "forecast_days": 2,
         "models": "meteoswiss_icon_ch1"
     }
     r = requests.get(url, params=params)
