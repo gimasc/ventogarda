@@ -46,6 +46,8 @@ for spot in SPOTS:
 
 # Converti direzione in nome
 def dir_nome(gradi):
+    if gradi is None:
+        return ""
     nomi = ["N","NE","E","SE","S","SW","W","NW","N"]
     return nomi[round(gradi / 45) % 8]
 
@@ -88,7 +90,7 @@ for spine in ax2.spines.values():
 
 # Etichette direzione ogni 3 ore
 for o, d in zip(ore, ref["direzione"]):
-    if o.hour % 3 == 0:
+    if d is not None and o.hour % 3 == 0:
         ax2.annotate(dir_nome(d), (o, d), textcoords="offset points",
                      xytext=(0, 6), ha="center", fontsize=9, color="#1565c0")
 
