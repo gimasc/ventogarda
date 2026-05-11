@@ -29,7 +29,7 @@ for spot in SPOTS:
         "hourly": "windgusts_10m,winddirection_10m",
         "windspeed_unit": "kn",
         "forecast_days": 3,
-        "models": "icon_seamless"
+        "models": "meteoswiss_icon_ch1"
     }
     r = requests.get(url, params=params)
     d = r.json()
