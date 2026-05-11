@@ -26,23 +26,25 @@ for spot in SPOTS:
     params = {
         "latitude":  spot["lat"],
         "longitude": spot["lon"],
-        "hourly": "windgusts_10m,winddirection_10m",
+        "hourly": "wind_gusts_10m,winddirection_10m",
         "windspeed_unit": "kn",
         "forecast_days": 2,
         "models": "meteoswiss_icon_ch1"
     }
     r = requests.get(url, params=params)
     d = r.json()
+    
     if ore is None:
         ore = [datetime.fromisoformat(t) + timedelta(hours=ORE_OFFSET)
                for t in d["hourly"]["time"]]
     dati_spots.append({
         "nome":      spot["nome"],
         "colore":    spot["colore"],
-        "raffiche":  d["hourly"]["windgusts_10m"],
+        "raffiche":  d["hourly"]["wind_gusts_10m"],
         "direzione": d["hourly"]["winddirection_10m"],
     })
     print(f"  ✓ {spot['nome']}")
+
 
 # Converti direzione in nome
 def dir_nome(gradi):
