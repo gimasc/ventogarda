@@ -26,7 +26,7 @@ for spot in SPOTS:
     params = {
         "latitude":  spot["lat"],
         "longitude": spot["lon"],
-        "hourly": "wind_gusts_10m,winddirection_10m",
+        "hourly": "wind_gusts_10m,wind_direction_10m",
         "windspeed_unit": "kn",
         "forecast_days": 2,
         "models": "meteoswiss_icon_ch1"
@@ -41,7 +41,7 @@ for spot in SPOTS:
         "nome":      spot["nome"],
         "colore":    spot["colore"],
         "raffiche":  d["hourly"]["wind_gusts_10m"],
-        "direzione": d["hourly"]["winddirection_10m"],
+        "direzione": d["hourly"]["wind_direction_10m"],
     })
     print(f"  ✓ {spot['nome']}")
 
