@@ -84,6 +84,7 @@ for spine in ax1.spines.values():
 ax1.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%H"))
 ax1.tick_params(axis="x", labelsize=14, labelcolor="#444", rotation=90)
+ax1.set_xlim(left=ore[0], right=ore[-1])
 
 # --- Pannello 2: direzione (Conca d'Oro come riferimento) ---
 ref = dati_spots[3]  # Conca d'Oro è l'ultimo della lista
@@ -108,6 +109,7 @@ for o, d in zip(ore, ref["direzione"]):
 ax2.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 ax2.xaxis.set_major_formatter(mdates.DateFormatter("%H"))
 ax2.tick_params(axis="x", labelsize=14, labelcolor="#444", rotation=90)
+ax2.set_xlim(left=ore[0], right=ore[-1])
 
 # Linee verticali e nomi giorni + etichette soglie
 giorni_visti = set()
