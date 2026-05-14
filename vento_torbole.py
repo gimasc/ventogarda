@@ -68,7 +68,7 @@ for s in dati_spots:
 # Linee soglia vento
 SOGLIE = [
     {"kn": 10, "colore": "#bbbbbb", "spessore": 1.0, "label": "10 kn"},
-    {"kn": 20, "colore": "#999999", "spessore": 1.5, "label": "20 kn"},
+    {"kn": 20, "colore": "#999999", "spessore": 1.0, "label": "20 kn"},
     {"kn": 30, "colore": "#bbbbbb", "spessore": 1.0, "label": "30 kn"},
 ]
 for soglia in SOGLIE:
@@ -78,7 +78,6 @@ for soglia in SOGLIE:
 ax1.set_title("Raffiche vento (10m) · Area Torbole / Riva", fontsize=13, pad=10, color="#222")
 ax1.set_ylabel("Nodi (kn)", color="#444")
 ax1.tick_params(colors="#444")
-ax1.legend(facecolor="white", edgecolor="#ccc", loc="upper left", bbox_to_anchor=(0, 1.08), ncol=4)
 ax1.grid(True, alpha=0.3, color="#aaa")
 for spine in ax1.spines.values():
     spine.set_edgecolor("#ccc")
