@@ -182,7 +182,7 @@ footer a { color: var(--accent); text-decoration: none; }
 
 #grafico-vento-wrap {
   background: white;
-  height: 400px;
+  height: 430px;
 }
 .legenda-spots {
   display: flex;
