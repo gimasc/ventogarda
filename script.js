@@ -74,14 +74,17 @@ function disegnaGrafico(dati) {
   // Trova inizio dati validi (salta i null iniziali)
   let start = 0;
   while (start < dati[0].raffiche.length && dati[0].raffiche[start] === null) start++;
+  // Trova fine dati validi (taglia i null finali)
+    let end = dati[0].raffiche.length;
+    while (end > start && dati[0].raffiche[end - 1] === null) end--;
 
-  const oreSlice    = ore.slice(start);
-  const labelsSlice = labels.slice(start);
+  const oreSlice    = ore.slice(start, end);
+  const labelsSlice = labels.slice(start, end);
 
   // Dataset linee spots
   const datasets = dati.map((s, i) => ({
     label:       s.nome,
-    data:        s.raffiche.slice(start),
+    data:        s.raffiche.slice(start, end),
     borderColor: s.colore,
     borderWidth: i === 3 ? 2.8 : 1.8, // Conca d'Oro più spessa
     pointRadius: 0,
