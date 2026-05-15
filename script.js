@@ -75,7 +75,7 @@ function disegnaGrafico(dati) {
   let start = 0;
   while (start < dati[0].raffiche.length && dati[0].raffiche[start] === null) start++;
   // Trova fine dati validi (taglia i null finali)
-    let end = dati[0].raffiche.length;
+let end = dati[0].raffiche.length;
     while (end > start && dati[0].raffiche[end - 1] === null) end--;
 
   const oreSlice    = ore.slice(start, end);
@@ -205,7 +205,7 @@ async function init() {
 
   try {
     const dati = await caricaDati();
-    wrapper.innerHTML = '<canvas id="canvas-vento"></canvas>';
+    wrapper.innerHTML = '<canvas id="canvas-vento" style="min-width:900px; height:300px;"></canvas>';
     disegnaGrafico(dati);
   } catch (e) {
     wrapper.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Errore caricamento dati meteo</p>';
