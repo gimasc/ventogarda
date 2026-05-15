@@ -45,11 +45,11 @@ async function caricaDati() {
 
   for (const spot of SPOTS) {
     const params = new URLSearchParams({
-      latitude:       spot.lat,
-      longitude:      spot.lon,
-      hourly:         "wind_gusts_10m,wind_direction_10m",
-      forecast_days:  3,
-      models:         "meteoswiss_icon_ch1",
+      latitude:      spot.lat,
+      longitude:     spot.lon,
+      hourly:        "wind_gusts_10m,wind_direction_10m",
+      forecast_days: 2,
+      models:        "meteoswiss_icon_ch1",
     });
 
     const r = await fetch(`${url}?${params}`);
@@ -74,9 +74,10 @@ function disegnaGrafico(dati) {
   // Trova inizio dati validi (salta i null iniziali)
   let start = 0;
   while (start < dati[0].raffiche.length && dati[0].raffiche[start] === null) start++;
+
   // Trova fine dati validi (taglia i null finali)
-let end = dati[0].raffiche.length;
-    while (end > start && dati[0].raffiche[end - 1] === null) end--;
+  let end = dati[0].raffiche.length;
+  while (end > start && dati[0].raffiche[end - 1] === null) end--;
 
   const oreSlice    = ore.slice(start, end);
   const labelsSlice = labels.slice(start, end);
@@ -86,7 +87,7 @@ let end = dati[0].raffiche.length;
     label:       s.nome,
     data:        s.raffiche.slice(start, end),
     borderColor: s.colore,
-    borderWidth: i === 3 ? 2.8 : 1.8, // Conca d'Oro più spessa
+    borderWidth: i === 3 ? 2.8 : 1.8,
     pointRadius: 0,
     tension:     0.3,
     fill:        false,
@@ -123,7 +124,6 @@ let end = dati[0].raffiche.length;
     afterDraw(chart) {
       const { ctx, scales: { x, y } } = chart;
 
-      // Linee verticali giorni
       dayLines.forEach(i => {
         const xPos = x.getPixelForValue(i);
         ctx.save();
@@ -134,7 +134,6 @@ let end = dati[0].raffiche.length;
         ctx.lineTo(xPos, chart.chartArea.bottom);
         ctx.stroke();
 
-        // Etichetta giorno
         const d = oreSlice[i];
         const gg = ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"][d.getDay()];
         const data = `${gg} ${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`;
@@ -144,7 +143,6 @@ let end = dati[0].raffiche.length;
         ctx.restore();
       });
 
-      // Etichette soglie all'inizio di ogni giorno
       SOGLIE.forEach(soglia => {
         const yPos = y.getPixelForValue(soglia.kn);
         dayLines.forEach(i => {
@@ -160,6 +158,7 @@ let end = dati[0].raffiche.length;
   };
 
   // Crea grafico
+  const canvas = document.getElementById("canvas-vento");
   new Chart(canvas, {
     type: "line",
     data: { labels: labelsSlice, datasets },
@@ -168,7 +167,7 @@ let end = dati[0].raffiche.length;
       maintainAspectRatio: false,
       animation: false,
       plugins: {
-        legend: { display: false }, // usiamo la legenda HTML
+        legend: { display: false },
         tooltip: {
           callbacks: {
             label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} kn`,
@@ -204,8 +203,8 @@ async function init() {
 
   try {
     const dati = await caricaDati();
-    wrapper.innerHTML = '<canvas id="canvas-vento" style="min-width:900px; height:300px;"></canvas>';
-setTimeout(() => disegnaGrafico(dati), 0);
+    wrapper.innerHTML = '<canvas id="canvas-vento"></canvas>';
+    disegnaGrafico(dati);
   } catch (e) {
     wrapper.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Errore caricamento dati meteo</p>';
     console.error(e);
