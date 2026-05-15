@@ -1,0 +1,20 @@
+name: Mantieni repository attivo
+
+on:
+  schedule:
+    - cron: '0 12 1 */1 *'  # il primo di ogni mese a mezzogiorno
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Commit per mantenere il repository attivo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          echo "$(date)" > .keepalive
+          git add .keepalive
+          git commit -m "keepalive $(date +%Y-%m)"
+          git push
