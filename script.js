@@ -11,7 +11,7 @@ const SPOTS = [
   { nome: "Conca d'Oro",        lat: 45.86212, lon: 10.87536, colore: "#15b101" },
 ];
 
-const ORE_OFFSET = 2; // UTC+2 ora legale italiana
+const ORE_OFFSET = 0; // UTC+2 ora legale italiana
 
 // Soglie vento
 const SOGLIE = [
@@ -34,8 +34,7 @@ function dirNome(gradi) {
 
 // Formatta data in ora locale italiana
 function toLocalTime(isoString) {
-  const d = new Date(isoString + "Z"); // forza UTC
-  return new Date(d.getTime() + ORE_OFFSET * 3600 * 1000);
+  return new Date(isoString + "Z"); // il browser converte automaticamente in ora locale
 }
 
 async function caricaDati() {
