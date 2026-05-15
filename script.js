@@ -160,7 +160,6 @@ let end = dati[0].raffiche.length;
   };
 
   // Crea grafico
-  const canvas = document.getElementById("canvas-vento");
   new Chart(canvas, {
     type: "line",
     data: { labels: labelsSlice, datasets },
