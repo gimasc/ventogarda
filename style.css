@@ -177,6 +177,7 @@ footer a { color: var(--accent); text-decoration: none; }
 
 #grafico-vento-wrap canvas {
   background: white;
+  width: 1200px !important;
   min-width: 1200px;
 }
 

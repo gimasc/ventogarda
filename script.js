@@ -203,7 +203,7 @@ async function init() {
 
   try {
     const dati = await caricaDati();
-    wrapper.innerHTML = '<canvas id="canvas-vento"></canvas>';
+    wrapper.innerHTML = '<canvas id="canvas-vento" width="1200" height="400"></canvas>';
     disegnaGrafico(dati);
   } catch (e) {
     wrapper.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Errore caricamento dati meteo</p>';
