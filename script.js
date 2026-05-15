@@ -163,7 +163,7 @@ function disegnaGrafico(dati) {
     type: "line",
     data: { labels: labelsSlice, datasets },
     options: {
-      responsive: true,
+      responsive: false,
       maintainAspectRatio: false,
       animation: false,
       plugins: {
