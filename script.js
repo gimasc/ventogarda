@@ -48,7 +48,7 @@ async function caricaDati() {
       latitude:       spot.lat,
       longitude:      spot.lon,
       hourly:         "wind_gusts_10m,wind_direction_10m",
-      forecast_days:  2,
+      forecast_days:  3,
       models:         "meteoswiss_icon_ch1",
     });
 
