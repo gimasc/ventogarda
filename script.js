@@ -35,8 +35,7 @@ function dirNome(gradi) {
 // Formatta data in ora locale italiana
 function toLocalTime(isoString) {
   const d = new Date(isoString + "Z"); // forza UTC
-  d.setHours(d.getHours() + ORE_OFFSET);
-  return d;
+  return new Date(d.getTime() + ORE_OFFSET * 3600 * 1000);
 }
 
 async function caricaDati() {
