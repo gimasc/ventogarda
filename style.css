@@ -175,6 +175,10 @@ footer {
 
 footer a { color: var(--accent); text-decoration: none; }
 
+#grafico-vento-wrap canvas {
+  background: white;
+}
+
 .legenda-spots {
   display: flex;
   flex-wrap: wrap;
