@@ -18,6 +18,21 @@
 
 <main>
 
+  <!-- TIMELINE METEO -->
+  <div class="card">
+    <div class="card-header">
+      <span class="label">Previsioni meteo</span>
+      <span class="sub">Ora per ora · MeteoSwiss</span>
+    </div>
+    <div style="overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding: 0.6rem 0.8rem;">
+      <div id="timeline-meteo"></div>
+    </div>
+    <div class="card-footer">
+      <span>Aggiornato ad ogni apertura</span>
+    </div>
+  </div>
+
+  <!-- METEOGRAMMA 1 -->
   <div class="card">
     <div class="card-header">
       <span class="label">Óra · Torbole / Riva</span>
@@ -35,23 +50,7 @@
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <span class="label">Pelèr · Medio Garda</span>
-      <span class="sub">Meteogramma 1</span>
-    </div>
-    <div class="img-wrap">
-      <img
-        src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png"
-        referrerpolicy="no-referrer"
-        alt="Meteogramma Pelèr Medio Garda 1">
-    </div>
-    <div class="card-footer">
-      <span>Fonte: Meteotrentino</span>
-      <a class="btn-open" href="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png" target="_blank">Apri ↗</a>
-    </div>
-  </div>
-
+  <!-- PRESSIONE -->
   <div class="card">
     <div class="card-header">
       <span class="label">Δ Pressione Bolzano – Brescia</span>
@@ -69,6 +68,7 @@
     </div>
   </div>
 
+  <!-- GRAFICO RAFFICHE -->
   <div class="card">
     <div class="card-header">
       <span class="label">Raffiche · Area Torbole / Riva</span>
@@ -80,13 +80,32 @@
       <span><span class="dot" style="background:#e65100"></span>Terrazza Ponale</span>
       <span><span class="dot" style="background:#15b101"></span>Conca d'Oro</span>
     </div>
-    <div class="img-wrap img-scroll" id="grafico-vento-wrap" overflow-x: auto;">
+    <div class="img-wrap img-scroll" id="grafico-vento-wrap">
     </div>
     <div class="card-footer">
       <span>Aggiornato ad ogni apertura</span>
     </div>
   </div>
 
+  <!-- METEOGRAMMA 2 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="label">Pelèr · Medio Garda</span>
+      <span class="sub">Meteogramma</span>
+    </div>
+    <div class="img-wrap">
+      <img
+        src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png"
+        referrerpolicy="no-referrer"
+        alt="Meteogramma Pelèr Medio Garda">
+    </div>
+    <div class="card-footer">
+      <span>Fonte: Meteotrentino</span>
+      <a class="btn-open" href="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png" target="_blank">Apri ↗</a>
+    </div>
+  </div>
+
+  <!-- METEOGRAMMA 3 -->
   <div class="card">
     <div class="card-header">
       <span class="label">Pelèr · Medio Garda</span>
@@ -109,16 +128,13 @@
 <footer>
   Dati © <a href="https://www.meteotrentino.it" target="_blank">Meteotrentino</a> · 
   <a href="https://www.meteoswiss.admin.ch" target="_blank">MeteoSwiss</a> · 
-  <a href="https://profiwetter.ch" target="_blank">Profiwetter</a>
+  <a href="https://profiwetter.ch" target="_blank">Profiwetter</a> ·
+  <a href="https://open-meteo.com" target="_blank">Open-Meteo</a>
 </footer>
 
 <!-- =====================================================
      PULSANTE KO-FI - DONAZIONI VOLONTARIE
-     Attivare dopo aver contattato i fornitori dei dati
-     e dopo aver completato il sito.
-     Per attivare: rimuovere i tag di apertura e chiusura
-     del commento (queste righe con i trattini)
-     =====================================================
+     Per attivare: rimuovere i tag di commento
 
 <div style="text-align:center; padding: 1.5rem 0 .5rem;">
   <script type="text/javascript" src="https://storage.ko-fi.com/cdn/widget/Widget_2.js"></script>

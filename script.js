@@ -11,7 +11,9 @@ const SPOTS = [
   { nome: "Conca d'Oro",        lat: 45.86212, lon: 10.87536, colore: "#15b101" },
 ];
 
-const ORE_OFFSET = 0; // UTC+2 ora legale italiana
+// Coordinate di riferimento per il meteo generale (Conca d'Oro)
+const LAT_METEO = 45.86212;
+const LON_METEO = 10.87536;
 
 // Soglie vento
 const SOGLIE = [
@@ -20,22 +22,123 @@ const SOGLIE = [
   { kn: 30, colore: "#666666", label: "30 kn" },
 ];
 
-// Converti km/h in nodi (Open-Meteo ICON-CH1 restituisce km/h)
+// ============================================================
+// UTILITÀ
+// ============================================================
+
 function kmhToKn(kmh) {
   return kmh !== null ? Math.round(kmh / 1.852 * 10) / 10 : null;
 }
 
-// Converti gradi in punto cardinale
 function dirNome(gradi) {
   if (gradi === null) return "";
   const nomi = ["N","NE","E","SE","S","SW","W","NW","N"];
   return nomi[Math.round(gradi / 45) % 8];
 }
 
-// Formatta data in ora locale italiana
 function toLocalTime(isoString) {
-  return new Date(isoString + "Z"); // il browser converte automaticamente in ora locale
+  return new Date(isoString + "Z");
 }
+
+// ============================================================
+// TIMELINE METEO
+// WMO weather codes → colore sfondo e intensità nuvole
+// ============================================================
+
+function wmoToStile(code) {
+  if (code === 0)                          return { bg: "#f5c842", tipo: "sereno",    nuvole: 0   };
+  if (code === 1)                          return { bg: "#f0c035", tipo: "velato",    nuvole: 0.2 };
+  if (code === 2)                          return { bg: "#ddb830", tipo: "parz",      nuvole: 0.5 };
+  if (code === 3)                          return { bg: "#a0a098", tipo: "nuvoloso",  nuvole: 0   };
+  if (code >= 51 && code <= 67)            return { bg: "#787870", tipo: "pioggia",   nuvole: 0   };
+  if (code >= 71 && code <= 77)            return { bg: "#8090a0", tipo: "neve",      nuvole: 0   };
+  if (code >= 80 && code <= 82)            return { bg: "#606058", tipo: "pioggia",   nuvole: 0   };
+  if (code >= 95 && code <= 99)            return { bg: "#303028", tipo: "temporale", nuvole: 0   };
+  return                                          { bg: "#a0a098", tipo: "nuvoloso",  nuvole: 0   };
+}
+
+async function caricaMeteo() {
+  const params = new URLSearchParams({
+    latitude:               LAT_METEO,
+    longitude:              LON_METEO,
+    hourly:                 "temperature_2m,precipitation_probability,weather_code",
+    forecast_days:          2,
+    models:                 "meteoswiss_icon_ch1",
+  });
+  const r = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+  const d = await r.json();
+  return {
+    ore:         d.hourly.time.map(toLocalTime),
+    temp:        d.hourly.temperature_2m,
+    pioggia:     d.hourly.precipitation_probability,
+    codici:      d.hourly.weather_code,
+  };
+}
+
+function disegnaTimeline(meteo) {
+  const wrapper = document.getElementById("timeline-meteo");
+  if (!wrapper) return;
+
+  const adesso = new Date();
+  const H = meteo.ore.length;
+
+  // Trova inizio (ora corrente) e fine (max 36 ore dopo)
+  let start = 0;
+  while (start < H && meteo.ore[start] < adesso) start++;
+  const end = Math.min(start + 36, H);
+
+  let html = '<div style="display:flex;gap:3px;width:max-content;padding:4px 0;">';
+
+  for (let i = start; i < end; i++) {
+    const ora     = meteo.ore[i];
+    const temp    = meteo.temp[i] !== null ? Math.round(meteo.temp[i]) : "—";
+    const pioggia = meteo.pioggia[i] !== null ? meteo.pioggia[i] : 0;
+    const codice  = meteo.codici[i] ?? 3;
+    const stile   = wmoToStile(codice);
+    const hLabel  = String(ora.getHours()).padStart(2, "0");
+
+    // Colore testo: scuro su sfondi chiari, chiaro su sfondi scuri
+    const testoScuro = ["sereno","velato","parz"].includes(stile.tipo);
+    const colTesto   = testoScuro ? "#5a3e00" : "#f0f0ee";
+    const colPioggia = testoScuro ? "#5a3e00" : "#e0e8ff";
+
+    // Fill nuvole (bianco semitrasparente, solo per sereno/velato/parz)
+    const fillNuvole = stile.nuvole > 0
+      ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${Math.round(stile.nuvole * 100)}%;background:rgba(255,255,255,0.55);"></div>`
+      : "";
+
+    // Fill pioggia (blu dal basso)
+    const fillPioggia = pioggia > 5
+      ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${pioggia}%;background:rgba(40,80,200,${0.35 + pioggia/200});"></div>`
+      : "";
+
+    // Fulmine per temporale
+    const fulmine = stile.tipo === "temporale"
+      ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+           <svg width="16" height="24" viewBox="0 0 18 26" fill="none"><polygon points="10,0 3,14 9,14 8,26 15,12 9,12" fill="#ffe566" opacity="0.9"/></svg>
+         </div>`
+      : "";
+
+    html += `
+      <div style="display:flex;flex-direction:column;align-items:center;width:48px;">
+        <div style="width:48px;height:75px;border-radius:6px;background:${stile.bg};position:relative;overflow:hidden;border:0.5px solid rgba(0,0,0,0.15);">
+          ${fillNuvole}
+          ${fillPioggia}
+          ${fulmine}
+          <span style="position:absolute;top:7px;left:0;right:0;text-align:center;font-size:13px;font-weight:500;color:${colTesto};z-index:1;">${temp}°</span>
+          <span style="position:absolute;bottom:5px;left:0;right:0;text-align:center;font-size:10px;color:${colPioggia};z-index:1;">${pioggia}%</span>
+        </div>
+        <span style="font-size:11px;color:#6d96b8;margin-top:4px;">${hLabel}</span>
+      </div>`;
+  }
+
+  html += "</div>";
+  wrapper.innerHTML = html;
+}
+
+// ============================================================
+// GRAFICO VENTO
+// ============================================================
 
 async function caricaDati() {
   const url = "https://api.open-meteo.com/v1/forecast";
@@ -67,20 +170,17 @@ async function caricaDati() {
 
 function disegnaGrafico(dati) {
   const ore    = dati[0].ore;
-  const labels = ore.map(d => `${String(d.getHours()).padStart(2,"0")}`);
+  const labels = ore.map(d => `${String(d.getHours()).padStart(2,"00")}`);
 
-  // Trova inizio dati validi (salta i null iniziali)
   let start = 0;
   while (start < dati[0].raffiche.length && dati[0].raffiche[start] === null) start++;
 
-  // Trova fine dati validi (taglia i null finali)
   let end = dati[0].raffiche.length;
   while (end > start && dati[0].raffiche[end - 1] === null) end--;
 
   const oreSlice    = ore.slice(start, end);
   const labelsSlice = labels.slice(start, end);
 
-  // Dataset linee spots
   const datasets = dati.map((s, i) => ({
     label:       s.nome,
     data:        s.raffiche.slice(start, end),
@@ -92,7 +192,6 @@ function disegnaGrafico(dati) {
     spanGaps:    true,
   }));
 
-  // Dataset linee soglia
   SOGLIE.forEach(soglia => {
     datasets.push({
       label:       soglia.label,
@@ -105,23 +204,17 @@ function disegnaGrafico(dati) {
     });
   });
 
-  // Linee verticali per i giorni
   const dayLines = [];
   let lastDay = null;
   oreSlice.forEach((d, i) => {
     const day = d.toDateString();
-    if (day !== lastDay) {
-      lastDay = day;
-      dayLines.push(i);
-    }
+    if (day !== lastDay) { lastDay = day; dayLines.push(i); }
   });
 
-  // Plugin personalizzato per linee giorni ed etichette soglie
   const pluginGiorni = {
     id: "giorni",
     afterDraw(chart) {
       const { ctx, scales: { x, y } } = chart;
-
       dayLines.forEach(i => {
         const xPos = x.getPixelForValue(i);
         ctx.save();
@@ -131,7 +224,6 @@ function disegnaGrafico(dati) {
         ctx.moveTo(xPos, chart.chartArea.top);
         ctx.lineTo(xPos, chart.chartArea.bottom);
         ctx.stroke();
-
         const d = oreSlice[i];
         const gg = ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"][d.getDay()];
         const data = `${gg} ${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`;
@@ -140,7 +232,6 @@ function disegnaGrafico(dati) {
         ctx.fillText(data, xPos + 4, chart.chartArea.top + 14);
         ctx.restore();
       });
-
       SOGLIE.forEach(soglia => {
         const yPos = y.getPixelForValue(soglia.kn);
         dayLines.forEach(i => {
@@ -155,7 +246,6 @@ function disegnaGrafico(dati) {
     }
   };
 
-  // Crea grafico
   const canvas = document.getElementById("canvas-vento");
   new Chart(canvas, {
     type: "line",
@@ -166,21 +256,11 @@ function disegnaGrafico(dati) {
       animation: false,
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} kn`,
-          }
-        }
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} kn` } }
       },
       scales: {
         x: {
-          ticks: {
-            maxRotation: 90,
-            minRotation: 90,
-            font: { size: 10 },
-            color: "#444",
-            maxTicksLimit: 50,
-          },
+          ticks: { maxRotation: 90, minRotation: 90, font: { size: 10 }, color: "#444", maxTicksLimit: 50 },
           grid: { color: "#e0e0e0" },
         },
         y: {
@@ -194,17 +274,30 @@ function disegnaGrafico(dati) {
   });
 }
 
-// Avvia tutto
+// ============================================================
+// AVVIO
+// ============================================================
+
 async function init() {
-  const wrapper = document.getElementById("grafico-vento-wrap");
-  wrapper.innerHTML = '<p style="text-align:center;color:#6d96b8;padding:2rem;">Caricamento dati...</p>';
+  // Timeline meteo
+  const wrapTimeline = document.getElementById("timeline-meteo");
+  if (wrapTimeline) wrapTimeline.innerHTML = '<p style="color:#6d96b8;font-size:13px;padding:1rem 0;">Caricamento...</p>';
+
+  // Grafico vento
+  const wrapVento = document.getElementById("grafico-vento-wrap");
+  if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#6d96b8;padding:2rem;">Caricamento dati...</p>';
 
   try {
-    const dati = await caricaDati();
-    wrapper.innerHTML = '<canvas id="canvas-vento" width="1200" height="400"></canvas>';
+    const [meteo, dati] = await Promise.all([caricaMeteo(), caricaDati()]);
+
+    disegnaTimeline(meteo);
+
+    wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="400"></canvas>';
     disegnaGrafico(dati);
+
   } catch (e) {
-    wrapper.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Errore caricamento dati meteo</p>';
+    if (wrapTimeline) wrapTimeline.innerHTML = "";
+    if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Errore caricamento dati meteo</p>';
     console.error(e);
   }
 }
