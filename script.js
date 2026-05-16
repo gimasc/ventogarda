@@ -48,7 +48,7 @@ function toLocalTime(isoString) {
 function wmoToStile(code) {
   if (code === 0)                          return { bg: "#f5c842", tipo: "sereno",    nuvole: 0   };
   if (code === 1)                          return { bg: "#f0c035", tipo: "velato",    nuvole: 0.2 };
-  if (code === 2)                          return { bg: "#ddb830", tipo: "parz",      nuvole: 0.5 };
+  if (code === 2)                          return { bg: "#c8b870", tipo: "parz",      nuvole: 0.5 };
   if (code === 3)                          return { bg: "#a0a098", tipo: "nuvoloso",  nuvole: 0   };
   if (code >= 51 && code <= 67)            return { bg: "#787870", tipo: "pioggia",   nuvole: 0   };
   if (code >= 71 && code <= 77)            return { bg: "#8090a0", tipo: "neve",      nuvole: 0   };
@@ -122,7 +122,6 @@ function disegnaTimeline(meteo) {
     html += `
       <div style="display:flex;flex-direction:column;align-items:center;width:48px;">
         <div style="width:48px;height:75px;border-radius:6px;background:${stile.bg};position:relative;overflow:hidden;border:0.5px solid rgba(0,0,0,0.15);">
-          ${fillNuvole}
           ${fillPioggia}
           ${fulmine}
           <span style="position:absolute;top:7px;left:0;right:0;text-align:center;font-size:13px;font-weight:500;color:${colTesto};z-index:1;">${temp}°</span>
