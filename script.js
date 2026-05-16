@@ -103,9 +103,9 @@ function disegnaTimeline(meteo) {
     const colPioggia = testoScuro ? "#5a3e00" : "#e0e8ff";
 
     // Fill nuvole (bianco semitrasparente, solo per sereno/velato/parz)
-    const fillNuvole = stile.nuvole > 0
-      ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${Math.round(stile.nuvole * 100)}%;background:rgba(255,255,255,0.92);"></div>`
-      : "";
+   const fillNuvole = stile.nuvole > 0
+  ? `<div style="position:absolute;top:0;left:0;right:0;height:${Math.round(stile.nuvole * 100)}%;background:rgba(255,255,255,0.88);"></div>`
+  : "";
 
     // Fill pioggia (blu dal basso)
     const fillPioggia = pioggia > 5
