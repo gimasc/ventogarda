@@ -64,7 +64,7 @@ function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs) {
   const colT = scuro ? "#f0f0ee" : "#5a3e00";
   const colP = scuro ? "#c8d8ff" : "#5a3e00";
   // Fill proporzionale ai mm (max visivo a 3mm = 70%)
-  const fillH = mm > 0 ? Math.min(Math.round(mm / 3 * 70), 70) : 0;
+  const fillH = mm > 0 ? Math.min(Math.round(mm / 0.5 * 70), 70) : 0;
   const fillPioggia = fillH > 0
     ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${fillH}%;background:rgba(40,80,200,${0.35 + Math.min(mm/10, 0.4)});z-index:0;"></div>`
     : "";
@@ -112,6 +112,7 @@ function disegnaRiepilogo(meteo) {
   const wrapper = document.getElementById("riepilogo-giorni");
   if (!wrapper) return;
 
+  const adesso = new Date();
   const giorni = {};
   meteo.ore.forEach((ora, i) => {
     const key = ora.toDateString();
@@ -210,7 +211,7 @@ function disegnaTimelineSlot(meteo) {
     if (!giorni[dayKey]) giorni[dayKey] = { data: ora, slot: [null, null, null] };
     const h = ora.getHours();
     SLOT_ORE.forEach(([da, a], si) => {
-      if (h >= da && h <= a) {
+      if (h >= da && h <= a && ora >= adesso) {
         if (!giorni[dayKey].slot[si]) giorni[dayKey].slot[si] = { temp:[], prob:[], mm:[], codici:[] };
         const s = giorni[dayKey].slot[si];
         if (meteo.temp[i]   !== null) s.temp.push(meteo.temp[i]);
@@ -221,9 +222,14 @@ function disegnaTimelineSlot(meteo) {
     });
   });
 
+  // Filtra i giorni che hanno almeno un slot con dati
+  const chiavi = Object.keys(giorni).filter(key => 
+    giorni[key].slot.some(s => s && s.temp.length > 0)
+  );
+
   let html = '<div style="display:flex;gap:8px;width:max-content;padding:4px 0;align-items:flex-start;">';
 
-  Object.keys(giorni).forEach(key => {
+  chiavi.forEach(key => {
     const g    = giorni[key];
     const gg   = GIORNI[g.data.getDay()];
     const data = `${gg} ${String(g.data.getDate()).padStart(2,"0")}/${String(g.data.getMonth()+1).padStart(2,"0")}`;
@@ -388,7 +394,6 @@ async function init() {
   try {
     const [meteo, dati] = await Promise.all([caricaMeteo(), caricaDati()]);
     meteoCache = meteo;
-    disegnaRiepilogo(meteo);
     disegnaTimeline(meteo);
     aggiornaBottoni();
 
