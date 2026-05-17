@@ -81,18 +81,17 @@ async function caricaMeteo() {
   const params = new URLSearchParams({
     latitude:      LAT_METEO,
     longitude:     LON_METEO,
-    hourly:        "temperature_2m,precipitation_probability,precipitation,weather_code",
+    hourly:        "temperature_2m,precipitation_probability,weather_code",
     forecast_days: 5,
     models:        "icon_seamless",
   });
   const r = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
   const d = await r.json();
   return {
-    ore:        d.hourly.time.map(toLocalTime),
-    temp:       d.hourly.temperature_2m,
-    prob:       d.hourly.precipitation_probability,
-    mm:         d.hourly.precipitation,
-    codici:     d.hourly.weather_code,
+    ore:     d.hourly.time.map(toLocalTime),
+    temp:    d.hourly.temperature_2m,
+    pioggia: d.hourly.precipitation_probability,
+    codici:  d.hourly.weather_code,
   };
 }
 
@@ -108,12 +107,11 @@ function disegnaRiepilogo(meteo) {
   const giorni = {};
   meteo.ore.forEach((ora, i) => {
     const key = ora.toDateString();
-    if (!giorni[key]) giorni[key] = { ore: [], temp: [], codici: [], prob: [], data: ora };
+    if (!giorni[key]) giorni[key] = { ore: [], temp: [], codici: [], data: ora };
     const h = ora.getHours();
     if (h >= 8 && h <= 20) {
       giorni[key].codici.push(meteo.codici[i] ?? 3);
       if (meteo.temp[i] !== null) giorni[key].temp.push(meteo.temp[i]);
-      if (meteo.prob[i] !== null) giorni[key].prob.push(meteo.prob[i]);
     }
   });
 
@@ -136,9 +134,8 @@ function disegnaRiepilogo(meteo) {
            <svg width="8" height="13" viewBox="0 0 18 26" fill="none"><polygon points="10,0 3,14 9,14 8,26 15,12 9,12" fill="#ffe566" opacity="0.95"/></svg>
          </div>`
       : "";
-    const probMax = g.prob.length ? Math.max(...g.prob) : 0;
-    const fillPioggia = probMax > 20
-      ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${Math.round(probMax/100*70)}%;background:rgba(40,80,200,${0.3 + probMax/300});z-index:0;"></div>`
+    const fillPioggia = (g.codici.some(c => c >= 51))
+      ? `<div style="position:absolute;bottom:0;left:0;right:0;height:35%;background:rgba(40,80,200,0.45);z-index:0;"></div>`
       : "";
 
     html += `
@@ -177,8 +174,7 @@ function disegnaTimeline(meteo) {
   for (let i = start; i < H; i++) {
     const ora     = meteo.ore[i];
     const temp    = meteo.temp[i] !== null ? Math.round(meteo.temp[i]) : "—";
-    const prob    = meteo.prob[i] !== null ? meteo.prob[i] : 0;
-    const mm      = meteo.mm[i] !== null ? meteo.mm[i] : 0;
+    const pioggia = meteo.pioggia[i] !== null ? meteo.pioggia[i] : 0;
     const codice  = meteo.codici[i] ?? 3;
     const stile   = wmoToStile(codice);
     const hLabel  = String(ora.getHours()).padStart(2, "0");
@@ -191,7 +187,7 @@ function disegnaTimeline(meteo) {
       const data = `${gg} ${String(ora.getDate()).padStart(2,"0")}/${String(ora.getMonth()+1).padStart(2,"0")}`;
       html += `
         <div style="display:flex;flex-direction:column;align-items:center;margin:0 4px;">
-          <div style="width:1px;height:75px;background:#4fc3f740;"></div>
+          <div style="width:1px;height:52px;background:#4fc3f740;"></div>
           <span style="font-size:9px;color:#4fc3f7;margin-top:4px;white-space:nowrap;font-style:italic;">${data}</span>
         </div>`;
     }
@@ -199,14 +195,11 @@ function disegnaTimeline(meteo) {
     const colTesto   = stile.scuro ? "#f0f0ee" : "#5a3e00";
     const colPioggia = stile.scuro ? "#c8d8ff" : "#5a3e00";
 
-    // Fill pioggia basato su mm (quantità), max visivo = 5mm = 70%
-    const fillH = mm > 0 ? Math.min(Math.round(mm / 5 * 70), 70) : 0;
-    const fillPioggia = fillH > 2
-      ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${fillH}%;background:rgba(40,80,200,${0.3 + mm/20});z-index:0;"></div>`
+    // Fill pioggia
+    const fillPioggia = pioggia > 5
+      ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${pioggia}%;background:rgba(40,80,200,${0.3 + pioggia/250});z-index:0;"></div>`
       : "";
 
-    // Nuvoletta
-    const cloud = nuvoletta(stile.nuvola);
 
     // Fulmine
     const fulmine = stile.tipo === "temporale"
@@ -217,12 +210,11 @@ function disegnaTimeline(meteo) {
 
     html += `
       <div style="display:flex;flex-direction:column;align-items:center;width:46px;margin:0 1px;">
-        <div style="width:46px;height:75px;border-radius:6px;background:${stile.bg};position:relative;overflow:hidden;border:0.5px solid rgba(0,0,0,0.12);">
+        <div style="width:46px;height:52px;border-radius:6px;background:${stile.bg};position:relative;overflow:hidden;border:0.5px solid rgba(0,0,0,0.12);">
           ${fillPioggia}
-          ${cloud}
           ${fulmine}
-          <span style="position:absolute;top:6px;left:0;right:0;text-align:center;font-size:12px;font-weight:500;color:${colTesto};z-index:3;">${temp}°</span>
-          <span style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:10px;color:${colPioggia};z-index:3;">${prob}%</span>
+          <span style="position:absolute;top:4px;left:0;right:0;text-align:center;font-size:11px;font-weight:500;color:${colTesto};z-index:3;">${temp}°</span>
+          <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:9px;color:${colPioggia};z-index:3;">${pioggia}%</span>
         </div>
         <span style="font-size:10px;color:#6d96b8;margin-top:3px;">${hLabel}</span>
       </div>`;
