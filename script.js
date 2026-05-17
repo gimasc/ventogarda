@@ -26,6 +26,7 @@ const SLOT_NOMI = ["Mat","Pom","Ser"];
 
 let vistaModo  = "slot";
 let meteoCache = null;
+const adesso = new Date();
 
 // ============================================================
 // UTILITÀ
@@ -112,7 +113,6 @@ function disegnaRiepilogo(meteo) {
   const wrapper = document.getElementById("riepilogo-giorni");
   if (!wrapper) return;
 
-  const adesso = new Date();
   const giorni = {};
   meteo.ore.forEach((ora, i) => {
     const key = ora.toDateString();
