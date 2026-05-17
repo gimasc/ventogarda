@@ -39,21 +39,20 @@ function toLocalTime(isoString) {
 // size: 0=nessuna, 1=piccola chiara, 2=media, 3=grande scura
 // ============================================================
 
-function nuvoletta(size, tipoSfondo) {
+function nuvoletta(size) {
   if (size === 0 || size >= 3) return "";
-  // size 1 = piccola chiara, size 2 = grande grigia
-  const scale = size === 1 ? 0.6 : 0.92;
-  const col   = size === 1 ? "rgba(255,255,255,0.82)" : "rgba(190,195,205,0.88)";
+  // size 1 = piccola bianca, size 2 = grande grigia
+  const scale = size === 1 ? 0.58 : 0.90;
+  const col   = size === 1 ? "#ffffff" : "#c8cdd6";
   const w = Math.round(40 * scale);
   const h = Math.round(22 * scale);
-  // Forma solid: ellissi + rettangolo base che tappa i vuoti
-  return `<div style="position:absolute;bottom:${size === 1 ? 16 : 10}px;left:0;right:0;display:flex;justify-content:center;pointer-events:none;">
+  return `<div style="position:absolute;top:0;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
     <svg width="${w}" height="${h}" viewBox="0 0 40 22" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="20" cy="16" rx="18" ry="7" fill="${col}"/>
-      <ellipse cx="13" cy="12" rx="9" ry="8" fill="${col}"/>
-      <ellipse cx="24" cy="10" rx="10" ry="9" fill="${col}"/>
-      <ellipse cx="19" cy="8" rx="7" ry="7" fill="${col}"/>
-      <rect x="2" y="14" width="36" height="8" fill="${col}"/>
+      <rect x="2" y="13" width="36" height="9" fill="${col}"/>
+      <ellipse cx="20" cy="15" rx="18" ry="7" fill="${col}"/>
+      <ellipse cx="13" cy="11" rx="9" ry="8" fill="${col}"/>
+      <ellipse cx="25" cy="10" rx="10" ry="9" fill="${col}"/>
+      <ellipse cx="19" cy="7" rx="7" ry="7" fill="${col}"/>
     </svg>
   </div>`;
 }
@@ -94,6 +93,64 @@ async function caricaMeteo() {
     pioggia: d.hourly.precipitation_probability,
     codici:  d.hourly.weather_code,
   };
+}
+
+// ============================================================
+// RIEPILOGO GIORNI (mini rettangoli nell header)
+// ============================================================
+
+function disegnaRiepilogo(meteo) {
+  const wrapper = document.getElementById("riepilogo-giorni");
+  if (!wrapper) return;
+
+  // Raggruppa per giorno
+  const giorni = {};
+  meteo.ore.forEach((ora, i) => {
+    const key = ora.toDateString();
+    if (!giorni[key]) giorni[key] = { ore: [], temp: [], codici: [], data: ora };
+    const h = ora.getHours();
+    if (h >= 8 && h <= 20) {
+      giorni[key].codici.push(meteo.codici[i] ?? 3);
+      if (meteo.temp[i] !== null) giorni[key].temp.push(meteo.temp[i]);
+    }
+  });
+
+  const chiavi = Object.keys(giorni).slice(0, 6);
+  let html = '<div style="display:flex;gap:3px;align-items:flex-end;">';
+
+  chiavi.forEach(key => {
+    const g = giorni[key];
+    // Codice dominante del giorno
+    const moda = g.codici.sort((a,b) =>
+      g.codici.filter(v=>v===b).length - g.codici.filter(v=>v===a).length
+    )[0] ?? 3;
+    const stile = wmoToStile(moda);
+    const tempMax = g.temp.length ? Math.round(Math.max(...g.temp)) : "—";
+    const gg = GIORNI[g.data.getDay()];
+    const cloud = nuvoletta(stile.nuvola, true); // mini
+    const colTesto = stile.scuro ? "#f0f0ee" : "#5a3e00";
+    const fulmine = stile.tipo === "temporale"
+      ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;">
+           <svg width="8" height="13" viewBox="0 0 18 26" fill="none"><polygon points="10,0 3,14 9,14 8,26 15,12 9,12" fill="#ffe566" opacity="0.95"/></svg>
+         </div>`
+      : "";
+    const fillPioggia = (g.codici.some(c => c >= 51))
+      ? `<div style="position:absolute;bottom:0;left:0;right:0;height:35%;background:rgba(40,80,200,0.45);z-index:0;"></div>`
+      : "";
+
+    html += `
+      <div style="display:flex;flex-direction:column;align-items:center;width:28px;">
+        <div style="width:28px;height:42px;border-radius:4px;background:${stile.bg};position:relative;overflow:hidden;border:0.5px solid rgba(0,0,0,0.12);">
+          ${fillPioggia}
+          ${fulmine}
+          <span style="position:absolute;top:4px;left:0;right:0;text-align:center;font-size:9px;font-weight:500;color:${colTesto};z-index:3;">${tempMax}°</span>
+        </div>
+        <span style="font-size:8px;color:#6d96b8;margin-top:2px;">${gg}</span>
+      </div>`;
+  });
+
+  html += "</div>";
+  wrapper.innerHTML = html;
 }
 
 // ============================================================
@@ -144,7 +201,7 @@ function disegnaTimeline(meteo) {
       : "";
 
     // Nuvoletta
-    const cloud = nuvoletta(stile.nuvola, stile.scuro ? "scuro" : "chiaro");
+    const cloud = nuvoletta(stile.nuvola);
 
     // Fulmine
     const fulmine = stile.tipo === "temporale"
@@ -321,6 +378,7 @@ async function init() {
   try {
     const [meteo, dati] = await Promise.all([caricaMeteo(), caricaDati()]);
     disegnaTimeline(meteo);
+    disegnaRiepilogo(meteo);
     wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="400"></canvas>';
     disegnaGrafico(dati);
   } catch (e) {
