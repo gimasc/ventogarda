@@ -40,18 +40,20 @@ function toLocalTime(isoString) {
 // ============================================================
 
 function nuvoletta(size, tipoSfondo) {
-  if (size === 0) return "";
-  const scale   = [0, 0.55, 0.75, 0.95][size];
-  const opacity = [0, 0.45, 0.70, 0.90][size];
-  const fill    = tipoSfondo === "scuro" ? "rgba(180,190,210," + opacity + ")" : "rgba(255,255,255," + opacity + ")";
-  const w = Math.round(32 * scale);
-  const h = Math.round(20 * scale);
-  return `<div style="position:absolute;bottom:${18 + size * 2}px;left:0;right:0;display:flex;justify-content:center;pointer-events:none;">
-    <svg width="${w}" height="${h}" viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="16" cy="14" rx="14" ry="6" fill="${fill}"/>
-      <ellipse cx="11" cy="11" rx="7" ry="6" fill="${fill}"/>
-      <ellipse cx="20" cy="10" rx="8" ry="7" fill="${fill}"/>
-      <ellipse cx="16" cy="8" rx="6" ry="6" fill="${fill}"/>
+  if (size === 0 || size >= 3) return "";
+  // size 1 = piccola chiara, size 2 = grande grigia
+  const scale = size === 1 ? 0.6 : 0.92;
+  const col   = size === 1 ? "rgba(255,255,255,0.82)" : "rgba(190,195,205,0.88)";
+  const w = Math.round(40 * scale);
+  const h = Math.round(22 * scale);
+  // Forma solid: ellissi + rettangolo base che tappa i vuoti
+  return `<div style="position:absolute;bottom:${size === 1 ? 16 : 10}px;left:0;right:0;display:flex;justify-content:center;pointer-events:none;">
+    <svg width="${w}" height="${h}" viewBox="0 0 40 22" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="20" cy="16" rx="18" ry="7" fill="${col}"/>
+      <ellipse cx="13" cy="12" rx="9" ry="8" fill="${col}"/>
+      <ellipse cx="24" cy="10" rx="10" ry="9" fill="${col}"/>
+      <ellipse cx="19" cy="8" rx="7" ry="7" fill="${col}"/>
+      <rect x="2" y="14" width="36" height="8" fill="${col}"/>
     </svg>
   </div>`;
 }
