@@ -11,16 +11,16 @@ const SPOTS = [
   { nome: "Conca d'Oro",        lat: 45.86212, lon: 10.87536, colore: "#15b101" },
 ];
 
-// Coordinate di riferimento per il meteo generale (Conca d'Oro)
 const LAT_METEO = 45.86212;
 const LON_METEO = 10.87536;
 
-// Soglie vento
 const SOGLIE = [
   { kn: 10, colore: "#bbbbbb", label: "10 kn" },
   { kn: 20, colore: "#999999", label: "20 kn" },
   { kn: 30, colore: "#666666", label: "30 kn" },
 ];
+
+const GIORNI = ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"];
 
 // ============================================================
 // UTILITÀ
@@ -30,50 +30,73 @@ function kmhToKn(kmh) {
   return kmh !== null ? Math.round(kmh / 1.852 * 10) / 10 : null;
 }
 
-function dirNome(gradi) {
-  if (gradi === null) return "";
-  const nomi = ["N","NE","E","SE","S","SW","W","NW","N"];
-  return nomi[Math.round(gradi / 45) % 8];
-}
-
 function toLocalTime(isoString) {
   return new Date(isoString + "Z");
 }
 
 // ============================================================
-// TIMELINE METEO
-// WMO weather codes → colore sfondo e intensità nuvole
+// NUVOLETTA SVG
+// size: 0=nessuna, 1=piccola chiara, 2=media, 3=grande scura
+// ============================================================
+
+function nuvoletta(size, tipoSfondo) {
+  if (size === 0) return "";
+  const scale   = [0, 0.55, 0.75, 0.95][size];
+  const opacity = [0, 0.45, 0.70, 0.90][size];
+  const fill    = tipoSfondo === "scuro" ? "rgba(180,190,210," + opacity + ")" : "rgba(255,255,255," + opacity + ")";
+  const w = Math.round(32 * scale);
+  const h = Math.round(20 * scale);
+  return `<div style="position:absolute;bottom:${18 + size * 2}px;left:0;right:0;display:flex;justify-content:center;pointer-events:none;">
+    <svg width="${w}" height="${h}" viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="16" cy="14" rx="14" ry="6" fill="${fill}"/>
+      <ellipse cx="11" cy="11" rx="7" ry="6" fill="${fill}"/>
+      <ellipse cx="20" cy="10" rx="8" ry="7" fill="${fill}"/>
+      <ellipse cx="16" cy="8" rx="6" ry="6" fill="${fill}"/>
+    </svg>
+  </div>`;
+}
+
+// ============================================================
+// WMO → stile rettangolo
 // ============================================================
 
 function wmoToStile(code) {
-  if (code === 0)                          return { bg: "#f5c842", tipo: "sereno",    nuvole: 0   };
-  if (code === 1)                          return { bg: "#f0c035", tipo: "velato",    nuvole: 0.2 };
-  if (code === 2)                          return { bg: "#c8b870", tipo: "parz",      nuvole: 0.5 };
-  if (code === 3)                          return { bg: "#a0a098", tipo: "nuvoloso",  nuvole: 0   };
-  if (code >= 51 && code <= 67)            return { bg: "#787870", tipo: "pioggia",   nuvole: 0   };
-  if (code >= 71 && code <= 77)            return { bg: "#8090a0", tipo: "neve",      nuvole: 0   };
-  if (code >= 80 && code <= 82)            return { bg: "#606058", tipo: "pioggia",   nuvole: 0   };
-  if (code >= 95 && code <= 99)            return { bg: "#303028", tipo: "temporale", nuvole: 0   };
-  return                                          { bg: "#a0a098", tipo: "nuvoloso",  nuvole: 0   };
+  if (code === 0)               return { bg: "#f5c842", tipo: "sereno",    scuro: false, nuvola: 0 };
+  if (code === 1)               return { bg: "#efc030", tipo: "velato",    scuro: false, nuvola: 1 };
+  if (code === 2)               return { bg: "#c8b060", tipo: "parz",      scuro: false, nuvola: 2 };
+  if (code === 3)               return { bg: "#909088", tipo: "nuvoloso",  scuro: true,  nuvola: 3 };
+  if (code >= 51 && code <= 67) return { bg: "#686860", tipo: "pioggia",   scuro: true,  nuvola: 3 };
+  if (code >= 71 && code <= 77) return { bg: "#7888a0", tipo: "neve",      scuro: true,  nuvola: 3 };
+  if (code >= 80 && code <= 82) return { bg: "#585850", tipo: "pioggia",   scuro: true,  nuvola: 3 };
+  if (code >= 95 && code <= 99) return { bg: "#282820", tipo: "temporale", scuro: true,  nuvola: 3 };
+  return                               { bg: "#909088", tipo: "nuvoloso",  scuro: true,  nuvola: 3 };
 }
+
+// ============================================================
+// CARICA METEO — 5 giorni con icon_seamless
+// ============================================================
 
 async function caricaMeteo() {
   const params = new URLSearchParams({
-    latitude:               LAT_METEO,
-    longitude:              LON_METEO,
-    hourly:                 "temperature_2m,precipitation_probability,weather_code",
-    forecast_days:          2,
-    models:                 "meteoswiss_icon_ch1",
+    latitude:      LAT_METEO,
+    longitude:     LON_METEO,
+    hourly:        "temperature_2m,precipitation_probability,weather_code",
+    forecast_days: 5,
+    models:        "icon_seamless",
   });
   const r = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
   const d = await r.json();
   return {
-    ore:         d.hourly.time.map(toLocalTime),
-    temp:        d.hourly.temperature_2m,
-    pioggia:     d.hourly.precipitation_probability,
-    codici:      d.hourly.weather_code,
+    ore:     d.hourly.time.map(toLocalTime),
+    temp:    d.hourly.temperature_2m,
+    pioggia: d.hourly.precipitation_probability,
+    codici:  d.hourly.weather_code,
   };
 }
+
+// ============================================================
+// DISEGNA TIMELINE
+// ============================================================
 
 function disegnaTimeline(meteo) {
   const wrapper = document.getElementById("timeline-meteo");
@@ -82,52 +105,62 @@ function disegnaTimeline(meteo) {
   const adesso = new Date();
   const H = meteo.ore.length;
 
-  // Trova inizio (ora corrente) e fine (max 36 ore dopo)
   let start = 0;
   while (start < H && meteo.ore[start] < adesso) start++;
-  const end = Math.min(start + 36, H);
 
-  let html = '<div style="display:flex;gap:3px;width:max-content;padding:4px 0;">';
+  let html = '<div style="display:flex;gap:0;width:max-content;padding:4px 0;align-items:flex-end;">';
 
-  for (let i = start; i < end; i++) {
+  let lastDay = null;
+
+  for (let i = start; i < H; i++) {
     const ora     = meteo.ore[i];
     const temp    = meteo.temp[i] !== null ? Math.round(meteo.temp[i]) : "—";
     const pioggia = meteo.pioggia[i] !== null ? meteo.pioggia[i] : 0;
     const codice  = meteo.codici[i] ?? 3;
     const stile   = wmoToStile(codice);
     const hLabel  = String(ora.getHours()).padStart(2, "0");
+    const dayKey  = ora.toDateString();
 
-    // Colore testo: scuro su sfondi chiari, chiaro su sfondi scuri
-    const testoScuro = ["sereno","velato","parz"].includes(stile.tipo);
-    const colTesto   = testoScuro ? "#5a3e00" : "#f0f0ee";
-    const colPioggia = testoScuro ? "#5a3e00" : "#e0e8ff";
+    // Separatore data
+    if (dayKey !== lastDay) {
+      lastDay = dayKey;
+      const gg   = GIORNI[ora.getDay()];
+      const data = `${gg} ${String(ora.getDate()).padStart(2,"0")}/${String(ora.getMonth()+1).padStart(2,"0")}`;
+      html += `
+        <div style="display:flex;flex-direction:column;align-items:center;margin:0 4px;">
+          <div style="width:1px;height:75px;background:#4fc3f740;"></div>
+          <span style="font-size:9px;color:#4fc3f7;margin-top:4px;white-space:nowrap;font-style:italic;">${data}</span>
+        </div>`;
+    }
 
-    // Fill nuvole (bianco semitrasparente, solo per sereno/velato/parz)
-   const fillNuvole = stile.nuvole > 0
-  ? `<div style="position:absolute;top:0;left:0;right:0;height:${Math.round(stile.nuvole * 100)}%;background:rgba(255,255,255,0.88);"></div>`
-  : "";
+    const colTesto   = stile.scuro ? "#f0f0ee" : "#5a3e00";
+    const colPioggia = stile.scuro ? "#c8d8ff" : "#5a3e00";
 
-    // Fill pioggia (blu dal basso)
+    // Fill pioggia
     const fillPioggia = pioggia > 5
-      ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${pioggia}%;background:rgba(40,80,200,${0.35 + pioggia/200});"></div>`
+      ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${pioggia}%;background:rgba(40,80,200,${0.3 + pioggia/250});z-index:0;"></div>`
       : "";
 
-    // Fulmine per temporale
+    // Nuvoletta
+    const cloud = nuvoletta(stile.nuvola, stile.scuro ? "scuro" : "chiaro");
+
+    // Fulmine
     const fulmine = stile.tipo === "temporale"
-      ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-           <svg width="16" height="24" viewBox="0 0 18 26" fill="none"><polygon points="10,0 3,14 9,14 8,26 15,12 9,12" fill="#ffe566" opacity="0.9"/></svg>
+      ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;">
+           <svg width="14" height="22" viewBox="0 0 18 26" fill="none"><polygon points="10,0 3,14 9,14 8,26 15,12 9,12" fill="#ffe566" opacity="0.95"/></svg>
          </div>`
       : "";
 
     html += `
-      <div style="display:flex;flex-direction:column;align-items:center;width:48px;">
-        <div style="width:48px;height:75px;border-radius:6px;background:${stile.bg};position:relative;overflow:hidden;border:0.5px solid rgba(0,0,0,0.15);">
+      <div style="display:flex;flex-direction:column;align-items:center;width:46px;margin:0 1px;">
+        <div style="width:46px;height:75px;border-radius:6px;background:${stile.bg};position:relative;overflow:hidden;border:0.5px solid rgba(0,0,0,0.12);">
           ${fillPioggia}
+          ${cloud}
           ${fulmine}
-          <span style="position:absolute;top:7px;left:0;right:0;text-align:center;font-size:13px;font-weight:500;color:${colTesto};z-index:1;">${temp}°</span>
-          <span style="position:absolute;bottom:5px;left:0;right:0;text-align:center;font-size:10px;color:${colPioggia};z-index:1;">${pioggia}%</span>
+          <span style="position:absolute;top:6px;left:0;right:0;text-align:center;font-size:12px;font-weight:500;color:${colTesto};z-index:3;">${temp}°</span>
+          <span style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:10px;color:${colPioggia};z-index:3;">${pioggia}%</span>
         </div>
-        <span style="font-size:11px;color:#6d96b8;margin-top:4px;">${hLabel}</span>
+        <span style="font-size:10px;color:#6d96b8;margin-top:3px;">${hLabel}</span>
       </div>`;
   }
 
@@ -169,11 +202,10 @@ async function caricaDati() {
 
 function disegnaGrafico(dati) {
   const ore    = dati[0].ore;
-  const labels = ore.map(d => `${String(d.getHours()).padStart(2,"00")}`);
+  const labels = ore.map(d => `${String(d.getHours()).padStart(2,"0")}`);
 
   let start = 0;
   while (start < dati[0].raffiche.length && dati[0].raffiche[start] === null) start++;
-
   let end = dati[0].raffiche.length;
   while (end > start && dati[0].raffiche[end - 1] === null) end--;
 
@@ -224,7 +256,7 @@ function disegnaGrafico(dati) {
         ctx.lineTo(xPos, chart.chartArea.bottom);
         ctx.stroke();
         const d = oreSlice[i];
-        const gg = ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"][d.getDay()];
+        const gg = GIORNI[d.getDay()];
         const data = `${gg} ${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`;
         ctx.fillStyle = "#555";
         ctx.font = "italic 11px DM Sans, sans-serif";
@@ -278,22 +310,17 @@ function disegnaGrafico(dati) {
 // ============================================================
 
 async function init() {
-  // Timeline meteo
   const wrapTimeline = document.getElementById("timeline-meteo");
   if (wrapTimeline) wrapTimeline.innerHTML = '<p style="color:#6d96b8;font-size:13px;padding:1rem 0;">Caricamento...</p>';
 
-  // Grafico vento
   const wrapVento = document.getElementById("grafico-vento-wrap");
   if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#6d96b8;padding:2rem;">Caricamento dati...</p>';
 
   try {
     const [meteo, dati] = await Promise.all([caricaMeteo(), caricaDati()]);
-
     disegnaTimeline(meteo);
-
     wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="400"></canvas>';
     disegnaGrafico(dati);
-
   } catch (e) {
     if (wrapTimeline) wrapTimeline.innerHTML = "";
     if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Errore caricamento dati meteo</p>';
