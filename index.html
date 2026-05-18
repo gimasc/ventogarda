@@ -7,6 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -73,9 +75,15 @@
 
   <!-- GRAFICO RAFFICHE -->
   <div class="card">
-    <div class="card-header">
-      <span class="label">Raffiche · Area Torbole / Riva</span>
-      <span class="sub">Previsione · MeteoSwiss ICON-CH1</span>
+    <div class="card-header" style="justify-content:space-between;align-items:center;">
+      <div>
+        <span class="label">Raffiche · Area Torbole / Riva</span>
+        <span class="sub">Previsione · MeteoSwiss ICON-CH1</span>
+      </div>
+      <button onclick="toggleMappa()" id="btn-mappa" style="font-size:10px;font-family:'DM Sans',sans-serif;padding:2px 8px;border-radius:999px;border:1px solid #4fc3f730;cursor:pointer;color:#4fc3f7;background:none;">📍 Mappa</button>
+    </div>
+    <div id="mappa-wrap" style="display:none;height:180px;width:100%;">
+      <div id="mappa-leaflet" style="height:180px;width:100%;"></div>
     </div>
     <div class="legenda-spots">
       <span><span class="dot" style="background:#ebc402"></span>Spiaggia Lucertole</span>
@@ -86,7 +94,7 @@
     <div class="img-wrap img-scroll" id="grafico-vento-wrap">
     </div>
     <div class="card-footer">
-      <span>Aggiornato ad ogni apertura</span>
+      <span>Fonte: MeteoSwiss ICON-CH1 · Open-Meteo</span>
     </div>
   </div>
 
