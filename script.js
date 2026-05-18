@@ -7,7 +7,7 @@
 const SPOTS = [
   { nome: "Spiaggia Lucertole", lat: 45.84928, lon: 10.86224, colore: "#ebc402" },
   { nome: "Hotel Pièr",         lat: 45.84487, lon: 10.82867, colore: "#0901fc" },
-  { nome: "Terrazza Ponale",    lat: 45.87807, lon: 10.83904, colore: "#e65100" },
+  { nome: "Hotel Trota",        lat: 45.86073, lon: 10.83341, colore: "#e65100" },
   { nome: "Conca d'Oro",        lat: 45.86212, lon: 10.87536, colore: "#15b101" },
 ];
 
@@ -438,15 +438,15 @@ function toggleMappa() {
       mappaIstanza = L.map("mappa-leaflet", { zoomControl: false, attributionControl: false })
         .setView([45.858, 10.855], 13);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 17,
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19,
       }).addTo(mappaIstanza);
 
       // Pin per ogni spot
       const colori = {
         "Spiaggia Lucertole": "#ebc402",
         "Hotel Pièr":         "#0901fc",
-        "Terrazza Ponale":    "#e65100",
+        "Hotel Trota":        "#e65100",
         "Conca d'Oro":        "#15b101",
       };
 
