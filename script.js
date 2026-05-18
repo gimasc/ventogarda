@@ -228,13 +228,19 @@ function disegnaTimelineSlot(meteo) {
     giorni[key].slot.some(s => s && s.temp.length > 0)
   );
 
-  let html = '<div style="display:flex;gap:8px;width:max-content;padding:4px 0;align-items:flex-start;">';
+  let html = '<div style="display:flex;gap:3px;width:max-content;padding:4px 0;align-items:flex-start;">';
 
   chiavi.forEach(key => {
     const g    = giorni[key];
     const gg   = GIORNI[g.data.getDay()];
     const data = `${gg} ${String(g.data.getDate()).padStart(2,"0")}/${String(g.data.getMonth()+1).padStart(2,"0")}`;
 
+    // Separatore tra giorni (non prima del primo)
+    if (html !== '<div style="display:flex;gap:3px;width:max-content;padding:4px 0;align-items:flex-start;">') {
+      html += `<div style="display:flex;align-items:stretch;margin:0 4px;">
+        <div style="width:1px;background:#4fc3f730;align-self:stretch;margin-top:18px;"></div>
+      </div>`;
+    }
     html += `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
       <span style="font-size:9px;color:#4fc3f7;font-style:italic;white-space:nowrap;">${data}</span>
       <div style="display:flex;gap:3px;">`;
