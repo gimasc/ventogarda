@@ -417,4 +417,62 @@ async function init() {
   }
 }
 
+// ============================================================
+// MAPPA SPOTS
+// ============================================================
+
+let mappaIstanza = null;
+
+function toggleMappa() {
+  const wrap = document.getElementById("mappa-wrap");
+  const btn  = document.getElementById("btn-mappa");
+  if (!wrap) return;
+
+  if (wrap.style.display === "none") {
+    wrap.style.display = "block";
+    btn.style.background = "#4fc3f7";
+    btn.style.color = "#0d1b2a";
+
+    // Inizializza mappa solo la prima volta
+    if (!mappaIstanza) {
+      mappaIstanza = L.map("mappa-leaflet", { zoomControl: false, attributionControl: false })
+        .setView([45.858, 10.855], 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 17,
+      }).addTo(mappaIstanza);
+
+      // Pin per ogni spot
+      const colori = {
+        "Spiaggia Lucertole": "#ebc402",
+        "Hotel Pièr":         "#0901fc",
+        "Terrazza Ponale":    "#e65100",
+        "Conca d'Oro":        "#15b101",
+      };
+
+      SPOTS.forEach(spot => {
+        const col = colori[spot.nome] || "#4fc3f7";
+        const icona = L.divIcon({
+          html: `<div style="width:10px;height:10px;border-radius:50%;background:${col};border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.4);"></div>`,
+          className: "",
+          iconSize: [10, 10],
+          iconAnchor: [5, 5],
+        });
+        L.marker([spot.lat, spot.lon], { icon: icona })
+          .addTo(mappaIstanza)
+          .bindTooltip(spot.nome, { permanent: false, direction: "top", offset: [0, -8] });
+      });
+
+      // Fix dimensioni dopo apertura
+      setTimeout(() => mappaIstanza.invalidateSize(), 100);
+    } else {
+      setTimeout(() => mappaIstanza.invalidateSize(), 100);
+    }
+  } else {
+    wrap.style.display = "none";
+    btn.style.background = "none";
+    btn.style.color = "#4fc3f7";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", init);
