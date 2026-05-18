@@ -65,9 +65,10 @@ function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs) {
   const colT = scuro ? "#f0f0ee" : "#5a3e00";
   const colP = scuro ? "#c8d8ff" : "#5a3e00";
   // Fill proporzionale ai mm (max visivo a 3mm = 70%)
-  const fillH = mm > 0 ? Math.min(Math.round(mm / 0.5 * 70), 70) : 0;
+  // Se mm=0 ma prob>30, mostra un fill minimo basato sulla prob
+  const fillH = mm > 0 ? Math.min(Math.round(mm / 0.3 * 70), 70) : (prob > 30 ? Math.round(prob / 100 * 30) : 0);
   const fillPioggia = fillH > 0
-    ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${fillH}%;background:rgba(40,80,200,${0.35 + Math.min(mm/10, 0.4)});z-index:0;"></div>`
+    ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${fillH}%;background:rgba(40,100,220,0.55);z-index:0;"></div>`
     : "";
   const fulmine = tipo === "temporale"
     ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;">
@@ -239,10 +240,7 @@ function disegnaTimelineSlot(meteo) {
       <div style="display:flex;gap:3px;">`;
 
     g.slot.forEach((s, si) => {
-      if (!s || s.temp.length === 0) {
-        html += `<div style="width:50px;height:62px;border-radius:5px;background:#162d4a;opacity:0.2;"></div>`;
-        return;
-      }
+      if (!s || s.temp.length === 0) return;
       const moda = [...s.codici].sort((a,b) =>
         s.codici.filter(v=>v===b).length - s.codici.filter(v=>v===a).length
       )[0] ?? 3;
