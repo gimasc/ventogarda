@@ -82,13 +82,21 @@
       </div>
       <button onclick="toggleMappa()" id="btn-mappa" style="font-size:10px;font-family:'DM Sans',sans-serif;padding:2px 8px;border-radius:999px;border:1px solid #4fc3f730;cursor:pointer;color:#4fc3f7;background:none;">📍 Mappa</button>
     </div>
-    <div id="mappa-wrap" style="display:none;height:180px;width:100%;">
-      <div id="mappa-leaflet" style="height:180px;width:100%;"></div>
+    <div id="mappa-wrap" style="display:none;">
+      <div style="display:flex;gap:0;">
+        <div class="legenda-spots" style="flex-direction:column;gap:0.5rem;padding:0.6rem 1rem;min-width:160px;border-bottom:none;border-right:1px solid #4fc3f712;">
+          <span><span class="dot" style="background:#ebc402"></span>Spiaggia Lucertole</span>
+          <span><span class="dot" style="background:#0901fc"></span>Hotel Pièr</span>
+          <span><span class="dot" style="background:#e65100"></span>Terrazza Ponale</span>
+          <span><span class="dot" style="background:#15b101"></span>Conca d'Oro</span>
+        </div>
+        <div id="mappa-leaflet" style="height:160px;flex:1;"></div>
+      </div>
     </div>
-    <div class="legenda-spots">
+    <div class="legenda-spots" id="legenda-normale">
       <span><span class="dot" style="background:#ebc402"></span>Spiaggia Lucertole</span>
       <span><span class="dot" style="background:#0901fc"></span>Hotel Pièr</span>
-      <span><span class="dot" style="background:#e65100"></span>Hotel Trota</span>
+      <span><span class="dot" style="background:#e65100"></span>Terrazza Ponale</span>
       <span><span class="dot" style="background:#15b101"></span>Conca d'Oro</span>
     </div>
     <div class="img-wrap img-scroll" id="grafico-vento-wrap">
