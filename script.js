@@ -386,6 +386,59 @@ function disegnaGrafico(dati) {
 }
 
 // ============================================================
+// PANNELLO DIREZIONE VENTO (frecce rotanti)
+// ============================================================
+
+function disegnaDirezione(dati) {
+  const wrapper = document.getElementById("direzione-vento-wrap");
+  if (!wrapper) return;
+
+  // Usa Conca d'Oro come riferimento (index 3)
+  const ref = dati[3] || dati[0];
+  let start = 0;
+  while (start < ref.raffiche.length && ref.raffiche[start] === null) start++;
+  let end = ref.raffiche.length;
+  while (end > start && ref.raffiche[end - 1] === null) end--;
+
+  const oreSlice = ref.ore.slice(start, end);
+  const dirSlice = ref.direzione.slice(start, end);
+
+  let html = '<div style="display:flex;gap:0;width:max-content;padding:2px 0;align-items:center;">';
+  let lastDay = null;
+
+  oreSlice.forEach((ora, i) => {
+    const gradi = dirSlice[i];
+    const hLabel = String(ora.getHours()).padStart(2, "0");
+    const dayKey = ora.toDateString();
+
+    // Separatore giorno
+    if (dayKey !== lastDay) {
+      lastDay = dayKey;
+      if (i > 0) {
+        html += `<div style="width:1px;height:36px;background:#4fc3f740;margin:0 4px;"></div>`;
+      }
+    }
+
+    // Freccia SVG che ruota in base ai gradi
+    // gradi=0 = Nord = freccia verso su, gradi=180 = Sud = freccia verso giù
+    const rot = gradi !== null ? gradi : 0;
+    const opacity = gradi !== null ? 1 : 0.2;
+
+    html += `
+      <div style="display:flex;flex-direction:column;align-items:center;width:44px;margin:0 1px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" style="transform:rotate(${rot}deg);opacity:${opacity};">
+          <polygon points="10,1 14,14 10,11 6,14" fill="#1565c0" opacity="0.85"/>
+          <polygon points="10,19 14,6 10,9 6,6" fill="#1565c088"/>
+        </svg>
+        <span style="font-size:9px;color:#6d96b8;margin-top:1px;">${hLabel}</span>
+      </div>`;
+  });
+
+  html += "</div>";
+  wrapper.innerHTML = html;
+}
+
+// ============================================================
 // AVVIO
 // ============================================================
 
@@ -410,6 +463,7 @@ async function init() {
 
     wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="400"></canvas>';
     disegnaGrafico(dati);
+    disegnaDirezione(dati);
   } catch (e) {
     if (wrapTimeline) wrapTimeline.innerHTML = "";
     if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Errore caricamento dati meteo</p>';
@@ -438,9 +492,11 @@ function toggleMappa() {
       mappaIstanza = L.map("mappa-leaflet", { zoomControl: false, attributionControl: false })
         .setView([45.858, 10.855], 13);
 
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      const tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         maxZoom: 19,
       }).addTo(mappaIstanza);
+      // Filtro CSS per tonalità azzurra intonata col sito
+      document.getElementById("mappa-leaflet").style.filter = "hue-rotate(180deg) saturate(0.6) brightness(1.1)";
 
       // Pin per ogni spot
       const colori = {
@@ -453,14 +509,15 @@ function toggleMappa() {
       SPOTS.forEach(spot => {
         const col = colori[spot.nome] || "#4fc3f7";
         const icona = L.divIcon({
-          html: `<div style="width:10px;height:10px;border-radius:50%;background:${col};border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.4);"></div>`,
+          html: `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+            <div style="width:14px;height:14px;border-radius:50%;background:${col};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.5);"></div>
+            <span style="font-size:9px;font-family:'DM Sans',sans-serif;font-weight:500;color:#0d1b2a;white-space:nowrap;background:rgba(255,255,255,0.85);padding:1px 3px;border-radius:3px;line-height:1.2;">${spot.nome}</span>
+          </div>`,
           className: "",
-          iconSize: [10, 10],
-          iconAnchor: [5, 5],
+          iconSize: [14, 14],
+          iconAnchor: [7, 7],
         });
-        L.marker([spot.lat, spot.lon], { icon: icona })
-          .addTo(mappaIstanza)
-          .bindTooltip(spot.nome, { permanent: false, direction: "top", offset: [0, -8] });
+        L.marker([spot.lat, spot.lon], { icon: icona }).addTo(mappaIstanza);
       });
 
       // Fix dimensioni dopo apertura
