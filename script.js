@@ -390,10 +390,9 @@ function disegnaGrafico(dati) {
 // ============================================================
 
 function disegnaDirezione(dati) {
-  const wrapper = document.getElementById("direzione-vento-wrap");
-  if (!wrapper) return;
+  const canvas = document.getElementById("canvas-dir");
+  if (!canvas) return;
 
-  // Usa Conca d'Oro come riferimento (index 3)
   const ref = dati[3] || dati[0];
   let start = 0;
   while (start < ref.raffiche.length && ref.raffiche[start] === null) start++;
@@ -403,39 +402,55 @@ function disegnaDirezione(dati) {
   const oreSlice = ref.ore.slice(start, end);
   const dirSlice = ref.direzione.slice(start, end);
 
-  let html = '<div style="display:flex;gap:0;width:max-content;padding:2px 0;align-items:center;">';
-  let lastDay = null;
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width;
+  const H = canvas.height;
+  const colW = W / oreSlice.length;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, W, H);
 
   oreSlice.forEach((ora, i) => {
     const gradi = dirSlice[i];
-    const hLabel = String(ora.getHours()).padStart(2, "0");
-    const dayKey = ora.toDateString();
+    const cx = i * colW + colW / 2;
+    const cy = H / 2 - 8;
 
-    // Separatore giorno
-    if (dayKey !== lastDay) {
-      lastDay = dayKey;
-      if (i > 0) {
-        html += `<div style="width:1px;height:36px;background:#4fc3f740;margin:0 4px;"></div>`;
-      }
+    if (gradi !== null) {
+      // Disegna freccia ruotata
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate((gradi * Math.PI) / 180);
+
+      // Punta freccia (blu)
+      ctx.beginPath();
+      ctx.moveTo(0, -10);
+      ctx.lineTo(5, 4);
+      ctx.lineTo(0, 1);
+      ctx.lineTo(-5, 4);
+      ctx.closePath();
+      ctx.fillStyle = "#1565c0cc";
+      ctx.fill();
+
+      // Coda freccia (grigio)
+      ctx.beginPath();
+      ctx.moveTo(0, 10);
+      ctx.lineTo(4, -2);
+      ctx.lineTo(0, 1);
+      ctx.lineTo(-4, -2);
+      ctx.closePath();
+      ctx.fillStyle = "#aaaaaa88";
+      ctx.fill();
+
+      ctx.restore();
     }
 
-    // Freccia SVG che ruota in base ai gradi
-    // gradi=0 = Nord = freccia verso su, gradi=180 = Sud = freccia verso giù
-    const rot = gradi !== null ? gradi : 0;
-    const opacity = gradi !== null ? 1 : 0.2;
-
-    html += `
-      <div style="display:flex;flex-direction:column;align-items:center;width:44px;margin:0 1px;">
-        <svg width="20" height="20" viewBox="0 0 20 20" style="transform:rotate(${rot}deg);opacity:${opacity};">
-          <polygon points="10,1 14,14 10,11 6,14" fill="#1565c0" opacity="0.85"/>
-          <polygon points="10,19 14,6 10,9 6,6" fill="#1565c088"/>
-        </svg>
-        <span style="font-size:9px;color:#6d96b8;margin-top:1px;">${hLabel}</span>
-      </div>`;
+    // Ora sotto
+    ctx.fillStyle = "#6d96b8";
+    ctx.font = "9px DM Sans, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(String(ora.getHours()).padStart(2,"0"), cx, H - 4);
   });
-
-  html += "</div>";
-  wrapper.innerHTML = html;
 }
 
 // ============================================================
@@ -461,7 +476,7 @@ async function init() {
       vistaModo = "slot"; aggiornaBottoni(); disegnaTimeline(meteoCache);
     });
 
-    wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="400"></canvas>';
+    wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="340"></canvas><canvas id="canvas-dir" width="1200" height="80" style="display:block;border-top:1px solid #e0e0e0;"></canvas>';
     disegnaGrafico(dati);
     disegnaDirezione(dati);
   } catch (e) {
