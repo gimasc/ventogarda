@@ -371,7 +371,7 @@ function disegnaGrafico(dati) {
     }
   };
   const canvas = document.getElementById("canvas-vento");
-  new Chart(canvas, {
+  const chartRef = new Chart(canvas, {
     type: "line", data: { labels: labelsSlice, datasets },
     options: {
       responsive: false, maintainAspectRatio: false, animation: false,
@@ -383,13 +383,14 @@ function disegnaGrafico(dati) {
     },
     plugins: [pluginGiorni],
   });
+  return chartRef;
 }
 
 // ============================================================
 // PANNELLO DIREZIONE VENTO (frecce rotanti)
 // ============================================================
 
-function disegnaDirezione(dati) {
+function disegnaDirezione(dati, chartRef) {
   const canvas = document.getElementById("canvas-dir");
   if (!canvas) return;
 
@@ -405,7 +406,12 @@ function disegnaDirezione(dati) {
   const ctx = canvas.getContext("2d");
   const W = canvas.width;
   const H = canvas.height;
-  const colW = W / oreSlice.length;
+
+  // Leggi offset e larghezza area grafico da Chart.js
+  const chartArea = chartRef ? chartRef.chartArea : null;
+  const areaLeft  = chartArea ? chartArea.left  : 0;
+  const areaWidth = chartArea ? (chartArea.right - chartArea.left) : W;
+  const colW = areaWidth / oreSlice.length;
 
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = "white";
@@ -413,7 +419,7 @@ function disegnaDirezione(dati) {
 
   oreSlice.forEach((ora, i) => {
     const gradi = dirSlice[i];
-    const cx = i * colW + colW / 2;
+    const cx = areaLeft + i * colW + colW / 2;
     const cy = H / 2 - 8;
 
     if (gradi !== null) {
@@ -432,15 +438,7 @@ function disegnaDirezione(dati) {
       ctx.fillStyle = "#1565c0cc";
       ctx.fill();
 
-      // Coda freccia (grigio)
-      ctx.beginPath();
-      ctx.moveTo(0, 10);
-      ctx.lineTo(4, -2);
-      ctx.lineTo(0, 1);
-      ctx.lineTo(-4, -2);
-      ctx.closePath();
-      ctx.fillStyle = "#aaaaaa88";
-      ctx.fill();
+
 
       ctx.restore();
     }
@@ -477,8 +475,8 @@ async function init() {
     });
 
     wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="340"></canvas><canvas id="canvas-dir" width="1200" height="80" style="display:block;border-top:1px solid #e0e0e0;"></canvas>';
-    disegnaGrafico(dati);
-    disegnaDirezione(dati);
+    const chartRef = disegnaGrafico(dati);
+    disegnaDirezione(dati, chartRef);
   } catch (e) {
     if (wrapTimeline) wrapTimeline.innerHTML = "";
     if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Errore caricamento dati meteo</p>';
