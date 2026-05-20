@@ -7,7 +7,7 @@
 const SPOTS = [
   { nome: "Spiaggia Lucertole", lat: 45.84928, lon: 10.86224, colore: "#ebc402" },
   { nome: "Hotel Pièr",         lat: 45.84487, lon: 10.82867, colore: "#0901fc" },
-  { nome: "Hotel Trota",        lat: 45.86073, lon: 10.83341, colore: "#e65100" },
+  { nome: "Terrazza Ponale",    lat: 45.87807, lon: 10.83904, colore: "#e65100" },
   { nome: "Conca d'Oro",        lat: 45.86212, lon: 10.87536, colore: "#15b101" },
 ];
 
@@ -368,6 +368,26 @@ function disegnaGrafico(dati) {
           ctx.fillText(soglia.label, xPos+2, yPos-3); ctx.restore();
         });
       });
+
+      // Frecce direzione vento nella zona bassa del grafico
+      const arrowY = chart.chartArea.bottom + 40;
+      oreSlice.forEach((ora, i) => {
+        const gradi = dati[3] ? dati[3].direzione[start + i] : null;
+        if (gradi === null) return;
+        const xPos = x.getPixelForValue(i);
+        ctx.save();
+        ctx.translate(xPos, arrowY);
+        ctx.rotate((gradi * Math.PI) / 180);
+        ctx.beginPath();
+        ctx.moveTo(0, -8);
+        ctx.lineTo(4, 4);
+        ctx.lineTo(0, 1);
+        ctx.lineTo(-4, 4);
+        ctx.closePath();
+        ctx.fillStyle = "#1565c0bb";
+        ctx.fill();
+        ctx.restore();
+      });
     }
   };
   const canvas = document.getElementById("canvas-vento");
@@ -375,6 +395,7 @@ function disegnaGrafico(dati) {
     type: "line", data: { labels: labelsSlice, datasets },
     options: {
       responsive: false, maintainAspectRatio: false, animation: false,
+      layout: { padding: { bottom: 30 } },
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} kn` } } },
       scales: {
         x: { ticks: { maxRotation: 90, minRotation: 90, font: { size: 10 }, color: "#444", maxTicksLimit: 50 }, grid: { color: "#e0e0e0" } },
@@ -386,70 +407,7 @@ function disegnaGrafico(dati) {
   return chartRef;
 }
 
-// ============================================================
-// PANNELLO DIREZIONE VENTO (frecce rotanti)
-// ============================================================
 
-function disegnaDirezione(dati, chartRef) {
-  const canvas = document.getElementById("canvas-dir");
-  if (!canvas) return;
-
-  const ref = dati[3] || dati[0];
-  let start = 0;
-  while (start < ref.raffiche.length && ref.raffiche[start] === null) start++;
-  let end = ref.raffiche.length;
-  while (end > start && ref.raffiche[end - 1] === null) end--;
-
-  const oreSlice = ref.ore.slice(start, end);
-  const dirSlice = ref.direzione.slice(start, end);
-
-  const ctx = canvas.getContext("2d");
-  const W = canvas.width;
-  const H = canvas.height;
-
-  // Leggi offset e larghezza area grafico da Chart.js
-  const chartArea = chartRef ? chartRef.chartArea : null;
-  const areaLeft  = chartArea ? chartArea.left  : 0;
-  const areaWidth = chartArea ? (chartArea.right - chartArea.left) : W;
-  const colW = areaWidth / oreSlice.length;
-
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, W, H);
-
-  oreSlice.forEach((ora, i) => {
-    const gradi = dirSlice[i];
-    const cx = areaLeft + i * colW + colW / 2;
-    const cy = H / 2 - 8;
-
-    if (gradi !== null) {
-      // Disegna freccia ruotata
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate((gradi * Math.PI) / 180);
-
-      // Punta freccia (blu)
-      ctx.beginPath();
-      ctx.moveTo(0, -10);
-      ctx.lineTo(5, 4);
-      ctx.lineTo(0, 1);
-      ctx.lineTo(-5, 4);
-      ctx.closePath();
-      ctx.fillStyle = "#1565c0cc";
-      ctx.fill();
-
-
-
-      ctx.restore();
-    }
-
-    // Ora sotto
-    ctx.fillStyle = "#6d96b8";
-    ctx.font = "9px DM Sans, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(String(ora.getHours()).padStart(2,"0"), cx, H - 4);
-  });
-}
 
 // ============================================================
 // AVVIO
@@ -474,9 +432,9 @@ async function init() {
       vistaModo = "slot"; aggiornaBottoni(); disegnaTimeline(meteoCache);
     });
 
-    wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="340"></canvas><canvas id="canvas-dir" width="1200" height="80" style="display:block;border-top:1px solid #e0e0e0;"></canvas>';
+    wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="430"></canvas>';
     const chartRef = disegnaGrafico(dati);
-    disegnaDirezione(dati, chartRef);
+
   } catch (e) {
     if (wrapTimeline) wrapTimeline.innerHTML = "";
     if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Errore caricamento dati meteo</p>';
@@ -499,33 +457,27 @@ function toggleMappa() {
     wrap.style.display = "block";
     btn.style.background = "#4fc3f7";
     btn.style.color = "#0d1b2a";
+    const lgNorm = document.getElementById("legenda-normale");
+    if (lgNorm) lgNorm.style.display = "none";
 
     // Inizializza mappa solo la prima volta
     if (!mappaIstanza) {
       mappaIstanza = L.map("mappa-leaflet", { zoomControl: false, attributionControl: false })
-        .setView([45.858, 10.855], 13);
+        .setView([45.856, 10.848], 11.3);
 
       const tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         maxZoom: 19,
       }).addTo(mappaIstanza);
-      // Filtro CSS per tonalità azzurra intonata col sito
-      document.getElementById("mappa-leaflet").style.filter = "hue-rotate(180deg) saturate(0.6) brightness(1.1)";
+      // Filtro CSS solo sulle tiles, non sui marker
+      const style = document.createElement('style');
+      style.textContent = '#mappa-leaflet .leaflet-tile-pane { filter: hue-rotate(180deg) saturate(0.6) brightness(1.1); }';
+      document.head.appendChild(style);
 
-      // Pin per ogni spot
-      const colori = {
-        "Spiaggia Lucertole": "#ebc402",
-        "Hotel Pièr":         "#0901fc",
-        "Hotel Trota":        "#e65100",
-        "Conca d'Oro":        "#15b101",
-      };
-
+      // Pin per ogni spot - usa colore direttamente da SPOTS
       SPOTS.forEach(spot => {
-        const col = colori[spot.nome] || "#4fc3f7";
+        const col = spot.colore;
         const icona = L.divIcon({
-          html: `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-            <div style="width:14px;height:14px;border-radius:50%;background:${col};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.5);"></div>
-            <span style="font-size:9px;font-family:'DM Sans',sans-serif;font-weight:500;color:#0d1b2a;white-space:nowrap;background:rgba(255,255,255,0.85);padding:1px 3px;border-radius:3px;line-height:1.2;">${spot.nome}</span>
-          </div>`,
+          html: `<div style="width:14px;height:14px;border-radius:50%;background:${col};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.5);"></div>`,
           className: "",
           iconSize: [14, 14],
           iconAnchor: [7, 7],
@@ -542,6 +494,8 @@ function toggleMappa() {
     wrap.style.display = "none";
     btn.style.background = "none";
     btn.style.color = "#4fc3f7";
+    const lgNorm2 = document.getElementById("legenda-normale");
+    if (lgNorm2) lgNorm2.style.display = "";
   }
 }
 
