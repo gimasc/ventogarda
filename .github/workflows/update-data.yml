@@ -1,0 +1,31 @@
+name: Update wind Garda data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 3,9,15,21 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate JSON data
+        run: python scripts/update_wind_garda.py
+
+      - name: Commit updated data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update wind Garda pressure data"
+          file_pattern: differenza-pressione/data/wind_garda.json
