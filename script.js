@@ -4,15 +4,12 @@
 // Dati meteo: ICON Seamless via Open-Meteo
 // ============================================================
 
-const SPOTS = [
-  { nome: "Spiaggia Lucertole", lat: 45.84928, lon: 10.86224, colore: "#ebc402" },
-  { nome: "Hotel Pièr",         lat: 45.84487, lon: 10.82867, colore: "#0901fc" },
-  { nome: "Terrazza Ponale",    lat: 45.87807, lon: 10.83904, colore: "#e65100" },
-  { nome: "Conca d'Oro",        lat: 45.86212, lon: 10.87536, colore: "#15b101" },
-];
-
-const LAT_METEO = 45.86212;
-const LON_METEO = 10.87536;
+// Dati dalla configurazione localita.js
+// LOC_ID è definito nell index.html di ogni località
+const _loc   = LOCALITA[typeof LOC_ID !== "undefined" ? LOC_ID : "torbole"];
+const SPOTS      = _loc.spots;
+const LAT_METEO  = _loc.lat;
+const LON_METEO  = _loc.lon;
 
 const SOGLIE = [
   { kn: 10, colore: "#bbbbbb", label: "10 kn" },
@@ -485,7 +482,7 @@ function toggleMappa() {
     // Inizializza mappa solo la prima volta
     if (!mappaIstanza) {
       mappaIstanza = L.map("mappa-leaflet", { zoomControl: false, attributionControl: false })
-        .setView([45.856, 10.848], 11);
+        .setView([_loc.lat, _loc.lon], 11);
 
       const tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         maxZoom: 19,
@@ -520,4 +517,22 @@ function toggleMappa() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", init);
+// Aggiorna header con nome località e link all altra
+document.addEventListener("DOMContentLoaded", () => {
+  // Titolo e sottotitolo
+  const h1 = document.querySelector("header h1");
+  const p  = document.querySelector("header p");
+  if (h1) h1.textContent = "Vento Garda";
+  if (p)  p.textContent  = _loc.nome + " · " + _loc.sottotitolo;
+
+  // Legenda spots dinamica
+  ["legenda-normale", "legenda-mappa"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = SPOTS.map(s =>
+      `<span><span class="dot" style="background:${s.colore}"></span>${s.nome}</span>`
+    ).join("");
+  });
+
+  init();
+});

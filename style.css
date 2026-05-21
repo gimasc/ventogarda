@@ -237,3 +237,52 @@ footer a { color: var(--accent); text-decoration: none; }
   display: flex;
   gap: 12px;
 }
+
+.btn-minimal .chevron {
+  display: inline-block;
+  width: 12px;
+  height: 8px;
+  margin-left: 3px;
+  vertical-align: middle;
+}
+
+.btn-minimal.attivo .chevron {
+  transform: rotate(180deg);
+}
+
+/* Tab località */
+.loc-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin-top: 1rem;
+}
+
+.loc-tab {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .4rem 1.4rem;
+  text-decoration: none;
+  color: var(--muted);
+  background: none;
+  border: 1px solid #4fc3f730;
+  transition: all .2s;
+}
+
+.loc-tab:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+.loc-tab:last-child {
+  border-radius: 0 999px 999px 0;
+  border-left: none;
+}
+
+.loc-tab.attiva {
+  background: #4fc3f720;
+  color: var(--accent);
+  border-color: #4fc3f750;
+}
