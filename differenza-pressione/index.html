@@ -1,1 +1,388 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Differenza pressione Garda</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #182033;
+      --muted: #657083;
+      --border: #e2e7ef;
+      --accent: #1f6feb;
+      --orange: #ff8a1f;
+      --blue: #2f6bff;
+      --red: #b42318;
+    }
 
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 26px 16px 44px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 3vw, 2.5rem);
+      letter-spacing: -0.035em;
+    }
+
+    .intro {
+      margin: 0 0 20px;
+      color: var(--muted);
+      max-width: 900px;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 26px rgba(24,32,51,0.06);
+      margin-bottom: 16px;
+    }
+
+    .topline {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    .error {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 440px !important;
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .orange { background: var(--orange); }
+    .blue { background: var(--blue); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      canvas { height: 360px !important; }
+    }
+
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+
+    .kpi-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 460px;
+      margin-top: 10px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.92rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    code {
+      background: #edf1f7;
+      padding: 2px 5px;
+      border-radius: 6px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Differenza pressione Garda</h1>
+  <p class="intro">
+    Ricostruzione dell’indicatore barico: <strong>ΔP = pressione Brescia/Ghedi − pressione Bolzano</strong>.
+    Valori positivi indicano tendenza a Ora da sud; valori negativi indicano tendenza a Peler/Vento da nord.
+  </p>
+
+  <section class="card">
+    <div class="topline">
+      <div>
+        <strong>Grafico ΔP</strong>
+        <div id="status" class="status">Caricamento dati…</div>
+      </div>
+      <div class="small">
+        Fonte dati: DWD MOSMIX-L, parametro <code>PPPP</code>
+      </div>
+    </div>
+
+    <canvas id="chart"></canvas>
+
+    <div class="legend">
+      <span><span class="dot orange"></span>ΔP &gt; 0: Ora / sud</span>
+      <span><span class="dot blue"></span>ΔP &lt; 0: Peler / nord</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <strong>Sintesi</strong>
+    <div class="grid">
+      <div class="kpi">
+        <div class="kpi-label">Aggiornamento dati</div>
+        <div id="updatedAt" class="kpi-value">–</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Periodo previsione</div>
+        <div id="period" class="kpi-value">–</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">ΔP medio</div>
+        <div id="avgDelta" class="kpi-value">–</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <strong>Tabella dati</strong>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Ora locale</th>
+            <th>Bolzano hPa</th>
+            <th>Brescia/Ghedi hPa</th>
+            <th>ΔP hPa</th>
+            <th>Indicazione</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card small">
+    <strong>Nota</strong><br>
+    Questa pagina non scarica direttamente i file DWD dal browser. Legge il file locale
+    <code>data/wind_garda.json</code>, che viene generato da uno script Python tramite GitHub Actions.
+  </section>
+</main>
+
+<script>
+  const DATA_URL = "./data/wind_garda.json";
+  let chart;
+
+  function fmtDate(iso) {
+    return new Intl.DateTimeFormat("it-IT", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(new Date(iso));
+  }
+
+  function setStatus(text, error = false) {
+    const el = document.getElementById("status");
+    el.textContent = text;
+    el.className = error ? "status error" : "status";
+  }
+
+  function directionLabel(delta) {
+    if (delta > 0) return "Ora / Sud";
+    if (delta < 0) return "Peler / Nord";
+    return "Neutro";
+  }
+
+  async function load() {
+    try {
+      const res = await fetch(DATA_URL + "?v=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) throw new Error("File data/wind_garda.json non trovato o non leggibile.");
+      const payload = await res.json();
+
+      const rows = payload.rows || [];
+      if (!rows.length) throw new Error("Il JSON non contiene righe dati.");
+
+      const avg = rows.reduce((s, r) => s + r.delta_hpa, 0) / rows.length;
+
+      document.getElementById("updatedAt").textContent =
+        payload.generated_at ? new Date(payload.generated_at).toLocaleString("it-IT") : "–";
+
+      document.getElementById("period").textContent =
+        fmtDate(rows[0].time) + " → " + fmtDate(rows[rows.length - 1].time);
+
+      document.getElementById("avgDelta").textContent = avg.toFixed(1) + " hPa";
+
+      renderChart(rows);
+      renderTable(rows);
+
+      setStatus("Dati caricati: " + rows.length + " timestep. Stazioni: Bolzano 16020, Brescia/Ghedi 16088.");
+    } catch (err) {
+      console.error(err);
+      setStatus("Errore: " + err.message, true);
+    }
+  }
+
+  function renderChart(rows) {
+    const ctx = document.getElementById("chart");
+    const labels = rows.map(r => fmtDate(r.time));
+    const values = rows.map(r => r.delta_hpa);
+    const pointColors = rows.map(r => r.delta_hpa >= 0 ? "#ff8a1f" : "#2f6bff");
+
+    if (chart) chart.destroy();
+
+    const zeroLine = {
+      id: "zeroLine",
+      afterDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const y = scales.y.getPixelForValue(0);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y);
+        ctx.lineTo(chartArea.right, y);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#1f2937";
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "ΔP hPa",
+          data: values,
+          borderColor: "#374151",
+          pointBackgroundColor: pointColors,
+          pointBorderColor: pointColors,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          tension: 0.25
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              afterLabel(context) {
+                const r = rows[context.dataIndex];
+                return [
+                  "Bolzano: " + r.bolzano_hpa.toFixed(1) + " hPa",
+                  "Brescia/Ghedi: " + r.ghedi_hpa.toFixed(1) + " hPa",
+                  "Indicazione: " + directionLabel(r.delta_hpa)
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { maxRotation: 65, minRotation: 45, autoSkip: true, maxTicksLimit: 24 },
+            grid: { display: false }
+          },
+          y: {
+            title: { display: true, text: "ΔP hPa" },
+            grid: { color: "#edf0f5" }
+          }
+        }
+      },
+      plugins: [zeroLine]
+    });
+  }
+
+  function renderTable(rows) {
+    const tbody = document.getElementById("tableBody");
+    tbody.innerHTML = "";
+    rows.slice(0, 120).forEach(r => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${fmtDate(r.time)}</td>
+        <td>${r.bolzano_hpa.toFixed(1)}</td>
+        <td>${r.ghedi_hpa.toFixed(1)}</td>
+        <td><strong>${r.delta_hpa.toFixed(1)}</strong></td>
+        <td>${directionLabel(r.delta_hpa)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  load();
+</script>
+</body>
+</html>
