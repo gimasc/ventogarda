@@ -1,1 +1,129 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Vento Garda · Malcesine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>const LOC_ID = "malcesine";</script>
+  <script src="../localita.js"></script>
+</head>
+<body>
 
+<header>
+  <h1>Vento Garda</h1>
+  <p>Malcesine · Lago di Garda Medio</p>
+  <a id="link-altra-loc" class="btn-minimal" style="display:none;margin-top:.5rem;" href="#"></a>
+</header>
+
+<main>
+
+  <!-- TIMELINE METEO -->
+  <div class="card">
+    <div class="card-header card-header--split">
+      <span class="label">Meteo</span>
+      <div class="btn-minimal-group">
+        <button id="btn-ore"  class="btn-minimal">Orario</button>
+        <button id="btn-slot" class="btn-minimal attivo">Giornaliero</button>
+      </div>
+    </div>
+    <div style="overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding: 0.3rem 0.6rem;">
+      <div id="timeline-meteo"></div>
+    </div>
+    <div class="card-footer">
+      <span>© MeteoSwiss · Open-Meteo</span>
+    </div>
+  </div>
+
+  <!-- METEOGRAMMA MEDIO GARDA -->
+  <div class="card">
+    <div class="card-header">
+      <span class="label">Medio Garda</span>
+      <span class="sub">Meteogramma</span>
+    </div>
+    <div class="img-wrap">
+      <img
+        src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png"
+        referrerpolicy="no-referrer"
+        alt="Meteogramma Medio Garda">
+    </div>
+    <div class="card-footer">
+      <span>Fonte: Meteotrentino</span>
+      <a class="btn-open" href="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png" target="_blank">Apri ↗</a>
+    </div>
+  </div>
+
+  <!-- PRESSIONE -->
+  <div class="card">
+    <div class="card-header">
+      <span class="label">Δ Pressione Bolzano – Brescia</span>
+      <span class="sub">Pelér &amp; Óra · Profiwetter</span>
+    </div>
+    <div class="img-wrap">
+      <img
+        src="https://profiwetter.ch/wind_garda_de.png"
+        referrerpolicy="no-referrer"
+        alt="Grafico differenza pressione Bolzano Brescia Pelér">
+    </div>
+    <div class="card-footer">
+      <span>Fonte: Profiwetter.ch</span>
+      <a class="btn-open" href="https://profiwetter.ch/wind_garda_de.png" target="_blank">Apri ↗</a>
+    </div>
+  </div>
+
+  <!-- GRAFICO RAFFICHE -->
+  <div class="card">
+    <div class="card-header card-header--split">
+      <div>
+        <span class="label">Raffiche · Area Malcesine</span>
+        <span class="sub">Previsione · MeteoSwiss ICON-CH1</span>
+      </div>
+      <button onclick="toggleMappa()" id="btn-mappa" class="btn-minimal">Mappa <svg class="chevron" viewBox="0 0 12 8" fill="none"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div id="mappa-wrap" style="display:none;">
+      <div style="display:flex;gap:0;">
+        <div class="legenda-spots" id="legenda-mappa" style="flex-direction:column;gap:0.5rem;padding:0.6rem 1rem;min-width:160px;border-bottom:none;border-right:1px solid #4fc3f712;"></div>
+        <div id="mappa-leaflet" style="height:160px;flex:1;"></div>
+      </div>
+    </div>
+    <div class="legenda-spots" id="legenda-normale"></div>
+    <div class="img-wrap img-scroll" id="grafico-vento-wrap"></div>
+    <div class="card-footer">
+      <span>Fonte: MeteoSwiss ICON-CH1 · Open-Meteo</span>
+    </div>
+  </div>
+
+  <!-- METEOGRAMMA 2 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="label">Medio Garda</span>
+      <span class="sub">Meteogramma 2</span>
+    </div>
+    <div class="img-wrap">
+      <img
+        src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/medio_garda.png"
+        referrerpolicy="no-referrer"
+        alt="Meteogramma Medio Garda 2">
+    </div>
+    <div class="card-footer">
+      <span>Fonte: Meteotrentino</span>
+      <a class="btn-open" href="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/medio_garda.png" target="_blank">Apri ↗</a>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Dati © <a href="https://www.meteotrentino.it" target="_blank">Meteotrentino</a> · 
+  <a href="https://www.meteoswiss.admin.ch" target="_blank">MeteoSwiss</a> · 
+  <a href="https://profiwetter.ch" target="_blank">Profiwetter</a> ·
+  <a href="https://open-meteo.com" target="_blank">Open-Meteo</a>
+</footer>
+
+<script src="../script.js"></script>
+</body>
+</html>
