@@ -3,19 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Meteo Garda · Torbole</title>
+  <title>Vento Garda · Torbole</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>const LOC_ID = "torbole";</script>
+  <script src="localita.js"></script>
 </head>
 <body>
 
 <header>
   <h1>Vento Garda</h1>
   <p>Torbole · Lago di Garda Nord</p>
-  <!-- <div class="wind-badge">⛵ Pelèr &amp; Óra live</div> -->
+  <a id="link-altra-loc" class="btn-minimal" style="display:none;margin-top:.5rem;" href="#"></a>
 </header>
 
 <main>
@@ -26,7 +28,7 @@
       <span class="label">Meteo</span>
       <div class="btn-minimal-group">
         <button id="btn-ore"  class="btn-minimal">Orario</button>
-        <button id="btn-slot" class="btn-minimal attivo">Giornaliero ▾</button>
+        <button id="btn-slot" class="btn-minimal attivo">Giornaliero</button>
       </div>
     </div>
     <div style="overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding: 0.3rem 0.6rem;">
@@ -80,28 +82,16 @@
         <span class="label">Raffiche · Area Torbole / Riva</span>
         <span class="sub">Previsione · MeteoSwiss ICON-CH1</span>
       </div>
-      <button onclick="toggleMappa()" id="btn-mappa" class="btn-minimal">Mappa ▾</button>
+      <button onclick="toggleMappa()" id="btn-mappa" class="btn-minimal">Mappa <svg class="chevron" viewBox="0 0 12 8" fill="none"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
     <div id="mappa-wrap" style="display:none;">
       <div style="display:flex;gap:0;">
-        <div class="legenda-spots" style="flex-direction:column;gap:0.5rem;padding:0.6rem 1rem;min-width:160px;border-bottom:none;border-right:1px solid #4fc3f712;">
-          <span><span class="dot" style="background:#ebc402"></span>Spiaggia Lucertole</span>
-          <span><span class="dot" style="background:#0901fc"></span>Hotel Pièr</span>
-          <span><span class="dot" style="background:#e65100"></span>Terrazza Ponale</span>
-          <span><span class="dot" style="background:#15b101"></span>Conca d'Oro</span>
-        </div>
+        <div class="legenda-spots" id="legenda-mappa" style="flex-direction:column;gap:0.5rem;padding:0.6rem 1rem;min-width:160px;border-bottom:none;border-right:1px solid #4fc3f712;"></div>
         <div id="mappa-leaflet" style="height:160px;flex:1;"></div>
       </div>
     </div>
-    <div class="legenda-spots" id="legenda-normale">
-      <span><span class="dot" style="background:#ebc402"></span>Spiaggia Lucertole</span>
-      <span><span class="dot" style="background:#0901fc"></span>Hotel Pièr</span>
-      <span><span class="dot" style="background:#e65100"></span>Terrazza Ponale</span>
-      <span><span class="dot" style="background:#15b101"></span>Conca d'Oro</span>
-    </div>
-    <div class="img-wrap img-scroll" id="grafico-vento-wrap">
-    </div>
-
+    <div class="legenda-spots" id="legenda-normale"></div>
+    <div class="img-wrap img-scroll" id="grafico-vento-wrap"></div>
     <div class="card-footer">
       <span>Fonte: MeteoSwiss ICON-CH1 · Open-Meteo</span>
     </div>
@@ -152,10 +142,7 @@
   <a href="https://open-meteo.com" target="_blank">Open-Meteo</a>
 </footer>
 
-<!-- =====================================================
-     PULSANTE KO-FI - DONAZIONI VOLONTARIE
-     Per attivare: rimuovere i tag di commento
-
+<!-- PULSANTE KO-FI - DONAZIONI VOLONTARIE
 <div style="text-align:center; padding: 1.5rem 0 .5rem;">
   <script type="text/javascript" src="https://storage.ko-fi.com/cdn/widget/Widget_2.js"></script>
   <script type="text/javascript">
@@ -163,7 +150,6 @@
     kofiwidget2.draw();
   </script>
 </div>
-
 -->
 
 <script src="script.js"></script>
