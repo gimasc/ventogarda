@@ -282,11 +282,11 @@ function aggiornaBottoni() {
   const btnSlot = document.getElementById("btn-slot");
   if (!btnOre || !btnSlot) return;
   if (vistaModo === "ore") {
-    btnOre.style.color = "#0d1b2a"; btnOre.style.background = "#4fc3f7";
-    btnSlot.style.color = "#4fc3f7"; btnSlot.style.background = "none";
+    btnOre.classList.add("attivo");    btnOre.textContent  = "Orario ▾";
+    btnSlot.classList.remove("attivo"); btnSlot.textContent = "Giornaliero";
   } else {
-    btnSlot.style.color = "#0d1b2a"; btnSlot.style.background = "#4fc3f7";
-    btnOre.style.color = "#4fc3f7"; btnOre.style.background = "none";
+    btnSlot.classList.add("attivo");   btnSlot.textContent = "Giornaliero ▾";
+    btnOre.classList.remove("attivo"); btnOre.textContent  = "Orario";
   }
 }
 
@@ -455,15 +455,15 @@ function toggleMappa() {
 
   if (wrap.style.display === "none") {
     wrap.style.display = "block";
-    btn.style.background = "#4fc3f7";
-    btn.style.color = "#0d1b2a";
+    btn.classList.add("attivo");
+    btn.textContent = "Mappa ▴";
     const lgNorm = document.getElementById("legenda-normale");
     if (lgNorm) lgNorm.style.display = "none";
 
     // Inizializza mappa solo la prima volta
     if (!mappaIstanza) {
       mappaIstanza = L.map("mappa-leaflet", { zoomControl: false, attributionControl: false })
-        .setView([45.856, 10.848], 11.3);
+        .setView([45.856, 10.848], 11);
 
       const tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         maxZoom: 19,

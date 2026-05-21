@@ -182,7 +182,7 @@ footer a { color: var(--accent); text-decoration: none; }
 
 #grafico-vento-wrap {
   background: white;
-  height: 430px;
+  height: 450px;
 }
 .legenda-spots {
   display: flex;
@@ -207,4 +207,33 @@ footer a { color: var(--accent); text-decoration: none; }
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+/* Card header con elementi a destra */
+.card-header--split {
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Pulsanti minimal (Orario/Giornaliero/Mappa) */
+.btn-minimal {
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: none;
+  font-weight: 400;
+  letter-spacing: .04em;
+  color: var(--muted);
+}
+
+.btn-minimal.attivo {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.btn-minimal-group {
+  display: flex;
+  gap: 12px;
 }

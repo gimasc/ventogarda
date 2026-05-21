@@ -22,11 +22,11 @@
 
   <!-- TIMELINE METEO -->
   <div class="card">
-    <div class="card-header" style="justify-content:space-between;align-items:center;">
+    <div class="card-header card-header--split">
       <span class="label">Meteo</span>
-      <div style="display:flex;gap:4px;">
-        <button id="btn-ore"  style="font-size:10px;font-family:'DM Sans',sans-serif;padding:2px 8px;border-radius:999px;border:1px solid #4fc3f730;cursor:pointer;color:#4fc3f7;background:none;">Orario</button>
-        <button id="btn-slot" style="font-size:10px;font-family:'DM Sans',sans-serif;padding:2px 8px;border-radius:999px;border:1px solid #4fc3f730;cursor:pointer;color:#0d1b2a;background:#4fc3f7;">Giornaliero</button>
+      <div class="btn-minimal-group">
+        <button id="btn-ore"  class="btn-minimal">Orario</button>
+        <button id="btn-slot" class="btn-minimal attivo">Giornaliero ▾</button>
       </div>
     </div>
     <div style="overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding: 0.3rem 0.6rem;">
@@ -75,12 +75,12 @@
 
   <!-- GRAFICO RAFFICHE -->
   <div class="card">
-    <div class="card-header" style="justify-content:space-between;align-items:center;">
+    <div class="card-header card-header--split">
       <div>
         <span class="label">Raffiche · Area Torbole / Riva</span>
         <span class="sub">Previsione · MeteoSwiss ICON-CH1</span>
       </div>
-      <button onclick="toggleMappa()" id="btn-mappa" style="font-size:10px;font-family:'DM Sans',sans-serif;padding:2px 8px;border-radius:999px;border:1px solid #4fc3f730;cursor:pointer;color:#4fc3f7;background:none;">📍 Mappa</button>
+      <button onclick="toggleMappa()" id="btn-mappa" class="btn-minimal">Mappa ▾</button>
     </div>
     <div id="mappa-wrap" style="display:none;">
       <div style="display:flex;gap:0;">
