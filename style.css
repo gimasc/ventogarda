@@ -273,11 +273,11 @@ footer a { color: var(--accent); text-decoration: none; }
 }
 
 .loc-tab:first-child {
-  border-radius: 999px 0 0 999px;
+  border-radius: 4px 0 0 4px;
 }
 
 .loc-tab:last-child {
-  border-radius: 0 999px 999px 0;
+  border-radius: 0 4px 4px 0;
   border-left: none;
 }
 
