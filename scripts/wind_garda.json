@@ -1,0 +1,11 @@
+{
+  "generated_at": null,
+  "source": "DWD MOSMIX-L",
+  "parameter": "PPPP",
+  "stations": {
+    "bolzano": "16020",
+    "brescia_ghedi": "16088"
+  },
+  "formula": "delta_hpa = brescia_ghedi_hpa - bolzano_hpa",
+  "rows": []
+}
