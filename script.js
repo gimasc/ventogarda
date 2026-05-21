@@ -45,15 +45,24 @@ function toLocalTime(isoString) {
 // ============================================================
 
 function wmoToStile(code) {
-  if (code === 0)               return { bg: "#f5c842", tipo: "sereno",    scuro: false };
-  if (code === 1)               return { bg: "#efc030", tipo: "velato",    scuro: false };
-  if (code === 2)               return { bg: "#c8b060", tipo: "parz",      scuro: false };
-  if (code === 3)               return { bg: "#909088", tipo: "nuvoloso",  scuro: true  };
-  if (code >= 51 && code <= 67) return { bg: "#686860", tipo: "pioggia",   scuro: true  };
-  if (code >= 71 && code <= 77) return { bg: "#7888a0", tipo: "neve",      scuro: true  };
-  if (code >= 80 && code <= 82) return { bg: "#585850", tipo: "pioggia",   scuro: true  };
-  if (code >= 95 && code <= 99) return { bg: "#282820", tipo: "temporale", scuro: true  };
-  return                               { bg: "#909088", tipo: "nuvoloso",  scuro: true  };
+  if (code === 0)               return { bg: "#f5c842", tipo: "sereno",    scuro: false, nuvola: 0 };
+  if (code === 1)               return { bg: "#f5c842", tipo: "velato",    scuro: false, nuvola: 1 };
+  if (code === 2)               return { bg: "#f5c842", tipo: "parz",      scuro: false, nuvola: 2 };
+  if (code === 3)               return { bg: "#909088", tipo: "nuvoloso",  scuro: true,  nuvola: 0 };
+  if (code >= 51 && code <= 67) return { bg: "#686860", tipo: "pioggia",   scuro: true,  nuvola: 0 };
+  if (code >= 71 && code <= 77) return { bg: "#7888a0", tipo: "neve",      scuro: true,  nuvola: 0 };
+  if (code >= 80 && code <= 82) return { bg: "#585850", tipo: "pioggia",   scuro: true,  nuvola: 0 };
+  if (code >= 95 && code <= 99) return { bg: "#282820", tipo: "temporale", scuro: true,  nuvola: 0 };
+  return                               { bg: "#909088", tipo: "nuvoloso",  scuro: true,  nuvola: 0 };
+}
+
+// Nuvola: barra grigio chiaro che entra da destra, proporzionale alla nuvolosità
+// size 0=nessuna, 1=velato (~35%), 2=parziale (~60%)
+function svgNuvola(size, w, h) {
+  if (size === 0) return "";
+  const col = "#b8bfc8";
+  const larghezza = size === 1 ? Math.round(w * 0.38) : Math.round(w * 0.65);
+  return `<div style="position:absolute;top:0;right:0;width:${larghezza}px;height:100%;background:${col};z-index:1;"></div>`;
 }
 
 // ============================================================
@@ -61,15 +70,14 @@ function wmoToStile(code) {
 // fill = mm reali, numero = probabilità %
 // ============================================================
 
-function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs) {
+function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs, nuvola) {
   const colT = scuro ? "#f0f0ee" : "#5a3e00";
   const colP = scuro ? "#c8d8ff" : "#5a3e00";
-  // Fill proporzionale ai mm (max visivo a 3mm = 70%)
-  // Se mm=0 ma prob>30, mostra un fill minimo basato sulla prob
-  const fillH = mm > 0 ? Math.min(Math.round(mm / 0.3 * 70), 70) : (prob > 30 ? Math.round(prob / 100 * 30) : 0);
-  const fillPioggia = fillH > 0
-    ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${fillH}%;background:rgba(40,100,220,0.55);z-index:0;"></div>`
+  const fillH = mm > 0 ? Math.min(Math.round(mm / 2 * 50), 50) : 0;
+  const fillPioggia = prob > 0
+    ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${Math.max(fillH, 4)}px;background:rgba(40,100,220,0.7);z-index:4;"></div>`
     : "";
+  const cloud = svgNuvola(nuvola || 0, w, h);
   const fulmine = tipo === "temporale"
     ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;">
          <svg width="12" height="18" viewBox="0 0 18 26" fill="none"><polygon points="10,0 3,14 9,14 8,26 15,12 9,12" fill="#ffe566" opacity="0.95"/></svg>
@@ -77,7 +85,7 @@ function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs) {
     : "";
   const probStr = prob > 0 ? `${prob}%` : "";
   return `<div style="width:${w}px;height:${h}px;border-radius:5px;background:${bg};position:relative;overflow:hidden;border:0.5px solid rgba(0,0,0,0.12);">
-    ${fillPioggia}${fulmine}
+    ${fillPioggia}${cloud}${fulmine}
     <span style="position:absolute;top:4px;left:0;right:0;text-align:center;font-size:${fs}px;font-weight:500;color:${colT};z-index:3;">${temp}°</span>
     <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:${Math.max(fs-2,8)}px;color:${colP};z-index:3;">${probStr}</span>
   </div>`;
@@ -163,36 +171,51 @@ function disegnaTimelineOre(meteo) {
   let start = 0;
   while (start < meteo.ore.length && meteo.ore[start] < adesso) start++;
 
-  let html = '<div style="display:flex;gap:0;width:max-content;padding:4px 0;align-items:flex-end;">';
-  let lastDay = null;
-
+  // Raggruppa per giorno mantenendo ordine
+  const gruppi = {};
   for (let i = start; i < meteo.ore.length; i++) {
-    const ora    = meteo.ore[i];
-    const temp   = meteo.temp[i]   !== null ? Math.round(meteo.temp[i]) : "—";
-    const prob   = meteo.prob[i]   !== null ? meteo.prob[i] : 0;
-    const mm     = meteo.mm[i]     !== null ? meteo.mm[i]   : 0;
-    const codice = meteo.codici[i] ?? 3;
-    const stile  = wmoToStile(codice);
-    const hLabel = String(ora.getHours()).padStart(2, "0");
-    const dayKey = ora.toDateString();
-
-    if (dayKey !== lastDay) {
-      lastDay = dayKey;
-      const gg   = GIORNI[ora.getDay()];
-      const data = `${gg} ${String(ora.getDate()).padStart(2,"0")}/${String(ora.getMonth()+1).padStart(2,"0")}`;
-      html += `
-        <div style="display:flex;flex-direction:column;align-items:center;margin:0 4px;">
-          <div style="width:1px;height:52px;background:#4fc3f740;"></div>
-          <span style="font-size:9px;color:#4fc3f7;margin-top:4px;white-space:nowrap;font-style:italic;">${data}</span>
-        </div>`;
-    }
-
-    html += `
-      <div style="display:flex;flex-direction:column;align-items:center;width:44px;margin:0 1px;">
-        ${rettangolo(stile.bg, stile.scuro, temp, prob, mm, stile.tipo, 44, 52, 11)}
-        <span style="font-size:9px;color:#6d96b8;margin-top:3px;">${hLabel}</span>
-      </div>`;
+    const dayKey = meteo.ore[i].toDateString();
+    if (!gruppi[dayKey]) gruppi[dayKey] = { data: meteo.ore[i], ore: [] };
+    gruppi[dayKey].ore.push(i);
   }
+
+  let html = '<div style="display:flex;gap:3px;width:max-content;padding:4px 0;align-items:flex-start;">';
+  let primo = true;
+
+  Object.keys(gruppi).forEach(key => {
+    const g    = gruppi[key];
+    const gg   = GIORNI[g.data.getDay()];
+    const data = `${gg} ${String(g.data.getDate()).padStart(2,"0")}/${String(g.data.getMonth()+1).padStart(2,"0")}`;
+
+    // Separatore tra giorni
+    if (!primo) {
+      html += `<div style="display:flex;align-items:stretch;margin:0 4px;">
+        <div style="width:1px;background:#4fc3f730;align-self:stretch;margin-top:18px;"></div>
+      </div>`;
+    }
+    primo = false;
+
+    html += `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <span style="font-size:9px;color:#4fc3f7;font-style:italic;white-space:nowrap;">${data}</span>
+      <div style="display:flex;gap:1px;">`;
+
+    g.ore.forEach(i => {
+      const ora    = meteo.ore[i];
+      const temp   = meteo.temp[i]   !== null ? Math.round(meteo.temp[i]) : "—";
+      const prob   = meteo.prob[i]   !== null ? meteo.prob[i] : 0;
+      const mm     = meteo.mm[i]     !== null ? meteo.mm[i]   : 0;
+      const codice = meteo.codici[i] ?? 3;
+      const stile  = wmoToStile(codice);
+      const hLabel = String(ora.getHours()).padStart(2, "0");
+
+      html += `<div style="display:flex;flex-direction:column;align-items:center;width:44px;">
+        ${rettangolo(stile.bg, stile.scuro, temp, prob, mm, stile.tipo, 44, 62, 12, stile.nuvola)}
+        <span style="font-size:9px;color:#6d96b8;margin-top:2px;">${hLabel}</span>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
 
   html += "</div>";
   wrapper.innerHTML = html;
@@ -256,7 +279,7 @@ function disegnaTimelineSlot(meteo) {
       const mm    = s.mm.reduce((a,b)=>a+b, 0);
 
       html += `<div style="display:flex;flex-direction:column;align-items:center;">
-        ${rettangolo(stile.bg, stile.scuro, temp, prob, mm, stile.tipo, 50, 62, 12)}
+        ${rettangolo(stile.bg, stile.scuro, temp, prob, mm, stile.tipo, 44, 62, 12, stile.nuvola)}
         <span style="font-size:8px;color:#6d96b8;margin-top:2px;">${SLOT_NOMI[si]}</span>
       </div>`;
     });
@@ -282,11 +305,11 @@ function aggiornaBottoni() {
   const btnSlot = document.getElementById("btn-slot");
   if (!btnOre || !btnSlot) return;
   if (vistaModo === "ore") {
-    btnOre.classList.add("attivo");    btnOre.textContent  = "Orario ▾";
-    btnSlot.classList.remove("attivo"); btnSlot.textContent = "Giornaliero";
+    btnOre.classList.add("attivo");
+    btnSlot.classList.remove("attivo");
   } else {
-    btnSlot.classList.add("attivo");   btnSlot.textContent = "Giornaliero ▾";
-    btnOre.classList.remove("attivo"); btnOre.textContent  = "Orario";
+    btnSlot.classList.add("attivo");
+    btnOre.classList.remove("attivo");
   }
 }
 
@@ -456,7 +479,6 @@ function toggleMappa() {
   if (wrap.style.display === "none") {
     wrap.style.display = "block";
     btn.classList.add("attivo");
-    btn.textContent = "Mappa ▴";
     const lgNorm = document.getElementById("legenda-normale");
     if (lgNorm) lgNorm.style.display = "none";
 
@@ -492,8 +514,7 @@ function toggleMappa() {
     }
   } else {
     wrap.style.display = "none";
-    btn.style.background = "none";
-    btn.style.color = "#4fc3f7";
+    btn.classList.remove("attivo");
     const lgNorm2 = document.getElementById("legenda-normale");
     if (lgNorm2) lgNorm2.style.display = "";
   }
