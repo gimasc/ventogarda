@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Vento Garda · Malcesine</title>
+  <title>Vento Garda · Torbole</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>const LOC_ID = "malcesine";</script>
-  <script src="../localita.js"></script>
+  <script>const LOC_ID = "torbole";</script>
+  <script src="localita.js"></script>
 </head>
 <body>
 
 <header>
   <h1>Vento Garda</h1>
-  <p>Malcesine · Lago di Garda Medio</p>
+  <p>Torbole · Lago di Garda Nord</p>
   <div class="loc-tabs">
-    <a class="loc-tab" href="/">Torbole</a>
-    <span class="loc-tab attiva">Malcesine</span>
+    <span class="loc-tab attiva">Torbole</span>
+    <a class="loc-tab" href="/malcesine/">Malcesine</a>
   </div>
 </header>
 
@@ -42,21 +42,21 @@
     </div>
   </div>
 
-  <!-- METEOGRAMMA MEDIO GARDA -->
+  <!-- METEOGRAMMA 1 -->
   <div class="card">
     <div class="card-header">
-      <span class="label">Medio Garda</span>
+      <span class="label">Óra · Torbole / Riva</span>
       <span class="sub">Meteogramma</span>
     </div>
     <div class="img-wrap">
       <img
-        src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png"
+        src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_Riva.png"
         referrerpolicy="no-referrer"
-        alt="Meteogramma Medio Garda">
+        alt="Meteogramma Óra Torbole">
     </div>
     <div class="card-footer">
       <span>Fonte: Meteotrentino</span>
-      <a class="btn-open" href="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png" target="_blank">Apri ↗</a>
+      <a class="btn-open" href="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_Riva.png" target="_blank">Apri ↗</a>
     </div>
   </div>
 
@@ -82,7 +82,7 @@
   <div class="card">
     <div class="card-header card-header--split">
       <div>
-        <span class="label">Raffiche · Area Malcesine</span>
+        <span class="label">Raffiche · Area Torbole / Riva</span>
         <span class="sub">Previsione · MeteoSwiss ICON-CH1</span>
       </div>
       <button onclick="toggleMappa()" id="btn-mappa" class="btn-minimal">Mappa <svg class="chevron" viewBox="0 0 12 8" fill="none"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -103,14 +103,32 @@
   <!-- METEOGRAMMA 2 -->
   <div class="card">
     <div class="card-header">
-      <span class="label">Medio Garda</span>
+      <span class="label">Pelèr · Medio Garda</span>
+      <span class="sub">Meteogramma</span>
+    </div>
+    <div class="img-wrap">
+      <img
+        src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png"
+        referrerpolicy="no-referrer"
+        alt="Meteogramma Pelèr Medio Garda">
+    </div>
+    <div class="card-footer">
+      <span>Fonte: Meteotrentino</span>
+      <a class="btn-open" href="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png" target="_blank">Apri ↗</a>
+    </div>
+  </div>
+
+  <!-- METEOGRAMMA 3 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="label">Pelèr · Medio Garda</span>
       <span class="sub">Meteogramma 2</span>
     </div>
     <div class="img-wrap">
       <img
         src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/medio_garda.png"
         referrerpolicy="no-referrer"
-        alt="Meteogramma Medio Garda 2">
+        alt="Meteogramma Pelèr Medio Garda 2">
     </div>
     <div class="card-footer">
       <span>Fonte: Meteotrentino</span>
@@ -127,6 +145,16 @@
   <a href="https://open-meteo.com" target="_blank">Open-Meteo</a>
 </footer>
 
-<script src="../script.js"></script>
+<!-- PULSANTE KO-FI - DONAZIONI VOLONTARIE
+<div style="text-align:center; padding: 1.5rem 0 .5rem;">
+  <script type="text/javascript" src="https://storage.ko-fi.com/cdn/widget/Widget_2.js"></script>
+  <script type="text/javascript">
+    kofiwidget2.init('Offrimi un sacco di birre!', '#4fc3f7', 'W7W21ZJP03');
+    kofiwidget2.draw();
+  </script>
+</div>
+-->
+
+<script src="script.js"></script>
 </body>
 </html>
