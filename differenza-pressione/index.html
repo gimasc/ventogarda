@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Differenza pressione Garda</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #182033;
+      --muted: #657083;
+      --border: #e2e7ef;
+      --orange: #ff8a1f;
+      --blue: #2f6bff;
+      --red: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 26px 16px 44px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 3vw, 2.5rem);
+      letter-spacing: -0.035em;
+    }
+
+    .intro {
+      margin: 0 0 20px;
+      color: var(--muted);
+      max-width: 900px;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 26px rgba(24,32,51,0.06);
+      margin-bottom: 16px;
+    }
+
+    .topline {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    .error {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 440px !important;
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .orange { background: var(--orange); }
+    .blue { background: var(--blue); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      canvas { height: 360px !important; }
+    }
+
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+
+    .kpi-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 460px;
+      margin-top: 10px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.92rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    code {
+      background: #edf1f7;
+      padding: 2px 5px;
+      border-radius: 6px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .chart-wrap {
+      position: relative;
+    }
+
+    .arrow-label {
+      position: absolute;
+      right: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+
+    .arrow-label.ora   { top: 12px;  color: #e65100; }
+    .arrow-label.peler { bottom: 40px; color: #1565c0; }
+
+    .arrow-label svg { display: block; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Differenza pressione Garda</h1>
+  <p class="intro">
+    Ricostruzione dell’indicatore barico: <strong>ΔP = pressione Brescia/Ghedi − pressione Bolzano</strong>.
+    Valori positivi indicano tendenza a Ora da sud; valori negativi indicano tendenza a Peler/Vento da nord.
+  </p>
+
+  <section class="card">
+    <div class="topline">
+      <div>
+        <strong>Grafico ΔP</strong>
+        <div id="status" class="status">Caricamento dati…</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <label for="modelSelect" style="font-size:.85rem;color:var(--muted);">Modello:</label>
+        <select id="modelSelect" style="font-size:.85rem;padding:4px 8px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;">
+          <option value="icon_seamless">ICON Seamless (default)</option>
+          <option value="dwd_icon">DWD ICON Global</option>
+          <option value="dwd_icon_eu">DWD ICON Europa</option>
+          <option value="dwd_icon_d2">DWD ICON D2 (Alta ris.)</option>
+          <option value="ecmwf_ifs025">ECMWF IFS</option>
+          <option value="gfs_seamless">GFS (USA)</option>
+          <option value="meteoswiss_icon_ch2">MeteoSwiss ICON-CH2</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <canvas id="chart"></canvas>
+      <div class="arrow-label ora">
+        <svg width="28" height="28" viewBox="0 0 28 28"><polygon points="14,2 24,16 18,16 18,26 10,26 10,16 4,16" fill="#e65100"/></svg>
+        ORA
+      </div>
+      <div class="arrow-label peler">
+        PELÈR
+        <svg width="28" height="28" viewBox="0 0 28 28"><polygon points="14,26 24,12 18,12 18,2 10,2 10,12 4,12" fill="#1565c0"/></svg>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot orange"></span>ΔP &gt; 0: Ora / sud</span>
+      <span><span class="dot blue"></span>ΔP &lt; 0: Peler / nord</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <strong>Sintesi</strong>
+    <div class="grid">
+      <div class="kpi">
+        <div class="kpi-label">Aggiornamento dati</div>
+        <div id="updatedAt" class="kpi-value">–</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Periodo previsione</div>
+        <div id="period" class="kpi-value">–</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">ΔP medio</div>
+        <div id="avgDelta" class="kpi-value">–</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <strong>Tabella dati</strong>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Ora locale</th>
+            <th>Bolzano hPa</th>
+            <th>Brescia/Ghedi hPa</th>
+            <th>ΔP hPa</th>
+            <th>Indicazione</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card small">
+    <strong>Nota</strong><br>
+    Dati: <a href="https://open-meteo.com" target="_blank">Open-Meteo</a> · ICON Seamless · Pressione al livello del mare (pressure_msl) · Bolzano vs Brescia · Aggiornato ad ogni apertura.
+  </section>
+</main>
+
+<script>
+  // ============================================================
+  // Dati pressione da Open-Meteo — nessun server, nessun Python
+  // Bolzano: 46.4983, 11.3548
+  // Brescia:  45.5416, 10.2118
+  // ============================================================
+  let chart;
+
+  function fmtDate(iso) {
+    return new Intl.DateTimeFormat("it-IT", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(new Date(iso + "Z"));
+  }
+
+  function setStatus(text, error = false) {
+    const el = document.getElementById("status");
+    el.textContent = text;
+    el.className = error ? "status error" : "status";
+  }
+
+  function directionLabel(delta) {
+    if (delta > 1)  return "Óra / Sud";
+    if (delta < -1) return "Pelèr / Nord";
+    return "Neutro";
+  }
+
+  async function fetchPressione(lat, lon, model) {
+    const params = new URLSearchParams({
+      latitude:      lat,
+      longitude:     lon,
+      hourly:        "pressure_msl",
+      forecast_days: 7,
+      models:        model,
+    });
+    const r = await fetch("https://api.open-meteo.com/v1/forecast?" + params);
+    const d = await r.json();
+    return { times: d.hourly.time, values: d.hourly.pressure_msl };
+  }
+
+  async function load() {
+    setStatus("Caricamento dati da Open-Meteo…");
+    try {
+      const model = document.getElementById("modelSelect").value;
+      const [bolzano, brescia] = await Promise.all([
+        fetchPressione(46.4983, 11.3548, model),
+        fetchPressione(45.5416, 10.2118, model),
+      ]);
+
+      // Costruisci rows combinando i due dataset (stessa lunghezza, stessi timestep)
+      const rows = bolzano.times.map((time, i) => {
+        const p_bz = bolzano.values[i];
+        const p_bs = brescia.values[i];
+        if (p_bz === null || p_bs === null) return null;
+        return {
+          time,
+          bolzano_hpa: p_bz,
+          ghedi_hpa:   p_bs,
+          delta_hpa:   parseFloat((p_bs - p_bz).toFixed(2)),
+        };
+      }).filter(r => r !== null);
+
+      const avg = rows.reduce((s, r) => s + r.delta_hpa, 0) / rows.length;
+
+      document.getElementById("updatedAt").textContent = new Date().toLocaleString("it-IT");
+      document.getElementById("period").textContent =
+        fmtDate(rows[0].time) + " → " + fmtDate(rows[rows.length - 1].time);
+      document.getElementById("avgDelta").textContent = avg.toFixed(1) + " hPa";
+
+      renderChart(rows);
+      renderTable(rows);
+
+      setStatus("Dati Open-Meteo · " + model + " · " + rows.length + " ore · Aggiornato ora");
+    } catch (err) {
+      console.error(err);
+      setStatus("Errore: " + err.message, true);
+    }
+  }
+
+  function renderChart(rows) {
+    const ctx = document.getElementById("chart");
+    const labels = rows.map(r => fmtDate(r.time));
+    const values = rows.map(r => r.delta_hpa);
+    const pointColors = rows.map(r => r.delta_hpa >= 0 ? "#ff8a1f" : "#2f6bff");
+
+    if (chart) chart.destroy();
+
+    const zeroLine = {
+      id: "zeroLine",
+      afterDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+
+        // Linea zero
+        const y0 = scales.y.getPixelForValue(0);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y0);
+        ctx.lineTo(chartArea.right, y0);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "#1f2937";
+        ctx.stroke();
+        ctx.restore();
+
+        // Soglia +2 (ORA)
+        const y2pos = scales.y.getPixelForValue(2);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y2pos);
+        ctx.lineTo(chartArea.right, y2pos);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#e6510066";
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+        ctx.restore();
+
+        // Soglia -2 (PELÈR)
+        const y2neg = scales.y.getPixelForValue(-2);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y2neg);
+        ctx.lineTo(chartArea.right, y2neg);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#1565c066";
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+        ctx.restore();
+
+        // Linee verticali ogni 6 ore + separatore giorno
+        rows.forEach((r, i) => {
+          const h = new Date(r.time + "Z").getHours();
+          if (h !== 0 && h !== 6 && h !== 12 && h !== 18) return;
+          const xPos = scales.x.getPixelForValue(i);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(xPos, chartArea.top);
+          ctx.lineTo(xPos, chartArea.bottom);
+          if (h === 0) {
+            // Mezzanotte — linea più marcata
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = "#1f293755";
+            ctx.setLineDash([]);
+          } else {
+            // 06, 12, 18 — linea leggera
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "#e2e7ef";
+            ctx.setLineDash([]);
+          }
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+    };
+
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "ΔP hPa",
+          data: values,
+          borderColor: "#374151",
+          pointBackgroundColor: pointColors,
+          pointBorderColor: pointColors,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          tension: 0.25
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              afterLabel(context) {
+                const r = rows[context.dataIndex];
+                return [
+                  "Bolzano: " + r.bolzano_hpa.toFixed(1) + " hPa",
+                  "Brescia/Ghedi: " + r.ghedi_hpa.toFixed(1) + " hPa",
+                  "Indicazione: " + directionLabel(r.delta_hpa)
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 65,
+              minRotation: 45,
+              autoSkip: false,
+              callback: function(val, index) {
+                if (index >= rows.length) return null;
+                const h = new Date(rows[index].time + "Z").getHours();
+                if (h === 0 || h === 6 || h === 12 || h === 18) {
+                  const d = new Date(rows[index].time + "Z");
+                  const gg = ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"][d.getDay()];
+                  if (h === 0) {
+                    return gg + " " + String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + " 00:00";
+                  }
+                  // Alle 12 aggiungi il giorno se è il primo tick del giorno visibile
+                  if (h === 12) {
+                    return gg + " " + String(d.getDate()).padStart(2,"0") + " 12:00";
+                  }
+                  return String(h).padStart(2,"0") + ":00";
+                }
+                return null;
+              },
+              font: function(ctx) {
+                if (ctx.index >= rows.length) return {};
+                const h = new Date(rows[ctx.index]?.time + "Z").getHours();
+                return { weight: h === 0 ? "700" : "400", size: h === 0 ? 11 : 10 };
+              },
+              color: function(ctx) {
+                if (ctx.index >= rows.length) return "#657083";
+                const h = new Date(rows[ctx.index]?.time + "Z").getHours();
+                return h === 0 ? "#182033" : "#657083";
+              }
+            },
+            grid: { display: false }
+          },
+          y: {
+            title: { display: true, text: "ΔP hPa" },
+            grid: { color: "#edf0f5" }
+          }
+        }
+      },
+      plugins: [zeroLine]
+    });
+  }
+
+  function renderTable(rows) {
+    const tbody = document.getElementById("tableBody");
+    tbody.innerHTML = "";
+    rows.slice(0, 120).forEach(r => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${fmtDate(r.time)}</td>
+        <td>${r.bolzano_hpa.toFixed(1)}</td>
+        <td>${r.ghedi_hpa.toFixed(1)}</td>
+        <td><strong>${r.delta_hpa.toFixed(1)}</strong></td>
+        <td>${directionLabel(r.delta_hpa)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  load();
+
+  document.getElementById("modelSelect").addEventListener("change", () => load());
+</script>
+</body>
+</html>

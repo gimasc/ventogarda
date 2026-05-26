@@ -65,16 +65,26 @@ for s in dati_spots:
     ax1.plot(ore, s["raffiche"], color=s["colore"], linewidth=spessore,
              label=s["nome"], alpha=0.85)
 
+# Linee soglia vento
+SOGLIE = [
+    {"kn": 10, "colore": "#bbbbbb", "spessore": 1.0, "label": "10 kn"},
+    {"kn": 20, "colore": "#999999", "spessore": 1.0, "label": "20 kn"},
+    {"kn": 30, "colore": "#bbbbbb", "spessore": 1.0, "label": "30 kn"},
+]
+for soglia in SOGLIE:
+    ax1.axhline(soglia["kn"], color=soglia["colore"], linewidth=soglia["spessore"],
+                linestyle="--", alpha=0.6, zorder=1)
+
 ax1.set_title("Raffiche vento (10m) · Area Torbole / Riva", fontsize=13, pad=10, color="#222")
 ax1.set_ylabel("Nodi (kn)", color="#444")
 ax1.tick_params(colors="#444")
-ax1.legend(facecolor="white", edgecolor="#ccc", loc="upper left", bbox_to_anchor=(0, 1.08), ncol=4)
 ax1.grid(True, alpha=0.3, color="#aaa")
 for spine in ax1.spines.values():
     spine.set_edgecolor("#ccc")
 ax1.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%H"))
 ax1.tick_params(axis="x", labelsize=14, labelcolor="#444", rotation=90)
+ax1.set_xlim(left=ore[0], right=ore[-1])
 
 # --- Pannello 2: direzione (Conca d'Oro come riferimento) ---
 ref = dati_spots[3]  # Conca d'Oro è l'ultimo della lista
@@ -99,8 +109,9 @@ for o, d in zip(ore, ref["direzione"]):
 ax2.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 ax2.xaxis.set_major_formatter(mdates.DateFormatter("%H"))
 ax2.tick_params(axis="x", labelsize=14, labelcolor="#444", rotation=90)
+ax2.set_xlim(left=ore[0], right=ore[-1])
 
-# Linee verticali e nomi giorni
+# Linee verticali e nomi giorni + etichette soglie
 giorni_visti = set()
 for o in ore:
     giorno = o.date()
@@ -111,6 +122,10 @@ for o in ore:
         ax1.text(o, ax1.get_ylim()[1] * 0.93,
                  o.strftime("%a %d/%m"),
                  color="#555", fontsize=9, ha="left", fontstyle="italic")
+        # Etichette soglie all inizio di ogni giorno
+        for soglia in SOGLIE:
+            ax1.text(o, soglia["kn"] + 0.4, soglia["label"],
+                     fontsize=7, color=soglia["colore"], ha="left", va="bottom")
 
 plt.tight_layout()
 plt.savefig("vento_torbole.png", dpi=150, facecolor="white")
