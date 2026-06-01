@@ -75,8 +75,7 @@
     }
 
     canvas {
-      width: 100% !important;
-      height: 440px !important;
+      height: 480px !important;
     }
 
     .legend {
@@ -109,7 +108,7 @@
 
     @media (max-width: 760px) {
       .grid { grid-template-columns: 1fr; }
-      canvas { height: 360px !important; }
+      canvas { height: 500px !important; }
     }
 
     .kpi {
@@ -166,24 +165,72 @@
       line-height: 1.45;
     }
 
-    .chart-wrap {
+    .chart-outer {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .arrows-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 6px;
+      min-width: 44px;
+    }
+
+    .chart-scroll-wrap {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
       position: relative;
     }
 
-    .arrow-label {
+    .chart-wrap {
+      position: relative;
+      min-width: 900px;
+    }
+
+    .scroll-hint {
       position: absolute;
-      right: 8px;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: .65rem;
+      color: #657083;
+      font-weight: 700;
+      letter-spacing: .06em;
+      pointer-events: none;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.95) 40%);
+      padding: 12px 10px 12px 28px;
+    }
+
+    .scroll-hint svg {
+      display: block;
+    }
+
+    .chart-scroll-wrap.scrolled .scroll-hint {
+      display: none;
+    }
+
+    .arrow-label {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 3px;
-      font-size: .72rem;
+      font-size: .65rem;
       font-weight: 700;
       letter-spacing: .08em;
     }
 
-    .arrow-label.ora   { top: 12px;  color: #e65100; }
-    .arrow-label.peler { bottom: 40px; color: #1565c0; }
+    .arrow-label.ora   { color: #e65100; }
+    .arrow-label.peler { color: #1565c0; }
 
     .arrow-label svg { display: block; }
   </style>
@@ -202,29 +249,30 @@
         <strong>Grafico ΔP</strong>
         <div id="status" class="status">Caricamento dati…</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <label for="modelSelect" style="font-size:.85rem;color:var(--muted);">Modello:</label>
-        <select id="modelSelect" style="font-size:.85rem;padding:4px 8px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;">
-          <option value="icon_seamless">ICON Seamless (default)</option>
-          <option value="dwd_icon">DWD ICON Global</option>
-          <option value="dwd_icon_eu">DWD ICON Europa</option>
-          <option value="dwd_icon_d2">DWD ICON D2 (Alta ris.)</option>
-          <option value="ecmwf_ifs025">ECMWF IFS</option>
-          <option value="gfs_seamless">GFS (USA)</option>
-          <option value="meteoswiss_icon_ch2">MeteoSwiss ICON-CH2</option>
-        </select>
+      <div class="small">
+        Daten: Deutscher Wetterdienst
       </div>
     </div>
 
-    <div class="chart-wrap">
-      <canvas id="chart"></canvas>
-      <div class="arrow-label ora">
-        <svg width="28" height="28" viewBox="0 0 28 28"><polygon points="14,2 24,16 18,16 18,26 10,26 10,16 4,16" fill="#e65100"/></svg>
-        ORA
+    <div class="chart-outer">
+      <div class="arrows-col">
+        <div class="arrow-label ora">
+          <svg width="22" height="22" viewBox="0 0 28 28"><polygon points="14,2 24,16 18,16 18,26 10,26 10,16 4,16" fill="#e65100"/></svg>
+          ORA
+        </div>
+        <div class="arrow-label peler">
+          PELÈR
+          <svg width="22" height="22" viewBox="0 0 28 28"><polygon points="14,26 24,12 18,12 18,2 10,2 10,12 4,12" fill="#1565c0"/></svg>
+        </div>
       </div>
-      <div class="arrow-label peler">
-        PELÈR
-        <svg width="28" height="28" viewBox="0 0 28 28"><polygon points="14,26 24,12 18,12 18,2 10,2 10,12 4,12" fill="#1565c0"/></svg>
+      <div class="chart-scroll-wrap">
+        <div class="chart-wrap">
+          <canvas id="chart"></canvas>
+        </div>
+        <div class="scroll-hint">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polyline points="9,18 15,12 9,6" stroke="#657083" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>scorri</span>
+        </div>
       </div>
     </div>
 
@@ -271,8 +319,7 @@
   </section>
 
   <section class="card small">
-    <strong>Nota</strong><br>
-    Dati: <a href="https://open-meteo.com" target="_blank">Open-Meteo</a> · ICON Seamless · Pressione al livello del mare (pressure_msl) · Bolzano vs Brescia · Aggiornato ad ogni apertura.
+    ventogarda.it, Daten: <a href="https://www.dwd.de" target="_blank">Deutscher Wetterdienst</a>
   </section>
 </main>
 
@@ -291,7 +338,7 @@
       month: "2-digit",
       hour: "2-digit",
       minute: "2-digit"
-    }).format(new Date(iso + "Z"));
+    }).format(new Date(iso));
   }
 
   function setStatus(text, error = false) {
@@ -306,44 +353,19 @@
     return "Neutro";
   }
 
-  async function fetchPressione(lat, lon, model) {
-    const params = new URLSearchParams({
-      latitude:      lat,
-      longitude:     lon,
-      hourly:        "pressure_msl",
-      forecast_days: 7,
-      models:        model,
-    });
-    const r = await fetch("https://api.open-meteo.com/v1/forecast?" + params);
-    const d = await r.json();
-    return { times: d.hourly.time, values: d.hourly.pressure_msl };
-  }
-
   async function load() {
-    setStatus("Caricamento dati da Open-Meteo…");
+    setStatus("Caricamento dati DWD MOSMIX-L…");
     try {
-      const model = document.getElementById("modelSelect").value;
-      const [bolzano, brescia] = await Promise.all([
-        fetchPressione(46.4983, 11.3548, model),
-        fetchPressione(45.5416, 10.2118, model),
-      ]);
-
-      // Costruisci rows combinando i due dataset (stessa lunghezza, stessi timestep)
-      const rows = bolzano.times.map((time, i) => {
-        const p_bz = bolzano.values[i];
-        const p_bs = brescia.values[i];
-        if (p_bz === null || p_bs === null) return null;
-        return {
-          time,
-          bolzano_hpa: p_bz,
-          ghedi_hpa:   p_bs,
-          delta_hpa:   parseFloat((p_bs - p_bz).toFixed(2)),
-        };
-      }).filter(r => r !== null);
+      const res = await fetch("data/wind_garda.json?v=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) throw new Error("File dati non trovato.");
+      const payload = await res.json();
+      const rows = payload.rows || [];
+      if (!rows.length) throw new Error("Nessun dato disponibile.");
 
       const avg = rows.reduce((s, r) => s + r.delta_hpa, 0) / rows.length;
 
-      document.getElementById("updatedAt").textContent = new Date().toLocaleString("it-IT");
+      document.getElementById("updatedAt").textContent =
+        payload.generated_at ? new Date(payload.generated_at).toLocaleString("it-IT") : "–";
       document.getElementById("period").textContent =
         fmtDate(rows[0].time) + " → " + fmtDate(rows[rows.length - 1].time);
       document.getElementById("avgDelta").textContent = avg.toFixed(1) + " hPa";
@@ -351,7 +373,8 @@
       renderChart(rows);
       renderTable(rows);
 
-      setStatus("Dati Open-Meteo · " + model + " · " + rows.length + " ore · Aggiornato ora");
+      setStatus("Dati DWD MOSMIX-L · " + rows.length + " ore · Aggiornato " +
+        (payload.generated_at ? new Date(payload.generated_at).toLocaleString("it-IT") : "–"));
     } catch (err) {
       console.error(err);
       setStatus("Errore: " + err.message, true);
@@ -360,6 +383,15 @@
 
   function renderChart(rows) {
     const ctx = document.getElementById("chart");
+    // Larghezza: mostra 7 giorni (168 ore) nella finestra visibile
+    const scrollWrap = document.querySelector(".chart-scroll-wrap");
+    const visibleW = scrollWrap ? scrollWrap.clientWidth : 800;
+    const pxPerHour = visibleW / 168;
+    const w = Math.round(rows.length * pxPerHour);
+    ctx.style.width = w + "px";
+    ctx.width = w;
+    ctx.style.height = "480px";
+    ctx.height = 480;
     const labels = rows.map(r => fmtDate(r.time));
     const values = rows.map(r => r.delta_hpa);
     const pointColors = rows.map(r => r.delta_hpa >= 0 ? "#ff8a1f" : "#2f6bff");
@@ -368,7 +400,7 @@
 
     const zeroLine = {
       id: "zeroLine",
-      afterDraw(chart) {
+      beforeDatasetsDraw(chart) {
         const { ctx, chartArea, scales } = chart;
 
         // Linea zero
@@ -406,9 +438,10 @@
         ctx.stroke();
         ctx.restore();
 
-        // Linee verticali ogni 6 ore + separatore giorno
+        // Linee verticali ogni 6 ore + separatore giorno + etichetta giorno
+        const midnight = [];
         rows.forEach((r, i) => {
-          const h = new Date(r.time + "Z").getHours();
+          const h = new Date(r.time).getHours();
           if (h !== 0 && h !== 6 && h !== 12 && h !== 18) return;
           const xPos = scales.x.getPixelForValue(i);
           ctx.save();
@@ -416,17 +449,53 @@
           ctx.moveTo(xPos, chartArea.top);
           ctx.lineTo(xPos, chartArea.bottom);
           if (h === 0) {
-            // Mezzanotte — linea più marcata
             ctx.lineWidth = 1.5;
             ctx.strokeStyle = "#1f293755";
             ctx.setLineDash([]);
+            midnight.push({ i, xPos, time: r.time });
+          } else if (h === 12) {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "#1f293733";
+            ctx.setLineDash([4, 3]);
           } else {
-            // 06, 12, 18 — linea leggera
             ctx.lineWidth = 1;
             ctx.strokeStyle = "#e2e7ef";
             ctx.setLineDash([]);
           }
           ctx.stroke();
+          ctx.restore();
+        });
+
+      }
+    };
+
+    // Plugin separato per etichette giorno — disegnate DOPO la linea
+    const dayLabels = {
+      id: "dayLabels",
+      afterDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const midnight = [];
+        rows.forEach((r, i) => {
+          const h = new Date(r.time).getHours();
+          if (h !== 0) return;
+          midnight.push({ xPos: scales.x.getPixelForValue(i), time: r.time });
+        });
+        const days = ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"];
+        midnight.forEach((m, idx) => {
+          const xStart = m.xPos;
+          const xEnd = idx + 1 < midnight.length ? midnight[idx + 1].xPos : chartArea.right;
+          const xCenter = (xStart + xEnd) / 2;
+          const d = new Date(m.time);
+          const label = days[d.getDay()] + " " + String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0");
+          // Sfondo bianco dietro il testo
+          ctx.save();
+          ctx.font = "700 11px system-ui, sans-serif";
+          const tw = ctx.measureText(label).width;
+          ctx.fillStyle = "rgba(255,255,255,0.95)";
+          ctx.fillRect(xCenter - tw/2 - 3, chartArea.top - 18, tw + 6, 16);
+          ctx.fillStyle = "#1f2937cc";
+          ctx.textAlign = "center";
+          ctx.fillText(label, xCenter, chartArea.top - 6);
           ctx.restore();
         });
       }
@@ -439,18 +508,18 @@
         datasets: [{
           label: "ΔP hPa",
           data: values,
-          borderColor: "#374151",
-          pointBackgroundColor: pointColors,
-          pointBorderColor: pointColors,
-          pointRadius: 3,
-          pointHoverRadius: 5,
-          tension: 0.25
+          borderColor: "#2f6bff",
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          borderWidth: 2.5,
+          tension: 0.35
         }]
       },
       options: {
-        responsive: true,
+        responsive: false,
         maintainAspectRatio: false,
         interaction: { mode: "index", intersect: false },
+        layout: { padding: { top: 24 } },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -469,46 +538,58 @@
         scales: {
           x: {
             ticks: {
-              maxRotation: 65,
-              minRotation: 45,
+              maxRotation: 0,
+              minRotation: 0,
               autoSkip: false,
               callback: function(val, index) {
                 if (index >= rows.length) return null;
-                const h = new Date(rows[index].time + "Z").getHours();
+                const h = new Date(rows[index].time).getHours();
                 if (h === 0 || h === 6 || h === 12 || h === 18) {
-                  const d = new Date(rows[index].time + "Z");
+                  const d = new Date(rows[index].time);
                   const gg = ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"][d.getDay()];
-                  if (h === 0) {
-                    return gg + " " + String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + " 00:00";
-                  }
-                  // Alle 12 aggiungi il giorno se è il primo tick del giorno visibile
-                  if (h === 12) {
-                    return gg + " " + String(d.getDate()).padStart(2,"0") + " 12:00";
-                  }
-                  return String(h).padStart(2,"0") + ":00";
+                  return h === 0 ? "0" : String(h);
                 }
                 return null;
               },
               font: function(ctx) {
                 if (ctx.index >= rows.length) return {};
-                const h = new Date(rows[ctx.index]?.time + "Z").getHours();
+                const h = new Date(rows[ctx.index]?.time).getHours();
                 return { weight: h === 0 ? "700" : "400", size: h === 0 ? 11 : 10 };
               },
               color: function(ctx) {
                 if (ctx.index >= rows.length) return "#657083";
-                const h = new Date(rows[ctx.index]?.time + "Z").getHours();
+                const h = new Date(rows[ctx.index]?.time).getHours();
                 return h === 0 ? "#182033" : "#657083";
               }
             },
             grid: { display: false }
           },
           y: {
+            ticks: { stepSize: 2 },
             title: { display: true, text: "ΔP hPa" },
-            grid: { color: "#edf0f5" }
+            grid: { color: "#edf0f5" },
+            afterDataLimits(scale) {
+              const pad = 1.5;
+              scale.max = Math.ceil((scale.max + pad) / 2) * 2;
+              scale.min = Math.floor((scale.min - pad) / 2) * 2;
+            }
           }
         }
       },
-      plugins: [zeroLine]
+      plugins: [zeroLine, dayLabels, {
+      id: "arrowAlign",
+      afterRender(chart) {
+        const { chartArea } = chart;
+        const col = document.querySelector(".arrows-col");
+        if (!col) return;
+        const canvasRect = chart.canvas.getBoundingClientRect();
+        const outerRect = col.parentElement.getBoundingClientRect();
+        const topOffset = chartArea.top;
+        const bottomOffset = chart.canvas.height - chartArea.bottom;
+        col.style.paddingTop = topOffset + "px";
+        col.style.paddingBottom = bottomOffset + "px";
+      }
+    }]
     });
   }
 
@@ -530,7 +611,11 @@
 
   load();
 
-  document.getElementById("modelSelect").addEventListener("change", () => load());
+  document.addEventListener("DOMContentLoaded", () => {
+    const sw = document.querySelector(".chart-scroll-wrap");
+    if (sw) sw.addEventListener("scroll", () => sw.classList.add("scrolled"), { once: true });
+  });
+
 </script>
 </body>
 </html>

@@ -2,8 +2,10 @@ name: Aggiorna grafico vento
 
 on:
   schedule:
-    - cron: '0 * * * *'  # ogni ora
-  workflow_dispatch:       # permette di lanciarlo a mano
+    - cron: '23 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   aggiorna:
