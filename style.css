@@ -1,117 +1,268 @@
+/* ============================================================
+   VENTO GARDA — Wind Machine Theme
+   Tutto lo stile in un posto solo
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap');
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ============================================================
+   VARIABILI
+   ============================================================ */
 :root {
-  --sky:    #0d1b2a;
-  --card:   #162d4a;
-  --accent: #4fc3f7;
-  --gold:   #f0c040;
-  --text:   #cfe8ff;
-  --muted:  #6d96b8;
-  --radius: 16px;
+  --bg:       #0a2e52;
+  --card:     #f2f0eb;
+  --border:   #d8d4cc;
+  --border-l: #ede9e0;
+  --text:     #1a3a5c;
+  --muted:    #7a7060;
+  --faint:    #a09880;
+  --accent:   #1a3a5c;
+  --azure:    #3a8fb5;
+  --red:      #e63c1e;
+  --radius:   4px;
+
+  /* Font */
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-title: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
+/* ============================================================
+   BASE
+   ============================================================ */
 html, body {
   min-height: 100%;
-  background: var(--sky);
+  background: var(--bg);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
 }
 
-body {
-  background:
-    radial-gradient(ellipse 80% 40% at 50% -10%, #1a4a7a55, transparent),
-    var(--sky);
-}
-
+/* ============================================================
+   HEADER
+   ============================================================ */
 header {
-  text-align: center;
-  padding: 2.2rem 1rem 1rem;
+  padding: 1.5rem 0 .8rem;
+  border-bottom: 2px solid var(--text);
+  margin-bottom: 1.2rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 header h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(2.4rem, 9vw, 3.6rem);
-  letter-spacing: 0.12em;
-  color: var(--accent);
-  text-shadow: 0 0 28px #4fc3f755;
+  font-family: var(--font-title);
+  font-size: clamp(1.4rem, 9.5vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: .55rem;
+  text-align: center;
 }
 
-header p {
-  margin-top: .4rem;
-  font-size: .8rem;
-  font-weight: 300;
-  color: var(--muted);
-  letter-spacing: .08em;
+header h1 span {
+  color: var(--red);
+}
+
+.header-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-sub-block {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+
+.header-sub {
+  font-size: .6rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: .12em;
   text-transform: uppercase;
 }
 
-.wind-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  margin-top: .9rem;
-  padding: .28rem .85rem;
-  border: 1px solid #4fc3f730;
-  border-radius: 999px;
-  font-size: .72rem;
+.header-coords {
+  font-size: .55rem;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+
+
+/* ============================================================
+   TAB LOCALITÀ
+   ============================================================ */
+.loc-tabs {
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.loc-tab {
+  font-family: var(--font-body);
+  font-size: .68rem;
+  font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--gold);
-  background: #4fc3f710;
+  padding: .32rem 1.1rem;
+  text-decoration: none;
+  color: var(--text);
+  background: none;
+  border: 1.5px solid var(--text);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.loc-tab:first-child { border-radius: 0; }
+.loc-tab:last-child  { border-radius: 0; border-left: none; }
+
+.loc-tab.attiva {
+  background: var(--text);
+  color: var(--card);
+}
+
+.loc-tab:not(.attiva) {
+  color: var(--text);
+  opacity: 0.5;
+}
+
+/* ============================================================
+   LAYOUT MAIN
+   ============================================================ */
+.page-container {
+  max-width: 700px;
+  margin: 0 auto;
+  background: var(--card);
+  padding: 0 1.2rem 3rem;
+}
+
+@media (max-width: 420px) {
+  .page-container {
+    padding: 0 .75rem 3rem;
+  }
+  header {
+    padding: 1rem 0 .6rem;
+  }
+  .header-meta {
+    align-items: flex-start;
+  }
+  .header-coords {
+    display: block;
+  }
+  .header-location {
+    display: none;
+  }
+  .loc-tab {
+    padding: .32rem .6rem;
+  }
 }
 
 main {
-  padding: 1rem .9rem 3rem;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  max-width: 700px;
-  margin: 0 auto;
+  gap: 1rem;
 }
 
+/* ============================================================
+   CARD
+   ============================================================ */
 .card {
   background: var(--card);
-  border-radius: var(--radius);
-  border: 1px solid #4fc3f718;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
   overflow: hidden;
-  box-shadow: 0 4px 24px #00000044;
   opacity: 0;
-  transform: translateY(18px);
-  animation: rise .5s ease forwards;
+  transform: translateY(12px);
+  animation: rise .4s ease forwards;
 }
 
 .card:nth-child(1) { animation-delay: .05s; }
-.card:nth-child(2) { animation-delay: .18s; }
-.card:nth-child(3) { animation-delay: .31s; }
+.card:nth-child(2) { animation-delay: .15s; }
+.card:nth-child(3) { animation-delay: .25s; }
+.card:nth-child(4) { animation-delay: .35s; }
+.card:nth-child(5) { animation-delay: .45s; }
+.card:nth-child(6) { animation-delay: .55s; }
+
+.card.card--red   { border-left-color: var(--red); }
+.card.card--azure { border-left-color: var(--azure); }
 
 @keyframes rise { to { opacity: 1; transform: none; } }
 
+/* Card header */
 .card-header {
-  padding: .75rem 1.1rem .6rem;
+  padding: .55rem .9rem;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: .6rem;
-  border-bottom: 1px solid #4fc3f712;
+  border-bottom: 1px solid var(--border-l);
+}
+
+.card-header--split {
+  justify-content: space-between;
 }
 
 .card-header .label {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.25rem;
-  letter-spacing: .08em;
+  font-size: .92rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
   color: var(--accent);
 }
 
+.card--red .card-header .label {
+  color: var(--red);
+}
+
+.card--azure .card-header .label {
+  color: var(--azure);
+}
+
 .card-header .sub {
-  font-size: .7rem;
-  color: var(--muted);
-  font-weight: 300;
+  font-size: .58rem;
+  color: var(--faint);
+  font-weight: 400;
   letter-spacing: .07em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* Card body */
+.card-body {
+  padding: .7rem .9rem;
+  background: #faf9f6;
+}
+
+/* Card footer */
+.card-footer {
+  padding: .35rem .9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-l);
+}
+
+.card-footer span {
+  font-size: .58rem;
+  color: var(--faint);
+  font-weight: 400;
+  letter-spacing: .05em;
   text-transform: uppercase;
 }
 
+/* ============================================================
+   IMMAGINI
+   ============================================================ */
 .img-wrap {
   width: 100%;
-  background: #0a1826;
+  background: #f2f0eb;
   min-height: 80px;
 }
 
@@ -129,108 +280,68 @@ main {
   display: block;
 }
 
-.img-scroll img {
-  width: 2000px !important;
-  max-width: 2000px !important;
-  height: auto;
+/* ============================================================
+   GRAFICO VENTO
+   ============================================================ */
+#grafico-vento-wrap {
+  background: white;
+  height: 450px;
 }
-
-.card-footer {
-  padding: .55rem 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-footer span {
-  font-size: .65rem;
-  color: var(--muted);
-  font-weight: 300;
-}
-
-.btn-open {
-  display: flex;
-  align-items: center;
-  gap: .3rem;
-  font-size: .68rem;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 500;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: none;
-  border: 1px solid #4fc3f730;
-  border-radius: 999px;
-  padding: .22rem .7rem;
-  text-decoration: none;
-}
-
-footer {
-  text-align: center;
-  padding: .5rem 1rem 2rem;
-  font-size: .65rem;
-  color: var(--muted);
-  font-weight: 300;
-}
-
-footer a { color: var(--accent); text-decoration: none; }
 
 #grafico-vento-wrap canvas {
   background: white;
 }
 
-
-#grafico-vento-wrap {
-  background: white;
-  height: 450px;
-}
+/* ============================================================
+   LEGENDA SPOTS
+   ============================================================ */
 .legenda-spots {
   display: flex;
   flex-wrap: wrap;
-  gap: .5rem 1.2rem;
-  padding: .5rem 1.1rem;
-  border-bottom: 1px solid #4fc3f712;
+  gap: .4rem 1rem;
+  padding: .5rem .9rem;
+  border-bottom: 1px solid var(--border-l);
 }
 
 .legenda-spots span {
   display: flex;
   align-items: center;
-  gap: .35rem;
-  font-size: .72rem;
+  gap: .3rem;
+  font-size: .65rem;
   color: var(--muted);
   font-weight: 400;
 }
 
 .dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-/* Card header con elementi a destra */
-.card-header--split {
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Pulsanti minimal (Orario/Giornaliero/Mappa) */
+/* ============================================================
+   PULSANTI MINIMAL (Orario/Giornaliero/Mappa)
+   ============================================================ */
 .btn-minimal {
-  font-size: 11px;
-  font-family: 'DM Sans', sans-serif;
+  font-size: .65rem;
+  font-family: var(--font-body);
   padding: 0;
   border: none;
   cursor: pointer;
   background: none;
-  font-weight: 400;
-  letter-spacing: .04em;
-  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--faint);
 }
 
 .btn-minimal.attivo {
-  color: var(--accent);
-  font-weight: 500;
+  color: var(--red);
+}
+
+.btn-minimal--red {
+  color: var(--red);
 }
 
 .btn-minimal-group {
@@ -240,49 +351,313 @@ footer a { color: var(--accent); text-decoration: none; }
 
 .btn-minimal .chevron {
   display: inline-block;
-  width: 12px;
-  height: 8px;
+  width: 10px;
+  height: 7px;
   margin-left: 3px;
   vertical-align: middle;
 }
 
-.btn-minimal.attivo .chevron {
-  transform: rotate(180deg);
+/* ============================================================
+   TIMELINE METEO (scroll wrapper)
+   ============================================================ */
+.timeline-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: .4rem .6rem;
+  background: #faf9f6;
 }
 
-/* Tab località */
-.loc-tabs {
+/* ============================================================
+   MAPPA FISARMONICA
+   ============================================================ */
+.mappa-layout {
   display: flex;
-  justify-content: center;
   gap: 0;
-  margin-top: 1rem;
 }
 
-.loc-tab {
-  font-family: 'DM Sans', sans-serif;
+.legenda-mappa-col {
+  flex-direction: column;
+  gap: .5rem;
+  padding: .6rem .9rem;
+  min-width: 150px;
+  border-bottom: none;
+  border-right: 1px solid var(--border-l);
+}
+
+/* ============================================================
+   PULSANTE APRI
+   ============================================================ */
+.btn-open {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .62rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 0;
+  padding: .2rem .6rem;
+  text-decoration: none;
+}
+
+/* Info fisarmonica */
+.info-body {
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+}
+
+.info-body p {
+  font-size: .85rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+.card-disclaimer {
+  padding: .4rem .9rem;
+  font-size: .6rem;
+  color: var(--muted);
+  letter-spacing: .04em;
+  border-top: 1px solid var(--border-l);
+  font-style: italic;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  text-align: center;
+  padding: 1.2rem 0 2rem;
+  font-size: .58rem;
+  color: var(--faint);
+  font-weight: 400;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+footer a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.footer-disclaimer {
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: .02em;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.footer-sources {
+  color: var(--faint);
+}
+
+.footer-links {
+  color: var(--faint);
+}
+
+/* ============================================================
+   PRIVACY PAGE
+   ============================================================ */
+.privacy-main {
+  padding-top: .5rem;
+}
+
+.privacy-body {
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+}
+
+.privacy-body h2 {
   font-size: .75rem;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
-  padding: .4rem 1.4rem;
-  text-decoration: none;
-  color: var(--muted);
-  background: none;
-  border: 1px solid #4fc3f730;
-  transition: all .2s;
-}
-
-.loc-tab:first-child {
-  border-radius: 4px 0 0 4px;
-}
-
-.loc-tab:last-child {
-  border-radius: 0 4px 4px 0;
-  border-left: none;
-}
-
-.loc-tab.attiva {
-  background: #4fc3f720;
   color: var(--accent);
-  border-color: #4fc3f750;
+  margin-top: .4rem;
+}
+
+.privacy-body p {
+  font-size: .82rem;
+  color: var(--text);
+  line-height: 1.6;
+  letter-spacing: .01em;
+}
+
+.privacy-body a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.privacy-updated {
+  color: var(--muted) !important;
+  font-size: .65rem !important;
+  margin-top: .5rem;
+}
+
+/* ============================================================
+   COOKIE BANNER
+   ============================================================ */
+#cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--text);
+  color: #f2f0eb;
+  padding: .9rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  z-index: 9999;
+  font-size: .78rem;
+  line-height: 1.5;
+}
+
+#cookie-banner p {
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+}
+
+#cookie-banner a {
+  color: var(--red);
+  text-decoration: underline;
+}
+
+.cookie-btns {
+  display: flex;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+
+.cookie-btns button {
+  font-family: var(--font-body);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .4rem .9rem;
+  border: none;
+  cursor: pointer;
+}
+
+#cookie-accept {
+  background: var(--red);
+  color: white;
+}
+
+#cookie-reject {
+  background: transparent;
+  color: #f2f0eb;
+  border: 1.5px solid #f2f0eb44 !important;
+}
+
+/* ============================================================
+   FEEDBACK BUTTON
+   ============================================================ */
+.btn-feedback {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .5rem 1.2rem;
+  background: var(--text);
+  color: var(--card);
+  border: none;
+  cursor: pointer;
+  margin-top: .3rem;
+}
+
+.btn-feedback:hover {
+  background: var(--azure);
+}
+
+.btn-minimal--bordered {
+  border: 1.5px solid currentColor;
+  padding: .25rem .7rem;
+  display: inline-block;
+  width: fit-content;
+  color: var(--text);
+}
+
+.btn-minimal--toggle {
+  color: var(--text);
+}
+
+/* ============================================================
+   GRAFICO PRESSIONE
+   ============================================================ */
+#press-wrap {
+  padding: 0;
+  background: white;
+  position: relative;
+}
+
+#press-status {
+  font-size: .75rem;
+  color: var(--muted);
+  padding: .4rem .9rem;
+}
+
+#press-scroll-hint {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.95) 50%);
+  pointer-events: none;
+}
+
+/* Card header clickabile (fisarmonica) */
+.card-header--clickable {
+  cursor: pointer;
+}
+
+/* Mappa leaflet */
+.mappa-leaflet {
+  height: 160px;
+  flex: 1;
+}
+
+/* Bottone sondaggio */
+.btn-sondaggio {
+  font-family: var(--font-body);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: .25rem .7rem;
+  background: var(--text);
+  color: var(--card);
+  border: 1.5px solid var(--text);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.btn-sondaggio-wrap {
+  text-align: center;
+}
+
+/* Chevron inline */
+.chevron-inline {
+  vertical-align: middle;
+  margin-left: 3px;
 }

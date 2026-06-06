@@ -1,0 +1,24 @@
+name: TEST — Save ICON-2I runs every 2h
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */2 * * *"
+permissions:
+  contents: write
+jobs:
+  save-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Save ICON-2I run
+        run: python test/scripts/save_icon2i_run_test.py
+      - name: Commit run data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "TEST: save ICON-2I run"
+          file_pattern: test/data/icon2i_runs_test.json

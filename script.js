@@ -49,7 +49,7 @@ function wmoToStile(code) {
   if (code >= 51 && code <= 67) return { bg: "#686860", tipo: "pioggia",   scuro: true,  nuvola: 0 };
   if (code >= 71 && code <= 77) return { bg: "#7888a0", tipo: "neve",      scuro: true,  nuvola: 0 };
   if (code >= 80 && code <= 82) return { bg: "#585850", tipo: "pioggia",   scuro: true,  nuvola: 0 };
-  if (code >= 95 && code <= 99) return { bg: "#282820", tipo: "temporale", scuro: true,  nuvola: 0 };
+  if (code >= 95 && code <= 99) return { bg: "#6b6880", tipo: "temporale", scuro: true,  nuvola: 0 };
   return                               { bg: "#909088", tipo: "nuvoloso",  scuro: true,  nuvola: 0 };
 }
 
@@ -68,23 +68,26 @@ function svgNuvola(size, w, h) {
 // ============================================================
 
 function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs, nuvola) {
-  const colT = scuro ? "#f0f0ee" : "#5a3e00";
-  const colP = scuro ? "#c8d8ff" : "#5a3e00";
+  // Testo sempre scuro — leggibile su tutti gli sfondi
+  const colT = "#1a1a1a";
+  const colP = "#1a1a1a";
   const fillH = mm > 0 ? Math.min(Math.round(mm / 2 * 50), 50) : 0;
   const fillPioggia = prob > 0
-    ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${Math.max(fillH, 4)}px;background:rgba(40,100,220,0.7);z-index:4;"></div>`
+    ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${Math.max(fillH, 4)}px;background:#3d6fd4;z-index:1;"></div>`
     : "";
   const cloud = svgNuvola(nuvola || 0, w, h);
   const fulmine = tipo === "temporale"
-    ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;">
-         <svg width="12" height="18" viewBox="0 0 18 26" fill="none"><polygon points="10,0 3,14 9,14 8,26 15,12 9,12" fill="#ffe566" opacity="0.95"/></svg>
+    ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;">
+         <svg width="14" height="20" viewBox="0 0 18 26" fill="none"><polygon points="10,0 3,14 9,14 8,26 15,12 9,12" fill="#ffe566"/></svg>
        </div>`
     : "";
   const probStr = prob > 0 ? `${prob}%` : "";
   return `<div style="width:${w}px;height:${h}px;border-radius:5px;background:${bg};position:relative;overflow:hidden;border:0.5px solid rgba(0,0,0,0.12);">
-    ${fillPioggia}${cloud}${fulmine}
-    <span style="position:absolute;top:4px;left:0;right:0;text-align:center;font-size:${fs}px;font-weight:500;color:${colT};z-index:3;">${temp}°</span>
-    <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:${Math.max(fs-2,8)}px;color:${colP};z-index:3;">${probStr}</span>
+    ${cloud}
+    ${fillPioggia}
+    ${fulmine}
+    <span style="position:absolute;top:4px;left:0;right:0;text-align:center;font-size:${fs}px;font-weight:500;color:${colT};z-index:10;">${temp}°</span>
+    <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:${Math.max(fs-2,8)}px;font-weight:500;color:${colP};z-index:10;">${probStr}</span>
   </div>`;
 }
 
@@ -193,7 +196,7 @@ function disegnaTimelineOre(meteo) {
     primo = false;
 
     html += `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-      <span style="font-size:9px;color:#4fc3f7;font-style:italic;white-space:nowrap;">${data}</span>
+      <span style="font-size:9px;color:#1a1a1a;font-style:italic;white-space:nowrap;">${data}</span>
       <div style="display:flex;gap:1px;">`;
 
     g.ore.forEach(i => {
@@ -262,7 +265,7 @@ function disegnaTimelineSlot(meteo) {
       </div>`;
     }
     html += `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-      <span style="font-size:9px;color:#4fc3f7;font-style:italic;white-space:nowrap;">${data}</span>
+      <span style="font-size:9px;color:#1a1a1a;font-style:italic;white-space:nowrap;">${data}</span>
       <div style="display:flex;gap:3px;">`;
 
     g.slot.forEach((s, si) => {
@@ -397,7 +400,7 @@ function disegnaGrafico(dati) {
         const xPos = x.getPixelForValue(i);
         ctx.save();
         ctx.translate(xPos, arrowY);
-        ctx.rotate((gradi * Math.PI) / 180);
+        ctx.rotate(((gradi + 180) * Math.PI) / 180);
         ctx.beginPath();
         ctx.moveTo(0, -8);
         ctx.lineTo(4, 4);
@@ -453,11 +456,20 @@ async function init() {
     });
 
     wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="430"></canvas>';
+  // Freccia scroll raffiche
+  wrapVento.style.position = 'relative';
+  const raffHint = document.createElement('div');
+  raffHint.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:32px;display:flex;align-items:center;justify-content:center;background:linear-gradient(to right, transparent, rgba(255,255,255,0.95) 50%);pointer-events:none;z-index:10;';
+  raffHint.innerHTML = '<svg width="16" height="48" viewBox="0 0 16 48" fill="none"><polyline points="4,4 12,24 4,44" stroke="#1a3a5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg>';
+  wrapVento.appendChild(raffHint);
+  wrapVento.addEventListener('scroll', () => {
+    raffHint.style.display = wrapVento.scrollLeft > 20 ? 'none' : 'flex';
+  });
     const chartRef = disegnaGrafico(dati);
 
   } catch (e) {
     if (wrapTimeline) wrapTimeline.innerHTML = "";
-    if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Errore caricamento dati meteo</p>';
+    if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Dati temporaneamente non disponibili. Il problema dipende dal fornitore esterno che ha temporaneamente interrotto la trasmissione dati. Riprova tra qualche minuto.</p>';
     console.error(e);
   }
 }
@@ -522,7 +534,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Titolo e sottotitolo
   const h1 = document.querySelector("header h1");
   const p  = document.querySelector("header p");
-  if (h1) h1.textContent = "Vento Garda";
+  const coords = document.querySelector(".header-coords");
+  if (coords) coords.innerHTML = `<span class="header-location">Lago di Garda · </span>${_loc.lat.toFixed(2)}°N ${_loc.lon.toFixed(2)}°E`;
   if (p)  p.textContent  = _loc.nome + " · " + _loc.sottotitolo;
 
   // Legenda spots dinamica
@@ -536,3 +549,260 @@ document.addEventListener("DOMContentLoaded", () => {
 
   init();
 });
+
+
+// ============================================================
+// GRAFICO PRESSIONE
+// ============================================================
+async function fetchPressione() {
+  const r = await fetch(((window.location.pathname.includes('/malcesine') ? '../' : '') + 'differenza-pressione/data/wind_garda.json?v=') + Date.now(), { cache: 'no-store' });
+  const d = await r.json();
+  return d.rows || [];
+}
+
+async function initPressione() {
+  try {
+    const rows = await fetchPressione();
+    if (!rows.length) { document.getElementById('press-status').textContent = 'Dati non disponibili'; return; }
+    document.getElementById('press-status').style.display = 'none';
+
+    const wrap = document.getElementById('press-wrap');
+    const visibleW = wrap ? wrap.clientWidth : 700;
+    // 6 giorni (144 ore) visibili nella finestra
+    const pxPerHour = visibleW / 144;
+    const w = Math.round(rows.length * pxPerHour);
+
+    // Nascondi scroll hint dopo primo scroll
+    const pressWrap = document.getElementById('press-wrap');
+    if (pressWrap) pressWrap.addEventListener('scroll', () => {
+      const hint = document.getElementById('press-scroll-hint');
+      if (hint) hint.style.display = pressWrap.scrollLeft > 20 ? 'none' : 'flex';
+    });
+
+    const ctx = document.getElementById('press-canvas');
+    ctx.style.width = w + 'px';
+    ctx.width = w;
+    ctx.style.height = '300px';
+    ctx.height = 300;
+
+    // Aggiusta frecce altezza dopo render
+    const arrows = document.getElementById('press-arrows');
+
+    const values = rows.map(r => r.delta_hpa);
+    const maxVal = Math.max(...values.filter(v => v !== null));
+    const minVal = Math.min(...values.filter(v => v !== null));
+    const pad = 1.5;
+    const yMax = Math.ceil((maxVal + pad) / 2) * 2;
+    const yMin = Math.floor((minVal - pad) / 2) * 2;
+
+    const pointColors = rows.map(r => r.delta_hpa >= 0 ? '#ff8a1f' : '#2f6bff');
+
+    const zeroAndLines = {
+      id: 'zeroAndLines',
+      beforeDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        // Linee verticali ogni 6 ore
+        const midnight = [];
+        rows.forEach((r, i) => {
+          const d = new Date(r.time);
+          const h = d.getHours();
+          if (h !== 0 && h !== 6 && h !== 12 && h !== 18) return;
+          const xPos = scales.x.getPixelForValue(i);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(xPos, chartArea.top);
+          ctx.lineTo(xPos, chartArea.bottom);
+          if (h === 0) {
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = '#1f293755';
+            ctx.setLineDash([]);
+            midnight.push({ xPos, time: r.time });
+          } else if (h === 12) {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#1f293733';
+            ctx.setLineDash([4, 3]);
+          } else {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#e2e7ef';
+            ctx.setLineDash([]);
+          }
+          ctx.stroke();
+          ctx.restore();
+        });
+        // Linea zero
+        const y0 = scales.y.getPixelForValue(0);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y0);
+        ctx.lineTo(chartArea.right, y0);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#1f2937';
+        ctx.setLineDash([]);
+        ctx.stroke();
+        ctx.restore();
+        // Soglie ±2
+        [2, -2].forEach(v => {
+          const y = scales.y.getPixelForValue(v);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y);
+          ctx.lineTo(chartArea.right, y);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = v > 0 ? '#e6510066' : '#1565c066';
+          ctx.setLineDash([6, 4]);
+          ctx.stroke();
+          ctx.restore();
+        });
+        // Aggiusta padding frecce
+        if (arrows) {
+          arrows.style.paddingTop = chartArea.top + 'px';
+          arrows.style.paddingBottom = (ctx.canvas.height - chartArea.bottom) + 'px';
+        }
+      },
+      afterDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        // Etichette giorno
+        const days = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+        const midnight = [];
+        rows.forEach((r, i) => {
+          if (new Date(r.time).getHours() === 0)
+            midnight.push({ xPos: scales.x.getPixelForValue(i), time: r.time });
+        });
+        midnight.forEach((m, idx) => {
+          const xEnd = idx + 1 < midnight.length ? midnight[idx+1].xPos : chartArea.right;
+          const xCenter = (m.xPos + xEnd) / 2;
+          const d = new Date(m.time);
+          const label = days[d.getDay()] + ' ' + String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+          ctx.save();
+          ctx.font = '700 11px system-ui, sans-serif';
+          const tw = ctx.measureText(label).width;
+          ctx.fillStyle = 'rgba(255,255,255,0.95)';
+          ctx.fillRect(xCenter - tw/2 - 3, chartArea.top - 18, tw + 6, 16);
+          ctx.fillStyle = '#1f2937cc';
+          ctx.textAlign = 'center';
+          ctx.fillText(label, xCenter, chartArea.top - 6);
+          ctx.restore();
+        });
+      }
+    };
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: rows.map((_, i) => i),
+        datasets: [{
+          data: values,
+          borderColor: '#3a8fb5',
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          tension: 0,
+          pointBackgroundColor: pointColors,
+          pointBorderColor: pointColors,
+          pointHoverBackgroundColor: '#3a8fb5',
+        }]
+      },
+      options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 24 } },
+        interaction: { mode: 'index', intersect: false },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(242,240,235,0.65)',
+            borderColor: '#d8d4cc',
+            borderWidth: 1,
+            titleColor: '#1a3a5c',
+            bodyColor: '#7a7060',
+            padding: 8,
+            callbacks: {
+              label(ctx) {
+                const r = rows[ctx.dataIndex];
+                return `ΔP: ${r.delta_hpa.toFixed(1)} hPa`;
+              },
+              title(items) {
+                const d = new Date(rows[items[0].dataIndex].time);
+                return d.toLocaleString('it-IT', { weekday:'short', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 0,
+              autoSkip: false,
+              callback(val, index) {
+                const d = new Date(rows[index].time);
+                const h = d.getHours();
+                if (h !== 0 && h !== 6 && h !== 12 && h !== 18) return null;
+                return h === 0 ? '0' : String(h);
+              },
+              font(ctx) {
+                const h = ctx.index < rows.length ? new Date(rows[ctx.index].time).getHours() : 0;
+                return { weight: h === 0 ? '700' : '400', size: 9 };
+              }
+            },
+            grid: { display: false }
+          },
+          y: {
+            min: yMin,
+            max: yMax,
+            ticks: { stepSize: 2 },
+            title: { display: true, text: 'ΔP hPa' },
+            grid: { color: '#edf0f5' }
+          }
+        }
+      },
+      plugins: [zeroAndLines, {
+        id: 'oraPeler',
+        afterDraw(chart) {
+          const { ctx, chartArea, scales } = chart;
+          if (!scales.y) return;
+          const yOra = scales.y.getPixelForValue(2);
+          const yPeler = scales.y.getPixelForValue(-2);
+          const x = chartArea.left + 26;
+          ctx.save();
+          ctx.font = '700 8px system-ui, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#e65100cc';
+          ctx.beginPath();
+          ctx.moveTo(x, yOra - 8); ctx.lineTo(x+6, yOra); ctx.lineTo(x+3, yOra);
+          ctx.lineTo(x+3, yOra+5); ctx.lineTo(x-3, yOra+5); ctx.lineTo(x-3, yOra);
+          ctx.lineTo(x-6, yOra); ctx.closePath(); ctx.fill();
+          ctx.fillText('ORA', x+10, yOra+4);
+          ctx.fillStyle = '#1565c0cc';
+          ctx.beginPath();
+          ctx.moveTo(x, yPeler+8); ctx.lineTo(x+6, yPeler); ctx.lineTo(x+3, yPeler);
+          ctx.lineTo(x+3, yPeler-5); ctx.lineTo(x-3, yPeler-5); ctx.lineTo(x-3, yPeler);
+          ctx.lineTo(x-6, yPeler); ctx.closePath(); ctx.fill();
+          ctx.fillText('PELÈR', x+10, yPeler+4);
+          ctx.restore();
+        }
+      }, {
+        id: 'crosshair',
+        afterDraw(chart) {
+          if (!chart.tooltip._active || !chart.tooltip._active.length) return;
+          const { ctx, chartArea, scales } = chart;
+          const x = chart.tooltip._active[0].element.x;
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x, chartArea.top);
+          ctx.lineTo(x, chartArea.bottom);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#1a3a5c44';
+          ctx.setLineDash([4, 3]);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }]
+    });
+  } catch(err) {
+    document.getElementById('press-status').textContent = 'Errore: ' + err.message;
+    console.error(err);
+  }
+}
+
+initPressione();
