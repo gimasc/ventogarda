@@ -17,7 +17,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>const LOC_ID = "torbole";</script>
   <script src="localita.js"></script>
-  <!-- Google Analytics — caricato solo dopo consenso -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -39,6 +38,7 @@
 <div class="page-container">
 
 <header>
+  <span class="header-slash" aria-hidden="true">//</span>
   <h1>Vento <span>Garda</span></h1>
   <div class="header-meta">
     <div class="header-sub-block">
@@ -107,9 +107,7 @@
     </div>
   </div>
 
-
-
-<!-- CARD PRESSIONE — stile Wind Machine -->
+  <!-- CARD PRESSIONE — accent: azure -->
   <div class="card card--azure">
     <div class="card-header">
       <div>
@@ -121,17 +119,12 @@
       Caricamento…
     </div>
     <div class="img-wrap img-scroll" id="press-wrap" style="padding:0;background:white;position:relative;">
-        <canvas id="press-canvas"></canvas>
-        <div id="press-scroll-hint" style="
-          position:absolute;right:0;top:0;bottom:0;width:32px;
-          display:flex;align-items:center;justify-content:center;
-          background:linear-gradient(to right, transparent, rgba(255,255,255,0.95) 50%);
-          pointer-events:none;
-        ">
-          <svg width="16" height="48" viewBox="0 0 16 48" fill="none">
-            <polyline points="4,4 12,24 4,44" stroke="#1a3a5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-          </svg>
-        </div>
+      <canvas id="press-canvas"></canvas>
+      <div id="press-scroll-hint" style="position:absolute;right:0;top:0;bottom:0;width:32px;display:flex;align-items:center;justify-content:center;background:linear-gradient(to right, transparent, rgba(255,255,255,0.95) 50%);pointer-events:none;">
+        <svg width="16" height="48" viewBox="0 0 16 48" fill="none">
+          <polyline points="4,4 12,24 4,44" stroke="#1a3a5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+        </svg>
+      </div>
     </div>
     <div class="card-footer">
       <span>Fonte: Deutscher Wetterdienst</span>
@@ -160,8 +153,6 @@
     </div>
   </div>
 
-
-
   <!-- METEOGRAMMA 2 — accent: navy -->
   <div class="card">
     <div class="card-header">
@@ -179,7 +170,6 @@
       <a class="btn-open" href="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png" target="_blank">Apri ↗</a>
     </div>
   </div>
-
 
   <!-- FEEDBACK -->
   <div class="card">
