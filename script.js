@@ -92,26 +92,52 @@ function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs, nuvola) {
 }
 
 // ============================================================
-// CARICA METEO — 7 giorni icon_seamless
+// CARICA METEO — ibrido: meteoswiss_icon_ch1 (2gg) + icon_seamless (7gg)
 // ============================================================
 
 async function caricaMeteo() {
-  const params = new URLSearchParams({
-    latitude:      LAT_METEO,
-    longitude:     LON_METEO,
-    hourly:        "temperature_2m,precipitation_probability,precipitation,weather_code",
-    forecast_days: 7,
-    models:        "icon_seamless",
-  });
-  const r = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-  const d = await r.json();
-  return {
-    ore:    d.hourly.time.map(toLocalTime),
-    temp:   d.hourly.temperature_2m,
-    prob:   d.hourly.precipitation_probability,
-    mm:     d.hourly.precipitation,
-    codici: d.hourly.weather_code,
+  const baseParams = {
+    latitude:  LAT_METEO,
+    longitude: LON_METEO,
+    hourly:    "temperature_2m,precipitation_probability,precipitation,weather_code",
+    timezone:  "Europe/Rome",
   };
+
+  const [ch1, seamless] = await Promise.all([
+    fetch(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 2, models: "meteoswiss_icon_ch1" })}`).then(r => r.json()),
+    fetch(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 7, models: "icon_seamless" })}`).then(r => r.json()),
+  ]);
+
+  // Usa MeteoSwiss per le prime 48 ore, icon_seamless per il resto
+  const cutoff = ch1.hourly.time[ch1.hourly.time.length - 1];
+
+  const ore    = [];
+  const temp   = [];
+  const prob   = [];
+  const mm     = [];
+  const codici = [];
+
+  seamless.hourly.time.forEach((t, i) => {
+    if (t <= cutoff) {
+      // Prendi da MeteoSwiss se disponibile
+      const idx = ch1.hourly.time.indexOf(t);
+      if (idx !== -1) {
+        ore.push(toLocalTime(t));
+        temp.push(ch1.hourly.temperature_2m[idx]);
+        prob.push(ch1.hourly.precipitation_probability[idx]);
+        mm.push(ch1.hourly.precipitation[idx]);
+        codici.push(ch1.hourly.weather_code[idx]);
+      }
+    } else {
+      ore.push(toLocalTime(t));
+      temp.push(seamless.hourly.temperature_2m[i]);
+      prob.push(seamless.hourly.precipitation_probability[i]);
+      mm.push(seamless.hourly.precipitation[i]);
+      codici.push(seamless.hourly.weather_code[i]);
+    }
+  });
+
+  return { ore, temp, prob, mm, codici };
 }
 
 // ============================================================
