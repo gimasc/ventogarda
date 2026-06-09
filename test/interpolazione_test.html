@@ -653,11 +653,40 @@ async function initMixed() {
 
 initMixed();
 
+
+// Interpolazione colore indice vento: rosso(0) → grigio(10) → verde(20)
+function indiceColor(v) {
+  if (v === null || v === undefined) return '#888888';
+  const clamp = Math.max(-5, Math.min(25, v));
+  function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+  function hexToRgb(h) {
+    const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
+    return [r, g, b];
+  }
+  function rgbToHex(r,g,b) {
+    return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+  }
+  const red  = hexToRgb('#c62828');
+  const grey = hexToRgb('#999999');
+  const green = hexToRgb('#2e7d32');
+  let rgb;
+  if (clamp <= 10) {
+    const t = (clamp - (-5)) / (10 - (-5)); // da -5 a 10
+    rgb = [lerp(red[0], grey[0], t), lerp(red[1], grey[1], t), lerp(red[2], grey[2], t)];
+  } else {
+    const t = (clamp - 10) / (25 - 10); // da 10 a 25
+    rgb = [lerp(grey[0], green[0], t), lerp(grey[1], green[1], t), lerp(grey[2], green[2], t)];
+  }
+  return rgbToHex(rgb[0], rgb[1], rgb[2]);
+}
+
 async function initMixedKn() {
   try {
-    const [ch1, icon2i, pressione] = await Promise.all([
+    const [ch1, ch1dir, icon2i, icon2idir, pressione] = await Promise.all([
       fetchVento('meteoswiss_icon_ch1', 2),
+      fetchVento('meteoswiss_icon_ch1', 2, 'wind_direction_10m'),
       fetchVento('italia_meteo_arpae_icon_2i', 3, 'wind_speed_10m', 45.867, 10.855),
+      fetchVento('italia_meteo_arpae_icon_2i', 3, 'wind_direction_10m', 45.867, 10.855),
       fetchPressione()
     ]);
 
@@ -666,11 +695,17 @@ async function initMixedKn() {
     const times = ch1.time;
     const rafficheCH1 = ch1.wind_gusts_10m;
 
-    // ICON-2I m/s → kn
+    // Direzione MeteoSwiss
+    const dirCH1Map = {};
+    ch1.time.forEach((t, i) => { dirCH1Map[t] = ch1dir.wind_direction_10m[i]; });
+
+    // ICON-2I m/s → kn + direzione
     const icon2iMap = {};
+    const dirICON2IMap = {};
     icon2i.time.forEach((t, i) => {
       icon2iMap[t] = icon2i.wind_speed_10m[i] !== null ? icon2i.wind_speed_10m[i] * 1.94384 : null;
     });
+    icon2idir.time.forEach((t, i) => { dirICON2IMap[t] = icon2idir.wind_direction_10m[i]; });
 
     // Pressione
     const pressioneMap = {};
@@ -683,13 +718,22 @@ async function initMixedKn() {
     const dataICON2Ikn = times.map(t => icon2iMap[t] ?? null);
     const dataPress    = times.map(t => pressioneMap[t.substring(0,16)] ?? null);
 
-    // Indice vento
+    // Indice vento con direzione
+    // Direzione nord: < 135° o > 315° → pressione invertita (Pelèr concordante con negativo)
+    // Direzione sud: 135°-315° → pressione normale (Óra concordante con positivo)
     const dataIndice = times.map((t, i) => {
       const ms = rafficheCH1[i];
       const mt = dataICON2Ikn[i];
-      const pr = dataPress[i] !== null ? dataPress[i] * 10 : null;
+      const pr = dataPress[i];
       if (ms === null || mt === null || pr === null) return null;
-      return ((ms + mt) / 2 + pr) / 2;
+      const dirMs = dirCH1Map[t] ?? null;
+      const dirMt = dirICON2IMap[t] ?? null;
+      // Media direzione (semplificata — media aritmetica, funziona per direzioni simili)
+      const dir = (dirMs !== null && dirMt !== null) ? (dirMs + dirMt) / 2
+                : dirMs ?? dirMt;
+      const isNord = dir !== null && (dir < 135 || dir > 315);
+      const prFirmata = isNord ? -pr * 10 : pr * 10;
+      return (ms + mt + prFirmata) / 3;
     });
 
     const wrap = document.getElementById('mixedkn-wrap');
@@ -732,7 +776,7 @@ async function initMixedKn() {
             type: 'line',
             label: 'ΔP Brescia–Bolzano (hPa)',
             data: dataPress,
-            borderColor: '#f59e0b',
+            borderColor: '#3a8fb5',
             borderWidth: 2,
             borderDash: [6, 3],
             pointRadius: 0,
@@ -760,28 +804,24 @@ async function initMixedKn() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(242,240,235,0.97)',
+            backgroundColor: 'rgba(242,240,235,0.82)',
             titleColor: '#1a1a1a',
             bodyColor: '#1a1a1a',
-            borderColor: '#d8d4cc',
-            borderWidth: 1,
+            borderWidth: 0,
+            caretPadding: 16,
+            xAlign: 'left',
             callbacks: {
               labelColor(ctx) {
-                if (ctx.dataset.label === 'Indice vento') return { borderColor: 'transparent', backgroundColor: 'transparent' };
+                if (ctx.dataset.label === 'Indice vento') {
+                  const c = indiceColor(ctx.parsed.y);
+                  return { borderColor: c, backgroundColor: c };
+                }
                 const c = ctx.dataset.borderColor;
                 return { borderColor: c, backgroundColor: c };
               },
               label(ctx) {
                 const val = ctx.parsed.y !== null ? ctx.parsed.y.toFixed(1) : '—';
                 return `${ctx.dataset.label}: ${val}`;
-              },
-              labelTextColor(ctx) {
-                if (ctx.dataset.label === 'Indice vento') {
-                  const v = ctx.parsed.y;
-                  if (v === null || v === undefined) return '#1a1a1a';
-                  return v >= 15 ? '#2e7d32' : v >= 5 ? '#888' : '#c62828';
-                }
-                return '#1a1a1a';
               }
             }
           }
@@ -814,27 +854,48 @@ async function initMixedKn() {
             position: 'right',
             title: { display: true, text: 'ΔP (hPa)' },
             grid: { display: false },
-            ticks: { color: '#f59e0b' },
+            ticks: { color: '#3a8fb5' },
             min: -6,
             max: 6
           }
         }
       },
       plugins: [{
+        id: 'tooltipBorder',
+        afterDraw(chart) {
+          const tooltip = chart.tooltip;
+          if (!tooltip || tooltip.opacity === 0) return;
+          const indiceDataset = chart.data.datasets.find(d => d.label === 'Indice vento');
+          if (!indiceDataset || !tooltip._active || !tooltip._active.length) return;
+          const idx = tooltip._active[0].index;
+          const v = indiceDataset.data[idx];
+          const color = indiceColor(v);
+          const { x, y, width, height } = tooltip;
+          const ctx = chart.ctx;
+          ctx.save();
+          ctx.fillStyle = color;
+          ctx.fillRect(x, y, 5, height);
+          ctx.restore();
+        }
+      }, {
         id: 'soglieMkn',
         afterDraw(chart) {
           const { ctx, chartArea, scales } = chart;
-          // Linea 0 tratteggiata come le soglie
+          const azure = '#3a8fb5';
+          const azureFaint = '#3a8fb540';
+
+          // Linea zero
           const y0 = scales.yPress.getPixelForValue(0);
           ctx.save();
           ctx.beginPath();
           ctx.moveTo(chartArea.left, y0);
           ctx.lineTo(chartArea.right, y0);
-          ctx.strokeStyle = '#555';
-          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = azure;
+          ctx.lineWidth = 1;
           ctx.setLineDash([6, 3]);
           ctx.stroke();
           ctx.restore();
+
           // Soglie ±2
           [2, -2].forEach(v => {
             const y = scales.yPress.getPixelForValue(v);
@@ -842,12 +903,39 @@ async function initMixedKn() {
             ctx.beginPath();
             ctx.moveTo(chartArea.left, y);
             ctx.lineTo(chartArea.right, y);
-            ctx.strokeStyle = v > 0 ? '#1565c066' : '#c6282866';
+            ctx.strokeStyle = azureFaint;
             ctx.lineWidth = 1;
             ctx.setLineDash([6, 3]);
             ctx.stroke();
             ctx.restore();
           });
+
+          // Frecce ORA e PELÈR
+          const yOra   = scales.yPress.getPixelForValue(2);
+          const yPeler = scales.yPress.getPixelForValue(-2);
+          const x = chartArea.left + 26;
+
+          ctx.save();
+          ctx.fillStyle = azure;
+          ctx.strokeStyle = azure;
+          ctx.font = 'bold 9px system-ui';
+          ctx.textBaseline = 'middle';
+
+          // Freccia su (ORA)
+          ctx.beginPath();
+          ctx.moveTo(x, yOra - 8); ctx.lineTo(x+6, yOra); ctx.lineTo(x+3, yOra);
+          ctx.lineTo(x+3, yOra+5); ctx.lineTo(x-3, yOra+5); ctx.lineTo(x-3, yOra);
+          ctx.lineTo(x-6, yOra); ctx.closePath(); ctx.fill();
+          ctx.fillText('ORA', x+10, yOra+1);
+
+          // Freccia giù (PELÈR)
+          ctx.beginPath();
+          ctx.moveTo(x, yPeler+8); ctx.lineTo(x+6, yPeler); ctx.lineTo(x+3, yPeler);
+          ctx.lineTo(x+3, yPeler-5); ctx.lineTo(x-3, yPeler-5); ctx.lineTo(x-3, yPeler);
+          ctx.lineTo(x-6, yPeler); ctx.closePath(); ctx.fill();
+          ctx.fillText('PELÈR', x+10, yPeler+1);
+
+          ctx.restore();
         }
       }]
     });
@@ -922,7 +1010,7 @@ async function initR2R() {
           {
             label: 'ΔP (hPa)',
             data: dataPress,
-            borderColor: '#ebc402',
+            borderColor: '#3a8fb5',
             borderWidth: 1.5,
             borderDash: [4, 3],
             pointRadius: 0,
@@ -963,7 +1051,7 @@ async function initR2R() {
             position: 'right',
             title: { display: true, text: 'ΔP (hPa)' },
             grid: { display: false },
-            ticks: { color: '#9e9e9e' },
+            ticks: { color: '#3a8fb5' },
             min: -6,
             max: 6
           }
