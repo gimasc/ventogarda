@@ -5,6 +5,8 @@ on:
     - cron: "0 */2 * * *"
 permissions:
   contents: write
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 jobs:
   save-run:
     runs-on: ubuntu-latest
