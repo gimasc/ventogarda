@@ -141,6 +141,33 @@
     </div>
   </div>
 
+  <!-- CARD: VENTO DIREZIONALE (su=Ora, giu=Peler) -->
+  <div class="card card--red">
+    <div class="card-header">
+      <div>
+        <div class="label">Vento direzionale &middot; Conca d&rsquo;Oro</div>
+        <div class="sub">Sud = &Oacute;ra (sopra 0) &middot; Nord = Pel&egrave;r (sotto 0) &middot; Pressione asse dx</div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:.5rem .9rem;">
+      <div class="cruscotto-legenda">
+        <span><span class="dot" style="background:#e63c1e"></span>Meteotrentino (kn, con segno)</span>
+        <span><span class="dot" style="background:#1a3a5c"></span>MeteoSwiss (kn, con segno)</span>
+        <span><span class="dot" style="background:#3a8fb5"></span>&Delta;P Brescia&ndash;Bolzano (hPa) &mdash; asse dx</span>
+        <span><span class="dot" style="background:transparent;border:1px solid #888"></span>Indice vento (nel tooltip)</span>
+      </div>
+    </div>
+    <div id="dirwind-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
+      Caricamento&hellip;
+    </div>
+    <div class="img-wrap img-scroll" id="dirwind-wrap" style="padding:0;">
+      <canvas id="dirwind-canvas"></canvas>
+    </div>
+    <div class="card-footer">
+      <span>MeteoSwiss ICON-CH1 &middot; Meteotrentino ICON-2I &middot; DWD MOSMIX-L</span>
+    </div>
+  </div>
+
   <!-- CARD 4: RAFFICHE VS RAFFICHE -->
   <div class="card card--red">
     <div class="card-header">
@@ -846,6 +873,7 @@ async function initMixedKn() {
           },
           yVento: {
             position: 'left',
+            min: 0,
             title: { display: true, text: 'Vento (kn)' },
             grid: { color: '#edf0f5' },
             ticks: { color: '#1a3a5c' }
@@ -946,6 +974,343 @@ async function initMixedKn() {
 }
 
 initMixedKn();
+
+async function initDirWind() {
+  try {
+    const [ch1, ch1dir, icon2i, icon2idir, pressione] = await Promise.all([
+      fetchVento('meteoswiss_icon_ch1', 2),
+      fetchVento('meteoswiss_icon_ch1', 2, 'wind_direction_10m'),
+      fetchVento('italia_meteo_arpae_icon_2i', 3, 'wind_speed_10m', 45.867, 10.855),
+      fetchVento('italia_meteo_arpae_icon_2i', 3, 'wind_direction_10m', 45.867, 10.855),
+      fetchPressione()
+    ]);
+
+    document.getElementById('dirwind-status').style.display = 'none';
+
+    const times = ch1.time;
+
+    // Direzione → segno: nord (<135 o >315) = -1, sud = +1
+    function segno(dir) {
+      if (dir === null || dir === undefined) return 1;
+      return (dir < 135 || dir > 315) ? -1 : 1;
+    }
+
+    // MeteoSwiss raffiche con segno
+    const dirCH1Map = {};
+    ch1.time.forEach((t, i) => { dirCH1Map[t] = ch1dir.wind_direction_10m[i]; });
+    const dataCH1signed = times.map((t, i) => {
+      const v = ch1.wind_gusts_10m[i];
+      if (v === null) return null;
+      return v * segno(dirCH1Map[t]);
+    });
+
+    // Meteotrentino m/s → kn con segno
+    const icon2iMap = {};
+    const dirICON2IMap = {};
+    icon2i.time.forEach((t, i) => { icon2iMap[t] = icon2i.wind_speed_10m[i] !== null ? icon2i.wind_speed_10m[i] * 1.94384 : null; });
+    icon2idir.time.forEach((t, i) => { dirICON2IMap[t] = icon2idir.wind_direction_10m[i]; });
+    const dataMTsigned = times.map(t => {
+      const v = icon2iMap[t] ?? null;
+      if (v === null) return null;
+      return v * segno(dirICON2IMap[t]);
+    });
+
+    // Pressione
+    const pressioneMap = {};
+    pressione.forEach(r => {
+      const d = new Date(r.time);
+      const localStr = d.toLocaleString('sv-SE', { timeZone: 'Europe/Rome' }).substring(0, 16).replace(' ', 'T');
+      pressioneMap[localStr] = r.delta_hpa;
+    });
+    const dataPress = times.map(t => pressioneMap[t.substring(0,16)] ?? null);
+
+    // Indice con segno
+    const dataIndice = times.map((t, i) => {
+      const ms = dataCH1signed[i];
+      const mt = dataMTsigned[i];
+      const pr = dataPress[i];
+      if (ms === null || mt === null || pr === null) return null;
+      const dirMs = dirCH1Map[times[i]] ?? null;
+      const dirMt = dirICON2IMap[times[i]] ?? null;
+      const dir = (dirMs !== null && dirMt !== null) ? (dirMs + dirMt) / 2 : dirMs ?? dirMt;
+      const isNord = dir !== null && (dir < 135 || dir > 315);
+      const prFirmata = isNord ? -pr * 10 : pr * 10;
+      return (ms + mt + prFirmata) / 3;
+    });
+
+    const wrap = document.getElementById('dirwind-wrap');
+    const visibleW = wrap ? wrap.clientWidth : 800;
+    const pxPerHour = Math.max(visibleW / Math.min(times.length, 168), 12);
+    const w = Math.round(times.length * pxPerHour);
+
+    const ctx = document.getElementById('dirwind-canvas');
+    ctx.style.width = w + 'px'; ctx.width = w;
+    ctx.style.height = '470px'; ctx.height = 470;
+
+    const dirWindChart = new Chart(ctx, {
+      data: {
+        labels: times,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Meteotrentino (kn)',
+            data: dataMTsigned,
+            backgroundColor: '#e63c1eaa',
+            borderColor: '#e63c1e',
+            borderWidth: 1,
+            yAxisID: 'yVento',
+            order: 3
+          },
+          {
+            type: 'line',
+            label: 'MeteoSwiss (kn)',
+            data: dataCH1signed,
+            borderColor: '#1a3a5c',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            tension: 0.3,
+            yAxisID: 'yVento',
+            order: 2
+          },
+          {
+            type: 'line',
+            label: 'ΔP Brescia–Bolzano (hPa)',
+            data: dataPress,
+            borderColor: '#3a8fb5',
+            borderWidth: 2,
+            borderDash: [6, 3],
+            pointRadius: 0,
+            tension: 0,
+            yAxisID: 'yPress',
+            order: 4
+          },
+          {
+            type: 'line',
+            label: 'Indice vento',
+            data: dataIndice,
+            borderColor: 'transparent',
+            borderWidth: 0,
+            pointRadius: 0,
+            pointHoverRadius: 0,
+            yAxisID: 'yVento',
+            order: 1
+          }
+        ]
+      },
+      options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(242,240,235,0.82)',
+            titleColor: '#1a1a1a',
+            bodyColor: '#1a1a1a',
+            borderWidth: 0,
+            caretPadding: 16,
+            xAlign: 'left',
+            callbacks: {
+              labelColor(ctx) {
+                if (ctx.dataset.label === 'Indice vento') {
+                  const c = indiceColor(ctx.parsed.y);
+                  return { borderColor: c, backgroundColor: c };
+                }
+                const c = ctx.dataset.borderColor;
+                return { borderColor: c, backgroundColor: c };
+              },
+              label(ctx) {
+                const val = ctx.parsed.y !== null ? ctx.parsed.y.toFixed(1) : '—';
+                return `${ctx.dataset.label}: ${val}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 0,
+              autoSkip: false,
+              font: { size: 9 },
+              callback: function(val, index) {
+                const t = times[index];
+                if (!t) return null;
+                const d = new Date(t);
+                const h = d.getHours();
+                const m = d.getMinutes();
+                if (m !== 0) return null;
+                if (h === 0) {
+                  const gg = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'][d.getDay()];
+                  return [gg + ' ' + String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'), '00'];
+                }
+                return String(h).padStart(2,'0');
+              }
+            },
+            grid: {
+              display: true,
+              color: function(ctx) {
+                const t = times[ctx.index];
+                if (!t) return 'transparent';
+                const d = new Date(t);
+                const h = d.getHours();
+                if (h === 0) return '#1a3a5c33';
+                if (h % 2 === 0) return '#1a3a5c11';
+                return 'transparent';
+              },
+              lineWidth: function(ctx) {
+                const t = times[ctx.index];
+                if (!t) return 0;
+                const d = new Date(t);
+                return d.getHours() === 0 ? 1.5 : 0.5;
+              }
+            }
+          },
+          yVento: {
+            position: 'left',
+            title: { display: true, text: 'Vento (kn)' },
+            grid: { color: '#edf0f5' },
+            ticks: { color: '#1a3a5c' }
+          },
+          yPress: {
+            position: 'right',
+            title: { display: true, text: 'ΔP (hPa)' },
+            grid: { display: false },
+            ticks: { color: '#3a8fb5' },
+            min: -6, max: 6
+          }
+        }
+      },
+      plugins: [{
+        id: 'tooltipBorderDir',
+        afterDraw(chart) {
+          const tooltip = chart.tooltip;
+          if (!tooltip || tooltip.opacity === 0) return;
+          const indiceDataset = chart.data.datasets.find(d => d.label === 'Indice vento');
+          if (!indiceDataset || !tooltip._active || !tooltip._active.length) return;
+          const idx = tooltip._active[0].index;
+          const v = indiceDataset.data[idx];
+          const color = indiceColor(v);
+          const { x, y, width, height } = tooltip;
+          chart.ctx.save();
+          chart.ctx.fillStyle = color;
+          chart.ctx.fillRect(x, y, 5, height);
+          chart.ctx.restore();
+        }
+      }, {
+        id: 'soglieDir',
+        afterDraw(chart) {
+          const { ctx, chartArea, scales } = chart;
+          const azure = '#3a8fb5';
+          const azureFaint = '#3a8fb540';
+
+          // Linea zero vento
+          const y0v = scales.yVento.getPixelForValue(0);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y0v);
+          ctx.lineTo(chartArea.right, y0v);
+          ctx.strokeStyle = '#1a3a5c44';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([]);
+          ctx.stroke();
+          ctx.restore();
+
+          // Linea zero pressione
+          const y0 = scales.yPress.getPixelForValue(0);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y0);
+          ctx.lineTo(chartArea.right, y0);
+          ctx.strokeStyle = azure;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([6, 3]);
+          ctx.stroke();
+          ctx.restore();
+
+          // Soglie ±2 pressione
+          [2, -2].forEach(v => {
+            const y = scales.yPress.getPixelForValue(v);
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(chartArea.left, y);
+            ctx.lineTo(chartArea.right, y);
+            ctx.strokeStyle = azureFaint;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([6, 3]);
+            ctx.stroke();
+            ctx.restore();
+          });
+
+          // Frecce ORA e PELER pressione
+          const yOra   = scales.yPress.getPixelForValue(2);
+          const yPeler = scales.yPress.getPixelForValue(-2);
+          const xArr = chartArea.left + 26;
+          ctx.save();
+          ctx.fillStyle = azure;
+          ctx.font = 'bold 9px system-ui';
+          ctx.textBaseline = 'middle';
+          ctx.beginPath();
+          ctx.moveTo(xArr, yOra-8); ctx.lineTo(xArr+6,yOra); ctx.lineTo(xArr+3,yOra);
+          ctx.lineTo(xArr+3,yOra+5); ctx.lineTo(xArr-3,yOra+5); ctx.lineTo(xArr-3,yOra);
+          ctx.lineTo(xArr-6,yOra); ctx.closePath(); ctx.fill();
+          ctx.fillText('ORA', xArr+10, yOra+1);
+          ctx.beginPath();
+          ctx.moveTo(xArr,yPeler+8); ctx.lineTo(xArr+6,yPeler); ctx.lineTo(xArr+3,yPeler);
+          ctx.lineTo(xArr+3,yPeler-5); ctx.lineTo(xArr-3,yPeler-5); ctx.lineTo(xArr-3,yPeler);
+          ctx.lineTo(xArr-6,yPeler); ctx.closePath(); ctx.fill();
+          ctx.fillText('PELÈR', xArr+10, yPeler+1);
+          ctx.restore();
+
+          // Frecce direzione vento MeteoSwiss (blu) e Meteotrentino (rosso) - sotto il grafico
+          const arrowY = chartArea.bottom + 14;
+          const arrowPanel = 20;
+          const yMs  = arrowY;
+          const yMt  = arrowY + arrowPanel;
+          ctx.save();
+          ctx.font = '8px system-ui';
+
+          times.forEach((t, i) => {
+            const xPos = scales.x.getPixelForValue(i);
+            // Mostra solo ogni 2 ore
+            const d = new Date(t);
+            if (d.getMinutes() !== 0 || d.getHours() % 2 !== 0) return;
+
+            const dirMs = chart._dirCH1[t];
+            const dirMt = chart._dirICON2I[t];
+
+            function drawArrow(deg, yPos, color) {
+              if (deg === null || deg === undefined) return;
+              const rad = (deg - 90) * Math.PI / 180;
+              const len = 7;
+              ctx.save();
+              ctx.translate(xPos, yPos);
+              ctx.rotate(rad);
+              ctx.strokeStyle = color;
+              ctx.fillStyle = color;
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.moveTo(0, -len); ctx.lineTo(0, len);
+              ctx.stroke();
+              ctx.beginPath();
+              ctx.moveTo(0, -len); ctx.lineTo(-3, -len+5); ctx.lineTo(3, -len+5); ctx.closePath(); ctx.fill();
+              ctx.restore();
+            }
+            drawArrow(dirMs, yMs, '#1a3a5c');
+            drawArrow(dirMt, yMt, '#e63c1e');
+          });
+          ctx.restore();
+        }
+      }]
+    });
+    dirWindChart._dirCH1   = dirCH1Map;
+    dirWindChart._dirICON2I = dirICON2IMap;
+  } catch(err) {
+    document.getElementById('dirwind-status').textContent = 'Errore: ' + err.message;
+    console.error(err);
+  }
+}
+
+initDirWind();
 
 async function initR2R() {
   try {
