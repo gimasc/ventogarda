@@ -119,14 +119,15 @@
     <div class="card-header">
       <div>
         <div class="label">Confronto in nodi · Conca d'Oro</div>
-        <div class="sub">Meteotrentino barre · MeteoSwiss linea · tutto in kn</div>
+        <div class="sub">Meteotrentino barre rosse · MeteoSwiss linea blu · Pressione gialla (asse dx)</div>
       </div>
     </div>
     <div class="card-body" style="padding:.5rem .9rem;">
       <div class="cruscotto-legenda">
-        <span><span class="dot" style="background:#1a3a5c;opacity:.5"></span>Meteotrentino ICON-2I (kn)</span>
-        <span><span class="dot" style="background:#e63c1e"></span>MeteoSwiss ICON-CH1 (kn)</span>
-        <span><span class="dot" style="background:#ebc402;border:1px solid #999"></span>ΔP (hPa)</span>
+        <span><span class="dot" style="background:#e63c1e"></span>Meteotrentino ICON-2I (kn)</span>
+        <span><span class="dot" style="background:#1a3a5c"></span>MeteoSwiss ICON-CH1 (kn)</span>
+        <span><span class="dot" style="background:#f59e0b"></span>ΔP Brescia–Bolzano (hPa) — asse dx</span>
+        <span><span class="dot" style="background:transparent;border:1px solid #888"></span>Indice vento (nel tooltip)</span>
       </div>
     </div>
     <div id="mixedkn-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
@@ -163,47 +164,6 @@
     </div>
     <div class="card-footer">
       <span>MeteoSwiss ICON-CH1 · Meteotrentino ICON-2I · DWD MOSMIX-L</span>
-    </div>
-  </div>
-
-  <!-- CARD PRESSIONE — stile Wind Machine -->
-  <div class="card card--azure">
-    <div class="card-header">
-      <div>
-        <div class="label">Δ Pressione Bolzano – Brescia</div>
-        <div class="sub">Pelér &amp; Óra · DWD MOSMIX-L</div>
-      </div>
-    </div>
-    <div id="press-status" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
-      Caricamento…
-    </div>
-    <div style="display:flex;align-items:stretch;">
-      <div id="press-arrows" style="display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:0 6px;min-width:44px;font-size:.62rem;font-weight:700;letter-spacing:.08em;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#e65100;">
-          <svg width="20" height="20" viewBox="0 0 28 28"><polygon points="14,2 24,16 18,16 18,26 10,26 10,16 4,16" fill="#e65100"/></svg>
-          ORA
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#1565c0;">
-          PELÈR
-          <svg width="20" height="20" viewBox="0 0 28 28"><polygon points="14,26 24,12 18,12 18,2 10,2 10,12 4,12" fill="#1565c0"/></svg>
-        </div>
-      </div>
-      <div class="img-wrap img-scroll" id="press-wrap" style="padding:0;flex:1;background:white;position:relative;">
-        <canvas id="press-canvas"></canvas>
-        <div id="press-scroll-hint" style="
-          position:absolute;right:0;top:0;bottom:0;width:32px;
-          display:flex;align-items:center;justify-content:center;
-          background:linear-gradient(to right, transparent, rgba(255,255,255,0.95) 50%);
-          pointer-events:none;
-        ">
-          <svg width="16" height="48" viewBox="0 0 16 48" fill="none">
-            <polyline points="4,4 12,24 4,44" stroke="#1a3a5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-    <div class="card-footer">
-      <span>ventogarda.it · Daten: Deutscher Wetterdienst</span>
     </div>
   </div>
 
@@ -388,7 +348,7 @@ async function init() {
             position: 'right',
             title: { display: true, text: 'ΔP (hPa)' },
             grid: { display: false },
-            ticks: { color: '#ebc402' },
+            ticks: { color: '#9e9e9e' },
             min: -6,
             max: 6
           }
@@ -404,7 +364,7 @@ async function init() {
           ctx.beginPath();
           ctx.moveTo(chartArea.left, y2p);
           ctx.lineTo(chartArea.right, y2p);
-          ctx.strokeStyle = '#ebc40266';
+          ctx.strokeStyle = '#9e9e9e66';
           ctx.lineWidth = 1;
           ctx.setLineDash([6, 4]);
           ctx.stroke();
@@ -415,7 +375,7 @@ async function init() {
           ctx.beginPath();
           ctx.moveTo(chartArea.left, y2n);
           ctx.lineTo(chartArea.right, y2n);
-          ctx.strokeStyle = '#ebc40266';
+          ctx.strokeStyle = '#9e9e9e66';
           ctx.lineWidth = 1;
           ctx.setLineDash([6, 4]);
           ctx.stroke();
@@ -584,8 +544,8 @@ async function initMixed() {
             type: 'bar',
             label: 'Meteotrentino ICON-2I (m/s)',
             data: dataICON2I,
-            backgroundColor: '#e63c1e55',
-            borderColor: '#e63c1e88',
+            backgroundColor: '#e63c1eaa',
+            borderColor: '#e63c1e',
             borderWidth: 1,
             yAxisID: 'yVento',
             order: 2
@@ -597,6 +557,18 @@ async function initMixed() {
             borderColor: '#e63c1e',
             borderWidth: 2,
             pointRadius: 0,
+            tension: 0.3,
+            yAxisID: 'yVento',
+            order: 1
+          },
+          {
+            type: 'line',
+            label: 'Indice',
+            data: dataIndice,
+            borderColor: 'transparent',
+            borderWidth: 0,
+            pointRadius: 0,
+            pointHoverRadius: 0,
             tension: 0.3,
             yAxisID: 'yVento',
             order: 1
@@ -648,7 +620,7 @@ async function initMixed() {
             position: 'right',
             title: { display: true, text: 'ΔP (hPa)' },
             grid: { display: false },
-            ticks: { color: '#ebc402' },
+            ticks: { color: '#9e9e9e' },
             min: -6,
             max: 6
           }
@@ -664,7 +636,7 @@ async function initMixed() {
             ctx.beginPath();
             ctx.moveTo(chartArea.left, y);
             ctx.lineTo(chartArea.right, y);
-            ctx.strokeStyle = '#ebc40266';
+            ctx.strokeStyle = '#9e9e9e66';
             ctx.lineWidth = 1;
             ctx.setLineDash([6, 4]);
             ctx.stroke();
@@ -694,14 +666,13 @@ async function initMixedKn() {
     const times = ch1.time;
     const rafficheCH1 = ch1.wind_gusts_10m;
 
-    // ICON-2I: converti m/s → kn
+    // ICON-2I m/s → kn
     const icon2iMap = {};
     icon2i.time.forEach((t, i) => {
-      icon2iMap[t] = icon2i.wind_speed_10m[i] !== null
-        ? icon2i.wind_speed_10m[i] * 1.94384
-        : null;
+      icon2iMap[t] = icon2i.wind_speed_10m[i] !== null ? icon2i.wind_speed_10m[i] * 1.94384 : null;
     });
 
+    // Pressione
     const pressioneMap = {};
     pressione.forEach(r => {
       const d = new Date(r.time);
@@ -710,7 +681,16 @@ async function initMixedKn() {
     });
 
     const dataICON2Ikn = times.map(t => icon2iMap[t] ?? null);
-    const dataPress = times.map(t => pressioneMap[t.substring(0,16)] ?? null);
+    const dataPress    = times.map(t => pressioneMap[t.substring(0,16)] ?? null);
+
+    // Indice vento
+    const dataIndice = times.map((t, i) => {
+      const ms = rafficheCH1[i];
+      const mt = dataICON2Ikn[i];
+      const pr = dataPress[i] !== null ? dataPress[i] * 10 : null;
+      if (ms === null || mt === null || pr === null) return null;
+      return ((ms + mt) / 2 + pr) / 2;
+    });
 
     const wrap = document.getElementById('mixedkn-wrap');
     const visibleW = wrap ? wrap.clientWidth : 800;
@@ -731,34 +711,45 @@ async function initMixedKn() {
             type: 'bar',
             label: 'Meteotrentino ICON-2I (kn)',
             data: dataICON2Ikn,
-            backgroundColor: '#1a3a5c44',
-            borderColor: '#1a3a5c88',
+            backgroundColor: '#e63c1ecc',
+            borderColor: '#e63c1e',
             borderWidth: 1,
             yAxisID: 'yVento',
-            order: 2
+            order: 3
           },
           {
             type: 'line',
             label: 'MeteoSwiss ICON-CH1 (kn)',
             data: rafficheCH1,
-            borderColor: '#e63c1e',
-            borderWidth: 2,
+            borderColor: '#1a3a5c',
+            borderWidth: 2.5,
             pointRadius: 0,
             tension: 0.3,
             yAxisID: 'yVento',
-            order: 1
+            order: 2
           },
           {
             type: 'line',
-            label: 'ΔP Bolzano–Brescia (hPa)',
+            label: 'ΔP Brescia–Bolzano (hPa)',
             data: dataPress,
-            borderColor: '#ebc402',
-            borderWidth: 1.5,
-            borderDash: [4, 3],
+            borderColor: '#f59e0b',
+            borderWidth: 2,
+            borderDash: [6, 3],
             pointRadius: 0,
             tension: 0,
             yAxisID: 'yPress',
-            order: 3
+            order: 4
+          },
+          {
+            type: 'line',
+            label: 'Indice vento',
+            data: dataIndice,
+            borderColor: 'transparent',
+            borderWidth: 0,
+            pointRadius: 0,
+            pointHoverRadius: 0,
+            yAxisID: 'yVento',
+            order: 1
           }
         ]
       },
@@ -766,7 +757,35 @@ async function initMixedKn() {
         responsive: false,
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(242,240,235,0.97)',
+            titleColor: '#1a1a1a',
+            bodyColor: '#1a1a1a',
+            borderColor: '#d8d4cc',
+            borderWidth: 1,
+            callbacks: {
+              labelColor(ctx) {
+                if (ctx.dataset.label === 'Indice vento') return { borderColor: 'transparent', backgroundColor: 'transparent' };
+                const c = ctx.dataset.borderColor;
+                return { borderColor: c, backgroundColor: c };
+              },
+              label(ctx) {
+                const val = ctx.parsed.y !== null ? ctx.parsed.y.toFixed(1) : '—';
+                return `${ctx.dataset.label}: ${val}`;
+              },
+              labelTextColor(ctx) {
+                if (ctx.dataset.label === 'Indice vento') {
+                  const v = ctx.parsed.y;
+                  if (v === null || v === undefined) return '#1a1a1a';
+                  return v >= 15 ? '#2e7d32' : v >= 5 ? '#888' : '#c62828';
+                }
+                return '#1a1a1a';
+              }
+            }
+          }
+        },
         scales: {
           x: {
             ticks: {
@@ -780,21 +799,22 @@ async function initMixedKn() {
                 if (h !== 0 && h !== 6 && h !== 12 && h !== 18) return null;
                 const gg = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'][d.getDay()];
                 if (h === 0) return gg + ' ' + String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
-                return String(h).padStart(2,'0');
+                return String(h).padStart(2,'00');
               }
             },
             grid: { display: false }
           },
           yVento: {
             position: 'left',
-            title: { display: true, text: 'Raffiche / Vento medio (kn)' },
-            grid: { color: '#edf0f5' }
+            title: { display: true, text: 'Vento (kn)' },
+            grid: { color: '#edf0f5' },
+            ticks: { color: '#1a3a5c' }
           },
           yPress: {
             position: 'right',
             title: { display: true, text: 'ΔP (hPa)' },
             grid: { display: false },
-            ticks: { color: '#ebc402' },
+            ticks: { color: '#f59e0b' },
             min: -6,
             max: 6
           }
@@ -804,15 +824,27 @@ async function initMixedKn() {
         id: 'soglieMkn',
         afterDraw(chart) {
           const { ctx, chartArea, scales } = chart;
+          // Linea 0 tratteggiata come le soglie
+          const y0 = scales.yPress.getPixelForValue(0);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y0);
+          ctx.lineTo(chartArea.right, y0);
+          ctx.strokeStyle = '#555';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([6, 3]);
+          ctx.stroke();
+          ctx.restore();
+          // Soglie ±2
           [2, -2].forEach(v => {
             const y = scales.yPress.getPixelForValue(v);
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(chartArea.left, y);
             ctx.lineTo(chartArea.right, y);
-            ctx.strokeStyle = '#ebc40266';
+            ctx.strokeStyle = v > 0 ? '#1565c066' : '#c6282866';
             ctx.lineWidth = 1;
-            ctx.setLineDash([6, 4]);
+            ctx.setLineDash([6, 3]);
             ctx.stroke();
             ctx.restore();
           });
@@ -931,7 +963,7 @@ async function initR2R() {
             position: 'right',
             title: { display: true, text: 'ΔP (hPa)' },
             grid: { display: false },
-            ticks: { color: '#ebc402' },
+            ticks: { color: '#9e9e9e' },
             min: -6,
             max: 6
           }
@@ -947,7 +979,7 @@ async function initR2R() {
             ctx.beginPath();
             ctx.moveTo(chartArea.left, y);
             ctx.lineTo(chartArea.right, y);
-            ctx.strokeStyle = '#ebc40266';
+            ctx.strokeStyle = '#9e9e9e66';
             ctx.lineWidth = 1;
             ctx.setLineDash([6, 4]);
             ctx.stroke();
@@ -963,221 +995,6 @@ async function initR2R() {
 }
 
 initR2R();
-
-async function initPressione() {
-  try {
-    const rows = await fetchPressione();
-    if (!rows.length) { document.getElementById('press-status').textContent = 'Dati non disponibili'; return; }
-    document.getElementById('press-status').style.display = 'none';
-
-    const wrap = document.getElementById('press-wrap');
-    const visibleW = wrap ? wrap.clientWidth : 700;
-    // 6 giorni (144 ore) visibili nella finestra
-    const pxPerHour = visibleW / 144;
-    const w = Math.round(rows.length * pxPerHour);
-
-    // Nascondi scroll hint dopo primo scroll
-    const pressWrap = document.getElementById('press-wrap');
-    if (pressWrap) pressWrap.addEventListener('scroll', () => {
-      const hint = document.getElementById('press-scroll-hint');
-      if (hint) hint.style.display = 'none';
-    }, { once: true });
-
-    const ctx = document.getElementById('press-canvas');
-    ctx.style.width = w + 'px';
-    ctx.width = w;
-    ctx.style.height = '300px';
-    ctx.height = 300;
-
-    // Aggiusta frecce altezza dopo render
-    const arrows = document.getElementById('press-arrows');
-
-    const values = rows.map(r => r.delta_hpa);
-    const maxVal = Math.max(...values.filter(v => v !== null));
-    const minVal = Math.min(...values.filter(v => v !== null));
-    const pad = 1.5;
-    const yMax = Math.ceil((maxVal + pad) / 2) * 2;
-    const yMin = Math.floor((minVal - pad) / 2) * 2;
-
-    const pointColors = rows.map(r => r.delta_hpa >= 0 ? '#ff8a1f' : '#2f6bff');
-
-    const zeroAndLines = {
-      id: 'zeroAndLines',
-      beforeDatasetsDraw(chart) {
-        const { ctx, chartArea, scales } = chart;
-        // Linee verticali ogni 6 ore
-        const midnight = [];
-        rows.forEach((r, i) => {
-          const d = new Date(r.time);
-          const h = d.getHours();
-          if (h !== 0 && h !== 6 && h !== 12 && h !== 18) return;
-          const xPos = scales.x.getPixelForValue(i);
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(xPos, chartArea.top);
-          ctx.lineTo(xPos, chartArea.bottom);
-          if (h === 0) {
-            ctx.lineWidth = 1.5;
-            ctx.strokeStyle = '#1f293755';
-            ctx.setLineDash([]);
-            midnight.push({ xPos, time: r.time });
-          } else if (h === 12) {
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = '#1f293733';
-            ctx.setLineDash([4, 3]);
-          } else {
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = '#e2e7ef';
-            ctx.setLineDash([]);
-          }
-          ctx.stroke();
-          ctx.restore();
-        });
-        // Linea zero
-        const y0 = scales.y.getPixelForValue(0);
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(chartArea.left, y0);
-        ctx.lineTo(chartArea.right, y0);
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = '#1f2937';
-        ctx.setLineDash([]);
-        ctx.stroke();
-        ctx.restore();
-        // Soglie ±2
-        [2, -2].forEach(v => {
-          const y = scales.y.getPixelForValue(v);
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(chartArea.left, y);
-          ctx.lineTo(chartArea.right, y);
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = v > 0 ? '#e6510066' : '#1565c066';
-          ctx.setLineDash([6, 4]);
-          ctx.stroke();
-          ctx.restore();
-        });
-        // Aggiusta padding frecce
-        if (arrows) {
-          arrows.style.paddingTop = chartArea.top + 'px';
-          arrows.style.paddingBottom = (ctx.canvas.height - chartArea.bottom) + 'px';
-        }
-      },
-      afterDraw(chart) {
-        const { ctx, chartArea, scales } = chart;
-        // Etichette giorno
-        const days = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
-        const midnight = [];
-        rows.forEach((r, i) => {
-          if (new Date(r.time).getHours() === 0)
-            midnight.push({ xPos: scales.x.getPixelForValue(i), time: r.time });
-        });
-        midnight.forEach((m, idx) => {
-          const xEnd = idx + 1 < midnight.length ? midnight[idx+1].xPos : chartArea.right;
-          const xCenter = (m.xPos + xEnd) / 2;
-          const d = new Date(m.time);
-          const label = days[d.getDay()] + ' ' + String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
-          ctx.save();
-          ctx.font = '700 11px system-ui, sans-serif';
-          const tw = ctx.measureText(label).width;
-          ctx.fillStyle = 'rgba(255,255,255,0.95)';
-          ctx.fillRect(xCenter - tw/2 - 3, chartArea.top - 18, tw + 6, 16);
-          ctx.fillStyle = '#1f2937cc';
-          ctx.textAlign = 'center';
-          ctx.fillText(label, xCenter, chartArea.top - 6);
-          ctx.restore();
-        });
-      }
-    };
-
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: rows.map((_, i) => i),
-        datasets: [{
-          data: values,
-          borderColor: '#1a3a5c',
-          borderWidth: 2,
-          pointRadius: 0,
-          pointHoverRadius: 5,
-          tension: 0,
-          pointBackgroundColor: pointColors,
-          pointBorderColor: pointColors,
-          pointHoverBackgroundColor: '#1a3a5c',
-        }]
-      },
-      options: {
-        responsive: false,
-        maintainAspectRatio: false,
-        layout: { padding: { top: 24 } },
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label(ctx) {
-                const r = rows[ctx.dataIndex];
-                return [`ΔP: ${r.delta_hpa.toFixed(1)} hPa`, `Bolzano: ${r.bolzano_hpa.toFixed(1)}`, `Brescia: ${r.ghedi_hpa.toFixed(1)}`];
-              },
-              title(items) {
-                const d = new Date(rows[items[0].dataIndex].time);
-                return d.toLocaleString('it-IT', { weekday:'short', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            ticks: {
-              maxRotation: 0,
-              autoSkip: false,
-              callback(val, index) {
-                const d = new Date(rows[index].time);
-                const h = d.getHours();
-                if (h !== 0 && h !== 6 && h !== 12 && h !== 18) return null;
-                return h === 0 ? '0' : String(h);
-              },
-              font(ctx) {
-                const h = ctx.index < rows.length ? new Date(rows[ctx.index].time).getHours() : 0;
-                return { weight: h === 0 ? '700' : '400', size: 9 };
-              }
-            },
-            grid: { display: false }
-          },
-          y: {
-            min: yMin,
-            max: yMax,
-            ticks: { stepSize: 2 },
-            title: { display: true, text: 'ΔP hPa' },
-            grid: { color: '#edf0f5' }
-          }
-        }
-      },
-      plugins: [zeroAndLines, {
-        id: 'crosshair',
-        afterDraw(chart) {
-          if (!chart.tooltip._active || !chart.tooltip._active.length) return;
-          const { ctx, chartArea, scales } = chart;
-          const x = chart.tooltip._active[0].element.x;
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(x, chartArea.top);
-          ctx.lineTo(x, chartArea.bottom);
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = '#1a3a5c44';
-          ctx.setLineDash([4, 3]);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }]
-    });
-  } catch(err) {
-    document.getElementById('press-status').textContent = 'Errore: ' + err.message;
-    console.error(err);
-  }
-}
-
-initPressione();
 </script>
 
 <style>

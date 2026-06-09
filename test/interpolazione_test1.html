@@ -118,15 +118,16 @@
   <div class="card card--red">
     <div class="card-header">
       <div>
-        <div class="label">Confronto in nodi · Conca d'Oro</div>
-        <div class="sub">Meteotrentino barre · MeteoSwiss linea · tutto in kn</div>
+        <div class="label">Confronto in nodi · Indice</div>
+        <div class="sub">Meteotrentino barre · MeteoSwiss linea · Indice verde</div>
       </div>
     </div>
     <div class="card-body" style="padding:.5rem .9rem;">
       <div class="cruscotto-legenda">
-        <span><span class="dot" style="background:#1a3a5c;opacity:.5"></span>Meteotrentino ICON-2I (kn)</span>
-        <span><span class="dot" style="background:#e63c1e"></span>MeteoSwiss ICON-CH1 (kn)</span>
-        <span><span class="dot" style="background:#ebc402;border:1px solid #999"></span>ΔP (hPa)</span>
+        <span><span class="dot" style="background:#e63c1e;opacity:.5"></span>Meteotrentino (kn)</span>
+        <span><span class="dot" style="background:#1a3a5c"></span>MeteoSwiss (kn)</span>
+        <span><span class="dot" style="background:#ebc402"></span>ΔP (hPa)</span>
+        <span><span class="dot" style="background:#4caf7d"></span>Indice</span>
       </div>
     </div>
     <div id="mixedkn-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
@@ -163,25 +164,6 @@
     </div>
     <div class="card-footer">
       <span>MeteoSwiss ICON-CH1 · Meteotrentino ICON-2I · DWD MOSMIX-L</span>
-    </div>
-  </div>
-
-  <!-- CARD CONFRONTO IERI -->
-  <div class="card card--azure">
-    <div class="card-header">
-      <div>
-        <div class="label">Verifica · ICON-2I Riva oggi</div>
-        <div class="sub">Confronto run 12 / 14 / 16 / 18 ora italiana · m/s · Riva del Garda</div>
-      </div>
-    </div>
-    <div id="ieri-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
-      Caricamento…
-    </div>
-    <div class="img-wrap img-scroll" id="ieri-wrap" style="padding:0;">
-      <canvas id="ieri-canvas"></canvas>
-    </div>
-    <div class="card-footer">
-      <span>ICON-2I via Open-Meteo · Riva del Garda 45.867, 10.855</span>
     </div>
   </div>
 
@@ -690,6 +672,16 @@ async function initMixedKn() {
     const dataICON2Ikn = times.map(t => icon2iMap[t] ?? null);
     const dataPress = times.map(t => pressioneMap[t.substring(0,16)] ?? null);
 
+    // Calcola Indice: (MeteoSwiss + Meteotrentino) / 2, poi media con pressione scalata
+    const dataIndice = times.map((t, i) => {
+      const ms = rafficheCH1[i];
+      const mt = dataICON2Ikn[i];
+      const pr = dataPress[i] !== null ? dataPress[i] * 10 : null;
+      if (ms === null || mt === null || pr === null) return null;
+      const mediaVenti = (ms + mt) / 2;
+      return (mediaVenti + pr) / 2;
+    });
+
     const wrap = document.getElementById('mixedkn-wrap');
     const visibleW = wrap ? wrap.clientWidth : 800;
     const pxPerHour = Math.max(visibleW / Math.min(times.length, 168), 12);
@@ -709,22 +701,22 @@ async function initMixedKn() {
             type: 'bar',
             label: 'Meteotrentino ICON-2I (kn)',
             data: dataICON2Ikn,
-            backgroundColor: '#1a3a5c44',
-            borderColor: '#1a3a5c88',
+            backgroundColor: '#e63c1e55',
+            borderColor: '#e63c1e88',
             borderWidth: 1,
             yAxisID: 'yVento',
-            order: 2
+            order: 3
           },
           {
             type: 'line',
             label: 'MeteoSwiss ICON-CH1 (kn)',
             data: rafficheCH1,
-            borderColor: '#e63c1e',
+            borderColor: '#1a3a5c',
             borderWidth: 2,
             pointRadius: 0,
             tension: 0.3,
             yAxisID: 'yVento',
-            order: 1
+            order: 2
           },
           {
             type: 'line',
@@ -736,7 +728,19 @@ async function initMixedKn() {
             pointRadius: 0,
             tension: 0,
             yAxisID: 'yPress',
-            order: 3
+            order: 4
+          },
+          {
+            type: 'line',
+            label: 'Indice',
+            data: dataIndice,
+            borderColor: '#4caf7d',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            tension: 0.3,
+            yAxisID: 'yVento',
+            order: 1
           }
         ]
       },
@@ -744,7 +748,21 @@ async function initMixedKn() {
         responsive: false,
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              labelColor(ctx) {
+                if (ctx.dataset.label === 'Indice') {
+                  const v = ctx.parsed.y;
+                  const color = v >= 15 ? '#2e7d32' : v >= 5 ? '#757575' : '#c62828';
+                  return { borderColor: color, backgroundColor: color };
+                }
+                return { borderColor: ctx.dataset.borderColor, backgroundColor: ctx.dataset.borderColor };
+              }
+            }
+          }
+        },
         scales: {
           x: {
             ticks: {
@@ -941,106 +959,6 @@ async function initR2R() {
 }
 
 initR2R();
-
-async function initIeri() {
-  try {
-    // 4 run: ore 12, 14, 16, 18 ora italiana = past_hours 10, 8, 6, 4
-    const runs = [
-      { label: 'Run 12 UTC',  pastHours: 8,  color: '#9c27b0' },
-      { label: 'Run 12:00',   pastHours: 10, color: '#1565c0' },
-      { label: 'Run 14:00',   pastHours: 8,  color: '#2196f3' },
-      { label: 'Run 16:00',   pastHours: 6,  color: '#e65100' },
-      { label: 'Run 18:00',   pastHours: 4,  color: '#e63c1e' },
-    ];
-
-    const results = await Promise.all(runs.map(run =>
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=45.867&longitude=10.855&hourly=wind_speed_10m&models=italia_meteo_arpae_icon_2i&wind_speed_unit=ms&past_hours=${run.pastHours}&forecast_days=3&timezone=Europe%2FRome`)
-        .then(r => r.json())
-    ));
-
-    document.getElementById('ieri-status').style.display = 'none';
-
-    // Usa il run più lungo come riferimento temporale
-    const times = results[0].hourly.time;
-
-    const wrap = document.getElementById('ieri-wrap');
-    const visibleW = wrap ? wrap.clientWidth : 800;
-    const pxPerHour = Math.max(visibleW / 72, 10);
-    const w = Math.round(times.length * pxPerHour);
-
-    const ctx = document.getElementById('ieri-canvas');
-    ctx.style.width = w + 'px';
-    ctx.width = w;
-    ctx.style.height = '320px';
-    ctx.height = 320;
-
-    // Allinea tutti i run sullo stesso asse temporale
-    const datasets = runs.map((run, idx) => {
-      const runTimes = results[idx].hourly.time;
-      const runSpeeds = results[idx].hourly.wind_speed_10m;
-      const map = {};
-      runTimes.forEach((t, i) => { map[t] = runSpeeds[i]; });
-      return {
-        label: run.label,
-        data: times.map(t => map[t] ?? null),
-        borderColor: run.color,
-        borderWidth: 1.5,
-        pointRadius: 0,
-        tension: 0.3,
-        spanGaps: false,
-      };
-    });
-
-    new Chart(ctx, {
-      type: 'line',
-      data: { labels: times, datasets },
-      options: {
-        responsive: false,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: { font: { size: 10 }, boxWidth: 20 }
-          }
-        },
-        scales: {
-          x: {
-            ticks: {
-              maxRotation: 0,
-              autoSkip: false,
-              callback(val, i) {
-                const d = new Date(times[i]);
-                const h = d.getHours();
-                const gg = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'][d.getDay()];
-                const dd = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
-                if (h === 0) return [gg + ' ' + dd, '00'];
-                return String(h).padStart(2,'00');
-              },
-              font(ctx) {
-                const i = ctx.index;
-                if (!times[i]) return {};
-                return { size: new Date(times[i]).getHours() === 0 ? 9 : 8, weight: new Date(times[i]).getHours() === 0 ? '700' : '400' };
-              }
-            },
-            grid: { color: ctx => new Date(times[ctx.index])?.getHours() === 0 ? '#1f293733' : '#edf0f5' }
-          },
-          y: {
-            title: { display: true, text: 'm/s' },
-            min: 0,
-            grid: { color: '#edf0f5' }
-          }
-        }
-      }
-    });
-  } catch(err) {
-    document.getElementById('ieri-status').textContent = 'Errore: ' + err.message;
-    console.error(err);
-  }
-}
-
-initIeri();
 </script>
 
 <style>
