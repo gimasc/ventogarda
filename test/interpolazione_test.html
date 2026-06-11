@@ -1035,9 +1035,19 @@ async function initDirWind() {
       const dirMs = dirCH1Map[t] ?? null;
       const dirMt = dirICON2IMap[t] ?? null;
       const dir = (dirMs !== null && dirMt !== null) ? (dirMs + dirMt) / 2 : dirMs ?? dirMt;
-      const isNord = dir !== null && (dir < 135 || dir > 315);
-      const prFirmata = isNord ? -pr * 10 : pr * 10;
-      if (i === 0) console.log('Indice debug i=0:', {ms, mt, pr, dirMs, dirMt, dir, isNord, prFirmata, result: (ms + mt + prFirmata) / 3});
+      // Nord puro: 315-360 e 0-45 → pressione invertita
+      // Sud puro: 135-225 → pressione normale
+      // Direzioni intermedie: pressione a peso ridotto (0.3)
+      let prFirmata;
+      if (dir === null) {
+        prFirmata = 0;
+      } else if (dir <= 45 || dir >= 315) {
+        prFirmata = -pr * 10; // nord: pressione invertita
+      } else if (dir >= 135 && dir <= 225) {
+        prFirmata = pr * 10;  // sud: pressione normale
+      } else {
+        prFirmata = 0; // est/ovest: pressione ignorata
+      }
       return (ms + mt + prFirmata) / 3;
     });
 
@@ -1049,6 +1059,7 @@ async function initDirWind() {
     const ctx = document.getElementById('dirwind-canvas');
     ctx.style.width = w + 'px'; ctx.width = w;
     ctx.style.height = '560px'; ctx.height = 560;
+    document.getElementById('dirwind-wrap').style.overflow = 'visible';
 
     // Rendi i dati direzione accessibili al plugin tramite closure
     const _dirCH1data   = dirCH1Map;
