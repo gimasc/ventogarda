@@ -354,15 +354,23 @@ async function caricaDati() {
       forecast_days: 2,
       models:        "meteoswiss_icon_ch1",
     });
-    const r = await fetch(`${url}?${params}`);
-    const d = await r.json();
-    risultati.push({
-      nome:      spot.nome,
-      colore:    spot.colore,
-      raffiche:  d.hourly.wind_gusts_10m.map(kmhToKn),
-      direzione: d.hourly.wind_direction_10m,
-      ore:       d.hourly.time.map(toLocalTime),
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    try {
+      const r = await fetch(`${url}?${params}`, { signal: controller.signal });
+      clearTimeout(timer);
+      const d = await r.json();
+      risultati.push({
+        nome:      spot.nome,
+        colore:    spot.colore,
+        raffiche:  d.hourly.wind_gusts_10m.map(kmhToKn),
+        direzione: d.hourly.wind_direction_10m,
+        ore:       d.hourly.time.map(toLocalTime),
+      });
+    } catch(e) {
+      clearTimeout(timer);
+      throw e;
+    }
   }
   return risultati;
 }
