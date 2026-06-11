@@ -103,23 +103,22 @@ async function caricaMeteo() {
     timezone:  "Europe/Rome",
   };
 
-  const [ch1, seamless] = await Promise.all([
-    fetch(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 2, models: "meteoswiss_icon_ch1" })}`).then(r => r.json()),
-    fetch(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 7, models: "icon_seamless" })}`).then(r => r.json()),
+  const [rCH1, rSeamless] = await Promise.all([
+    fetch(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 2, models: "meteoswiss_icon_ch1" })}`),
+    fetch(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 7, models: "icon_seamless" })}`),
   ]);
 
-  // Usa MeteoSwiss per le prime 48 ore, icon_seamless per il resto
-  const cutoff = ch1.hourly.time[ch1.hourly.time.length - 1];
+  if (!rCH1.ok || !rSeamless.ok) throw new Error("Dati meteo non disponibili");
 
-  const ore    = [];
-  const temp   = [];
-  const prob   = [];
-  const mm     = [];
-  const codici = [];
+  const [ch1, seamless] = await Promise.all([rCH1.json(), rSeamless.json()]);
+
+  if (!ch1.hourly || !seamless.hourly) throw new Error("Dati meteo non disponibili");
+
+  const cutoff = ch1.hourly.time[ch1.hourly.time.length - 1];
+  const ore = [], temp = [], prob = [], mm = [], codici = [];
 
   seamless.hourly.time.forEach((t, i) => {
     if (t <= cutoff) {
-      // Prendi da MeteoSwiss se disponibile
       const idx = ch1.hourly.time.indexOf(t);
       if (idx !== -1) {
         ore.push(toLocalTime(t));
@@ -345,8 +344,8 @@ function aggiornaBottoni() {
 
 async function caricaDati() {
   const url = "https://api.open-meteo.com/v1/forecast";
-  const risultati = [];
-  for (const spot of SPOTS) {
+
+  return Promise.all(SPOTS.map(async spot => {
     const params = new URLSearchParams({
       latitude:      spot.lat,
       longitude:     spot.lon,
@@ -354,25 +353,18 @@ async function caricaDati() {
       forecast_days: 2,
       models:        "meteoswiss_icon_ch1",
     });
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 15000);
-    try {
-      const r = await fetch(`${url}?${params}`, { signal: controller.signal });
-      clearTimeout(timer);
-      const d = await r.json();
-      risultati.push({
-        nome:      spot.nome,
-        colore:    spot.colore,
-        raffiche:  d.hourly.wind_gusts_10m.map(kmhToKn),
-        direzione: d.hourly.wind_direction_10m,
-        ore:       d.hourly.time.map(toLocalTime),
-      });
-    } catch(e) {
-      clearTimeout(timer);
-      throw e;
-    }
-  }
-  return risultati;
+    const r = await fetch(`${url}?${params}`);
+    if (!r.ok) throw new Error("Dati raffiche non disponibili");
+    const d = await r.json();
+    if (!d.hourly) throw new Error("Dati raffiche non disponibili");
+    return {
+      nome:      spot.nome,
+      colore:    spot.colore,
+      raffiche:  d.hourly.wind_gusts_10m.map(kmhToKn),
+      direzione: d.hourly.wind_direction_10m,
+      ore:       d.hourly.time.map(toLocalTime),
+    };
+  }));
 }
 
 function disegnaGrafico(dati) {
