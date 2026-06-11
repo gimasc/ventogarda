@@ -92,28 +92,82 @@ function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs, nuvola) {
 }
 
 // ============================================================
-// CARICA DATI — da JSON cachato (aggiornato ogni 30 min da GitHub Actions)
+// CARICA DATI — Open-Meteo con fallback su JSON cachato
+// Se Open-Meteo risponde entro 3s → dati freschi
+// Se timeout o errore → JSON cachato (aggiornato ogni 30 min da GitHub Actions)
 // ============================================================
 
+async function fetchConTimeout(url, ms = 3000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r;
+  } catch(e) {
+    clearTimeout(timer);
+    throw e;
+  }
+}
+
 async function caricaCache() {
-  const base = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? '/'
-    : '/';
-  const r = await fetch(`${base}data/meteo_${LOC_ID}.json?_=${Date.now()}`);
+  const r = await fetch(`/data/meteo_${LOC_ID}.json?_=${Date.now()}`);
   if (!r.ok) throw new Error("Cache non disponibile");
   return r.json();
 }
 
-async function caricaMeteo() {
-  const cache = await caricaCache();
-  const m = cache.meteo;
-  return {
-    ore:    m.time.map(toLocalTime),
-    temp:   m.temp,
-    prob:   m.prob,
-    mm:     m.mm,
-    codici: m.codici,
+async function fetchMeteoOpenMeteo(timeout = 3000) {
+  const baseParams = {
+    latitude:  LAT_METEO,
+    longitude: LON_METEO,
+    hourly:    "temperature_2m,precipitation_probability,precipitation,weather_code",
+    timezone:  "Europe/Rome",
   };
+  const [rCH1, rSeamless] = await Promise.all([
+    fetchConTimeout(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 2, models: "meteoswiss_icon_ch1" })}`, timeout),
+    fetchConTimeout(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 7, models: "icon_seamless" })}`, timeout),
+  ]);
+  const [ch1, seamless] = await Promise.all([rCH1.json(), rSeamless.json()]);
+  if (!ch1.hourly || !seamless.hourly) throw new Error("Dati mancanti");
+  const cutoff = ch1.hourly.time[ch1.hourly.time.length - 1];
+  const ore = [], temp = [], prob = [], mm = [], codici = [];
+  seamless.hourly.time.forEach((t, i) => {
+    if (t <= cutoff) {
+      const idx = ch1.hourly.time.indexOf(t);
+      if (idx !== -1) {
+        ore.push(toLocalTime(t)); temp.push(ch1.hourly.temperature_2m[idx]);
+        prob.push(ch1.hourly.precipitation_probability[idx]);
+        mm.push(ch1.hourly.precipitation[idx]); codici.push(ch1.hourly.weather_code[idx]);
+      }
+    } else {
+      ore.push(toLocalTime(t)); temp.push(seamless.hourly.temperature_2m[i]);
+      prob.push(seamless.hourly.precipitation_probability[i]);
+      mm.push(seamless.hourly.precipitation[i]); codici.push(seamless.hourly.weather_code[i]);
+    }
+  });
+  return { ore, temp, prob, mm, codici };
+}
+
+async function caricaMeteo() {
+  // 1. Prova Open-Meteo veloce (3s)
+  try {
+    return await fetchMeteoOpenMeteo(3000);
+  } catch(e) {
+    console.warn("Open-Meteo lento, provo cache:", e.message);
+  }
+  // 2. Prova cache
+  try {
+    setStatus('Connessione lenta — uso dati recenti...', 'warn');
+    const cache = await caricaCache();
+    const m = cache.meteo;
+    return { ore: m.time.map(toLocalTime), temp: m.temp, prob: m.prob, mm: m.mm, codici: m.codici };
+  } catch(e) {
+    console.warn("Cache non disponibile, riprovo Open-Meteo (10s):", e.message);
+  }
+  // 3. Ultimo tentativo Open-Meteo con timeout lungo
+  setStatus('Connessione a MeteoSwiss lenta — riprovo...', 'warn');
+  return await fetchMeteoOpenMeteo(10000);
 }
 
 // ============================================================
@@ -319,15 +373,47 @@ function aggiornaBottoni() {
 // GRAFICO VENTO
 // ============================================================
 
-async function caricaDati() {
-  const cache = await caricaCache();
-  return cache.spots.map(s => ({
-    nome:      s.nome,
-    colore:    s.colore,
-    raffiche:  s.raffiche.map(kmhToKn),
-    direzione: s.direzione,
-    ore:       s.time.map(toLocalTime),
+async function fetchRafficeOpenMeteo(timeout = 3000) {
+  const url = "https://api.open-meteo.com/v1/forecast";
+  return Promise.all(SPOTS.map(async spot => {
+    const params = new URLSearchParams({
+      latitude: spot.lat, longitude: spot.lon,
+      hourly: "wind_gusts_10m,wind_direction_10m",
+      forecast_days: 2, models: "meteoswiss_icon_ch1",
+    });
+    const r = await fetchConTimeout(`${url}?${params}`, timeout);
+    const d = await r.json();
+    if (!d.hourly) throw new Error("Dati mancanti");
+    return {
+      nome: spot.nome, colore: spot.colore,
+      raffiche: d.hourly.wind_gusts_10m.map(kmhToKn),
+      direzione: d.hourly.wind_direction_10m,
+      ore: d.hourly.time.map(toLocalTime),
+    };
   }));
+}
+
+async function caricaDati() {
+  // 1. Prova Open-Meteo veloce (3s)
+  try {
+    return await fetchRafficeOpenMeteo(3000);
+  } catch(e) {
+    console.warn("Open-Meteo lento raffiche, provo cache:", e.message);
+  }
+  // 2. Prova cache
+  try {
+    const cache = await caricaCache();
+    return cache.spots.map(s => ({
+      nome: s.nome, colore: s.colore,
+      raffiche: s.raffiche.map(kmhToKn),
+      direzione: s.direzione,
+      ore: s.time.map(toLocalTime),
+    }));
+  } catch(e) {
+    console.warn("Cache non disponibile, riprovo Open-Meteo (10s):", e.message);
+  }
+  // 3. Ultimo tentativo Open-Meteo con timeout lungo
+  return await fetchRafficeOpenMeteo(10000);
 }
 
 function disegnaGrafico(dati) {
@@ -425,11 +511,17 @@ function disegnaGrafico(dati) {
 // AVVIO
 // ============================================================
 
-async function init() {
+function setStatus(msg, tipo = 'info') {
+  const colori = { info: '#6d96b8', warn: '#f59e0b', error: '#e63c1e' };
   const wrapTimeline = document.getElementById("timeline-meteo");
-  if (wrapTimeline) wrapTimeline.innerHTML = '<p style="color:#6d96b8;font-size:13px;padding:0.5rem 0;">Caricamento...</p>';
   const wrapVento = document.getElementById("grafico-vento-wrap");
-  if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#6d96b8;padding:2rem;">Caricamento dati...</p>';
+  const stile = `text-align:center;color:${colori[tipo]};font-size:.8rem;padding:1rem;`;
+  if (wrapTimeline) wrapTimeline.innerHTML = `<p style="${stile}">${msg}</p>`;
+  if (wrapVento) wrapVento.innerHTML = `<p style="${stile}">${msg}</p>`;
+}
+
+async function init() {
+  setStatus('Caricamento da MeteoSwiss...');
 
   try {
     const [meteo, dati] = await Promise.all([caricaMeteo(), caricaDati()]);
