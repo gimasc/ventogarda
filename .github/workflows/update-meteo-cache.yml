@@ -1,0 +1,26 @@
+name: Update meteo cache
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+permissions:
+  contents: write
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Update meteo cache
+        run: python scripts/update_meteo_cache.py
+      - name: Commit updated cache
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Cache: aggiorna dati meteo"
+          file_pattern: data/meteo_torbole.json data/meteo_malcesine.json

@@ -92,51 +92,28 @@ function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs, nuvola) {
 }
 
 // ============================================================
-// CARICA METEO — ibrido: meteoswiss_icon_ch1 (2gg) + icon_seamless (7gg)
+// CARICA DATI — da JSON cachato (aggiornato ogni 30 min da GitHub Actions)
 // ============================================================
 
+async function caricaCache() {
+  const base = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? '/'
+    : '/';
+  const r = await fetch(`${base}data/meteo_${LOC_ID}.json?_=${Date.now()}`);
+  if (!r.ok) throw new Error("Cache non disponibile");
+  return r.json();
+}
+
 async function caricaMeteo() {
-  const baseParams = {
-    latitude:  LAT_METEO,
-    longitude: LON_METEO,
-    hourly:    "temperature_2m,precipitation_probability,precipitation,weather_code",
-    timezone:  "Europe/Rome",
+  const cache = await caricaCache();
+  const m = cache.meteo;
+  return {
+    ore:    m.time.map(toLocalTime),
+    temp:   m.temp,
+    prob:   m.prob,
+    mm:     m.mm,
+    codici: m.codici,
   };
-
-  const [rCH1, rSeamless] = await Promise.all([
-    fetch(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 2, models: "meteoswiss_icon_ch1" })}`),
-    fetch(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 7, models: "icon_seamless" })}`),
-  ]);
-
-  if (!rCH1.ok || !rSeamless.ok) throw new Error("Dati meteo non disponibili");
-
-  const [ch1, seamless] = await Promise.all([rCH1.json(), rSeamless.json()]);
-
-  if (!ch1.hourly || !seamless.hourly) throw new Error("Dati meteo non disponibili");
-
-  const cutoff = ch1.hourly.time[ch1.hourly.time.length - 1];
-  const ore = [], temp = [], prob = [], mm = [], codici = [];
-
-  seamless.hourly.time.forEach((t, i) => {
-    if (t <= cutoff) {
-      const idx = ch1.hourly.time.indexOf(t);
-      if (idx !== -1) {
-        ore.push(toLocalTime(t));
-        temp.push(ch1.hourly.temperature_2m[idx]);
-        prob.push(ch1.hourly.precipitation_probability[idx]);
-        mm.push(ch1.hourly.precipitation[idx]);
-        codici.push(ch1.hourly.weather_code[idx]);
-      }
-    } else {
-      ore.push(toLocalTime(t));
-      temp.push(seamless.hourly.temperature_2m[i]);
-      prob.push(seamless.hourly.precipitation_probability[i]);
-      mm.push(seamless.hourly.precipitation[i]);
-      codici.push(seamless.hourly.weather_code[i]);
-    }
-  });
-
-  return { ore, temp, prob, mm, codici };
 }
 
 // ============================================================
@@ -343,27 +320,13 @@ function aggiornaBottoni() {
 // ============================================================
 
 async function caricaDati() {
-  const url = "https://api.open-meteo.com/v1/forecast";
-
-  return Promise.all(SPOTS.map(async spot => {
-    const params = new URLSearchParams({
-      latitude:      spot.lat,
-      longitude:     spot.lon,
-      hourly:        "wind_gusts_10m,wind_direction_10m",
-      forecast_days: 2,
-      models:        "meteoswiss_icon_ch1",
-    });
-    const r = await fetch(`${url}?${params}`);
-    if (!r.ok) throw new Error("Dati raffiche non disponibili");
-    const d = await r.json();
-    if (!d.hourly) throw new Error("Dati raffiche non disponibili");
-    return {
-      nome:      spot.nome,
-      colore:    spot.colore,
-      raffiche:  d.hourly.wind_gusts_10m.map(kmhToKn),
-      direzione: d.hourly.wind_direction_10m,
-      ore:       d.hourly.time.map(toLocalTime),
-    };
+  const cache = await caricaCache();
+  return cache.spots.map(s => ({
+    nome:      s.nome,
+    colore:    s.colore,
+    raffiche:  s.raffiche.map(kmhToKn),
+    direzione: s.direzione,
+    ore:       s.time.map(toLocalTime),
   }));
 }
 
