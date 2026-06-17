@@ -27,56 +27,90 @@
 
 <main>
 
-  <!-- ============================================================ -->
-  <!-- CONFRONTO METEOTRENTINO: ufficiale (sopra) vs ricreato (sotto) -->
-  <!-- ============================================================ -->
-
-  <!-- SCHEDA 1: meteogramma UFFICIALE di Meteotrentino (loro immagine) -->
-  <div class="card">
+  <div class="card card--red">
     <div class="card-header">
       <div>
-        <div class="label">Meteotrentino UFFICIALE · Riva</div>
-        <div class="sub">Loro meteogramma — il riferimento da imitare</div>
+        <div class="label">Confronto modelli · Conca d'Oro</div>
+        <div class="sub">MeteoSwiss ICON-CH1 · Meteotrentino ICON-2I · Delta pressione DWD</div>
       </div>
     </div>
-    <div class="img-wrap" style="padding:0;">
-      <img id="mt-ufficiale-img"
-           src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_Riva.png"
-           referrerpolicy="no-referrer"
-           alt="Meteogramma ufficiale Meteotrentino Riva"
-           style="width:100%;display:block;">
+
+    <div class="card-body" style="padding:.5rem .9rem;">
+      <div class="cruscotto-legenda">
+        <span><span class="dot" style="background:#e63c1e"></span>MeteoSwiss ICON-CH1 (kn)</span>
+        <span><span class="dot" style="background:#1a3a5c"></span>Meteotrentino ICON-2I · medio (kn)</span>
+        <span><span class="dot" style="background:#ebc402;border:1px solid #999"></span>ΔP Bolzano–Brescia (hPa)</span>
+      </div>
     </div>
-    <div class="card-body" style="font-size:.72rem;color:var(--muted);padding:.5rem .9rem;">
-      ⚠️ Confronta la <strong>“Data produzione”</strong> scritta nell’immagine con quella del nostro grafico qui sotto: vanno confrontati solo se sono della <strong>stessa ora di produzione</strong> (il grafico cambia ogni ora).
+
+    <div id="cruscotto-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
+      Caricamento dati…
     </div>
+
+    <div class="img-wrap img-scroll" id="cruscotto-wrap" style="padding:0;">
+      <canvas id="cruscotto-canvas"></canvas>
+    </div>
+
+
+
     <div class="card-footer">
-      <span>Fonte: Meteotrentino · immagine live (ultima produzione)</span>
+      <span id="cruscotto-updated">–</span>
     </div>
   </div>
 
-  <!-- SCHEDA 2: meteogramma RICREATO da noi (dati grezzi ICON-2I) -->
+  <!-- INDICATORE SINTETICO -->
+  <div class="card">
+    <div class="card-header">
+      <div class="label">Indicatore · Accordo modelli</div>
+      <div class="sub">Prossime 24 ore</div>
+    </div>
+    <div class="card-body" id="indicatore-body" style="padding:.8rem .9rem;">
+      <div id="indicatore-text" style="font-size:.85rem;color:var(--muted);">Calcolo in corso…</div>
+    </div>
+  </div>
+
+  <!-- GRAFICO BARRE STILE METEOTRENTINO -->
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="label">Meteotrentino RICREATO · Riva</div>
-        <div class="sub">Dati grezzi ICON-2I · m/s · barre + frecce direzione</div>
+        <div class="label">Meteotrentino ICON-2I · Riva del Garda</div>
+        <div class="sub">Vento medio · m/s · Confronto con meteogramma ufficiale</div>
       </div>
     </div>
-    <div class="card-body" style="padding:.5rem .9rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
-      <button id="mt-run-prev" style="cursor:pointer;border:1px solid #999;background:#fff;border-radius:4px;padding:.2rem .55rem;font-size:.85rem;line-height:1;">‹</button>
-      <select id="mt-run-select" style="font-size:.78rem;padding:.25rem .4rem;border:1px solid #999;border-radius:4px;background:#fff;"></select>
-      <button id="mt-run-next" style="cursor:pointer;border:1px solid #999;background:#fff;border-radius:4px;padding:.2rem .55rem;font-size:.85rem;line-height:1;">›</button>
-      <span id="mt-ricreato-prod" style="font-size:.72rem;color:var(--muted);">–</span>
+    <div id="barre-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
+      Caricamento…
     </div>
-    <div id="mt-ricreato-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
-      Caricamento dati ICON-2I…
+    <div class="img-wrap img-scroll" id="barre-wrap" style="padding:0;">
+      <canvas id="barre-canvas"></canvas>
     </div>
-    <div class="img-wrap img-scroll" id="mt-ricreato-wrap" style="padding:0;">
-      <canvas id="mt-ricreato-canvas"></canvas>
-    </div>
-    <div class="mt-ricreato-days" id="mt-ricreato-days" style="display:flex;justify-content:space-around;font-size:.8rem;padding:.4rem .9rem;color:#222;"></div>
     <div class="card-footer">
-      <span>ICON-2I via Open-Meteo · run 00/12 UTC · Daten: ItaliaMeteo/ARPAE</span>
+      <span>ICON-2I via Open-Meteo · Daten: ItaliaMeteo/ARPAE</span>
+    </div>
+  </div>
+
+  <!-- MIXED CHART: BARRE + LINEA + PRESSIONE -->
+  <div class="card card--red">
+    <div class="card-header">
+      <div>
+        <div class="label">Confronto aggregato · Conca d'Oro</div>
+        <div class="sub">Meteotrentino barre · MeteoSwiss linea · ΔP pressione</div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:.5rem .9rem;">
+      <div class="cruscotto-legenda">
+        <span><span class="dot" style="background:#e63c1e;opacity:.5"></span>Meteotrentino ICON-2I (m/s)</span>
+        <span><span class="dot" style="background:#e63c1e"></span>MeteoSwiss ICON-CH1 (kn)</span>
+        <span><span class="dot" style="background:#ebc402;border:1px solid #999"></span>ΔP (hPa)</span>
+      </div>
+    </div>
+    <div id="mixed-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
+      Caricamento…
+    </div>
+    <div class="img-wrap img-scroll" id="mixed-wrap" style="padding:0;">
+      <canvas id="mixed-canvas"></canvas>
+    </div>
+    <div class="card-footer">
+      <span>MeteoSwiss ICON-CH1 · Meteotrentino ICON-2I · DWD MOSMIX-L</span>
     </div>
   </div>
 
@@ -84,7 +118,7 @@
   <div class="card card--red">
     <div class="card-header">
       <div>
-        <div class="label">Interpolazione · Indice Vento</div>
+        <div class="label">Confronto in nodi · Conca d'Oro</div>
         <div class="sub">Meteotrentino barre rosse · MeteoSwiss linea blu · Pressione gialla (asse dx)</div>
       </div>
     </div>
@@ -162,8 +196,7 @@ async function fetchPressione() {
 }
 
 function setStatus(txt) {
-  const el = document.getElementById('cruscotto-status');
-  if (el) el.textContent = txt;
+  document.getElementById('cruscotto-status').textContent = txt;
 }
 
 function parseLocalHourString(ts) {
@@ -306,232 +339,355 @@ function pluginSoglie(id, colors={zero:'#555', pos:'#1565c066', neg:'#c6282866'}
   };
 }
 
-// ============================================================
-// METEOGRAMMA METEOTRENTINO RICREATO (fedele all'originale)
-// Dati grezzi ICON-2I via Open-Meteo, in m/s · barre + frecce direzione
-// ============================================================
+async function init() {
+  try {
+    setStatus('Caricamento MeteoSwiss ICON-CH1…');
+    const [ch1, icon2i, pressione] = await Promise.all([
+      fetchVento('meteoswiss_icon_ch1', 2),
+      fetchVento('italia_meteo_arpae_icon_2i', 3, 'wind_speed_10m', 45.867, 10.855, 'kn'),
+      fetchPressione()
+    ]);
 
-const SOGLIA_CALMA = 0.5; // m/s: sotto = calma di vento (cerchietto)
-const MESI_MG = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
-                 'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+    setStatus('');
 
-// Offset SOLO VISIVO delle etichette ora (non tocca i dati né i tooltip).
-// -2 = allinea il nostro grafico a quello ufficiale Meteotrentino (che risulta
-// 2 ore indietro rispetto all'ora italiana reale, da verificare meglio).
-// Scelta TEMPORANEA per familiarità degli utenti. Mettere a 0 per l'ora italiana corretta.
-const OFFSET_ORE_ETICHETTA = -2;
-function oraDaMG(ts) {
-  const h = parseInt(ts.slice(11, 13), 10);
-  const hShift = ((h + OFFSET_ORE_ETICHETTA) % 24 + 24) % 24;
-  return String(hShift).padStart(2, '0');
-}
-function giornoMG(ts) {
-  const [y, m, d] = ts.slice(0, 10).split('-').map(Number);
-  return d + ' ' + MESI_MG[m - 1] + ' ' + y;
-}
+    const times = ch1.time;
+    const rafficheCH1 = ch1.wind_gusts_10m;
+    const ventoICON2I = icon2i.wind_speed_10m;
 
-// Plugin frecce direzione + cerchietti calma.
-// wind_direction_10m = direzione DA CUI proviene il vento (0=N,90=E,180=S,270=O).
-// La freccia punta verso DOVE VA il vento (provenienza + 180°).
-const pluginFrecceMG = {
-  id: 'pluginFrecceMG',
-  afterDraw(chart) {
-    const { ctx, scales: { x } } = chart;
-    const dir = chart.$dir || [];
-    const spd = chart.$spd || [];
-    const yBase = chart.chartArea.bottom + 18;
-    const L = 7;
-    ctx.save();
-    ctx.strokeStyle = '#1a1a1a';
-    ctx.lineWidth = 1.4;
-    for (let i = 0; i < dir.length; i++) {
-      const xPos = x.getPixelForValue(i);
-      if (xPos == null || isNaN(xPos)) continue;
-      if (spd[i] == null || spd[i] < SOGLIA_CALMA) {
-        ctx.beginPath();
-        ctx.arc(xPos, yBase, 3, 0, Math.PI * 2);
-        ctx.stroke();
-        continue;
-      }
-      if (dir[i] == null) continue;
-      const rad = ((dir[i] + 180) % 360) * Math.PI / 180;
-      const dx = Math.sin(rad), dy = -Math.cos(rad);
-      const x2 = xPos + dx * L, y2 = yBase + dy * L;
-      ctx.beginPath();
-      ctx.moveTo(xPos - dx * L, yBase - dy * L);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-      const ah = 4, left = rad + Math.PI * 0.82, right = rad - Math.PI * 0.82;
-      ctx.beginPath();
-      ctx.moveTo(x2, y2);
-      ctx.lineTo(x2 + Math.sin(left) * ah, y2 - Math.cos(left) * ah);
-      ctx.moveTo(x2, y2);
-      ctx.lineTo(x2 + Math.sin(right) * ah, y2 - Math.cos(right) * ah);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-};
+    const icon2iMap = buildSeriesMap(icon2i.time, ventoICON2I);
+    const dataCH1 = rafficheCH1;
+    const dataICON2I = times.map(t => icon2iMap[t] ?? null);
+    const dataPress = buildInterpolatedPressureSeries(pressione, times);
 
-async function initMeteogrammaRicreato() {
-  // ICON-2I su Open-Meteo gira a 00 e 12 UTC. Costruisco la lista degli ultimi
-  // run disponibili (ultimi ~3 giorni = 6 run) per il selettore.
-  const RUN_HOURS_UTC = [0, 12];
-  const GIORNI_INDIETRO = 3;
-
-  function buildRunList() {
-    const out = [];
     const now = new Date();
-    for (let d = 0; d <= GIORNI_INDIETRO; d++) {
-      for (const h of RUN_HOURS_UTC) {
-        const dt = new Date(Date.UTC(
-          now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - d, h, 0, 0));
-        if (dt <= now) out.push(dt);
-      }
+    const next24End = new Date(now.getTime() + 24 * 3600 * 1000);
+    const diffs = times.map((t, i) => {
+      const d = parseLocalHourString(t) || new Date(t);
+      if (d < now || d > next24End) return null;
+      const c = dataCH1[i];
+      const x = dataICON2I[i];
+      return (c !== null && x !== null) ? Math.abs(c - x) : null;
+    }).filter(v => v !== null);
+
+    const avgDiff = diffs.length ? diffs.reduce((a,b) => a+b, 0) / diffs.length : null;
+    let indicatore = '';
+    if (avgDiff !== null) {
+      if (avgDiff < 5) indicatore = '✓ I modelli concordano (differenza media: ' + avgDiff.toFixed(1) + ' kn)';
+      else if (avgDiff < 10) indicatore = '~ I modelli divergono moderatamente (' + avgDiff.toFixed(1) + ' kn)';
+      else indicatore = '⚠ I modelli divergono significativamente (' + avgDiff.toFixed(1) + ' kn)';
     }
-    // Più recente in cima
-    out.sort((a, b) => b - a);
-    return out;
-  }
+    document.getElementById('indicatore-text').textContent = indicatore || '–';
 
-  // "2026-06-16T12:00" (UTC) per il parametro run=
-  function runParam(dt) {
-    const p = n => String(n).padStart(2, '0');
-    return dt.getUTCFullYear() + '-' + p(dt.getUTCMonth() + 1) + '-' + p(dt.getUTCDate())
-         + 'T' + p(dt.getUTCHours()) + ':00';
-  }
-  // Etichetta leggibile in UTC + ora italiana
-  function runLabel(dt) {
-    const p = n => String(n).padStart(2, '0');
-    const utc = p(dt.getUTCHours()) + ':00 UTC';
-    const itaOra = new Intl.DateTimeFormat('it-IT', {
-      timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit'
-    }).format(dt);
-    const data = new Intl.DateTimeFormat('it-IT', {
-      timeZone: 'Europe/Rome', day: '2-digit', month: '2-digit'
-    }).format(dt);
-    return `${data} · run ${utc} (≈${itaOra} ita)`;
-  }
+    const ctx = document.getElementById('cruscotto-canvas');
+    const wrap = document.getElementById('cruscotto-wrap');
+    const visibleW = wrap ? wrap.clientWidth : 800;
+    const pxPerHour = Math.max(visibleW / Math.min(times.length, 168), 12);
+    const w = Math.max(visibleW, Math.round(times.length * pxPerHour));
+    ctx.style.width = w + 'px';
+    ctx.width = w;
+    ctx.style.height = '420px';
+    ctx.height = 420;
 
-  const runs = buildRunList();
-  let runIndex = 0; // 0 = più recente
-
-  const sel = document.getElementById('mt-run-select');
-  sel.innerHTML = runs.map((dt, i) => `<option value="${i}">${runLabel(dt)}</option>`).join('');
-
-  async function caricaRun(dt) {
-    const statusEl = document.getElementById('mt-ricreato-status');
-    statusEl.style.display = 'block';
-    statusEl.textContent = 'Caricamento run ' + runParam(dt) + '…';
-
-    // Single Runs API: richiede uno specifico run per init time UTC
-    const params = new URLSearchParams({
-      latitude: 45.867, longitude: 10.855,
-      hourly: 'wind_speed_10m,wind_direction_10m',
-      models: 'italia_meteo_arpae_icon_2i',
-      wind_speed_unit: 'ms',
-      timezone: 'Europe/Rome',
-      run: runParam(dt)
-    });
-    const r = await fetch('https://single-runs-api.open-meteo.com/v1/forecast?' + params);
-    if (!r.ok) throw new Error('Single-Runs ' + r.status);
-    return (await r.json()).hourly;
-  }
-
-  async function disegna(runDt) {
-    try {
-      const h = await caricaRun(runDt);
-      const times = h.time;
-      const velocita = h.wind_speed_10m;
-      const direzioni = h.wind_direction_10m;
-
-      if (!times || !times.length) throw new Error('run non disponibile');
-
-      document.getElementById('mt-ricreato-status').style.display = 'none';
-      document.getElementById('mt-ricreato-prod').textContent =
-        'Run del modello: ' + runLabel(runDt);
-
-      const pxPerHour = 13;
-      const w = times.length * pxPerHour;
-      const ctx = document.getElementById('mt-ricreato-canvas');
-      ctx.style.width = w + 'px';
-      ctx.width = w;
-      ctx.style.height = '250px';
-      ctx.height = 250;
-
-      if (window._mtChart) { window._mtChart.destroy(); }
-      const chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: times.map(oraDaMG),
-          datasets: [{
-            label: 'Vento medio (m/s)',
-            data: velocita,
-            backgroundColor: '#fb6a5a',
-            borderColor: '#e23b28',
-            borderWidth: 1,
-            barPercentage: 0.62,
-            categoryPercentage: 0.9
-          }]
-        },
-        options: {
-          responsive: false, maintainAspectRatio: false, animation: false,
-          layout: { padding: { bottom: 48, top: 6, left: 4, right: 8 } },
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: {
-              title: items => times[items[0].dataIndex].replace('T', ' '),
-              label: c => 'Vento: ' + (c.parsed.y != null ? c.parsed.y.toFixed(1) : '–') + ' m/s'
-            } }
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: times,
+        datasets: [
+          {
+            label: 'MeteoSwiss ICON-CH1 (kn)',
+            data: dataCH1,
+            borderColor: '#e63c1e',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.3,
+            yAxisID: 'yVento'
           },
-          scales: {
-            y: { min: 0, max: 12,
-                 ticks: { stepSize: 2, color: '#c0392b', font: { size: 11 } },
-                 grid: { color: '#d8d8d8', drawTicks: false },
-                 title: { display: true, text: 'm/s', color: '#c0392b' } },
-            x: { ticks: { color: '#222', font: { size: 10 }, maxRotation: 0, minRotation: 0, autoSkip: false },
-                 grid: { color: '#ececec', drawTicks: false } }
+          {
+            label: 'Meteotrentino ICON-2I · vento medio (kn)',
+            data: dataICON2I,
+            borderColor: '#1a3a5c',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.3,
+            yAxisID: 'yVento'
+          },
+          {
+            label: 'ΔP Brescia–Bolzano (hPa)',
+            data: dataPress,
+            borderColor: '#ebc402',
+            borderWidth: 1.5,
+            borderDash: [4, 3],
+            pointRadius: 0,
+            tension: 0,
+            yAxisID: 'yPress'
+          }
+        ]
+      },
+      options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label(ctx) {
+                if (ctx.dataset.yAxisID === 'yPress') return `ΔP: ${ctx.parsed.y?.toFixed(2)} hPa`;
+                return `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(1)} kn`;
+              }
+            }
           }
         },
-        plugins: [pluginFrecceMG]
-      });
-      chart.$dir = direzioni;
-      chart.$spd = velocita;
-      chart.update();
-      window._mtChart = chart;
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 0,
+              autoSkip: false,
+              callback: function(val, index) {
+                return buildHourTickLabel(times, index);
+              }
+            },
+            grid: { display: false }
+          },
+          yVento: {
+            position: 'left',
+            title: { display: true, text: 'Vento (kn)' },
+            grid: { color: '#edf0f5' },
+            ticks: { color: '#1a3a5c' }
+          },
+          yPress: {
+            position: 'right',
+            title: { display: true, text: 'ΔP (hPa)' },
+            grid: { display: false },
+            ticks: { color: '#9e9e9e' },
+            min: -MAX_PRESS_ABS,
+            max: MAX_PRESS_ABS
+          }
+        }
+      },
+      plugins: [pluginSoglie('soglie')]
+    });
 
-      const giorni = [];
-      let last = null;
-      times.forEach(t => {
-        const g = t.slice(0, 10);
-        if (g !== last) { last = g; giorni.push(giornoMG(t)); }
-      });
-      document.getElementById('mt-ricreato-days').innerHTML =
-        giorni.map(g => '<span>' + g + '</span>').join('');
-
-    } catch (err) {
-      const s = document.getElementById('mt-ricreato-status');
-      if (s) { s.style.display = 'block';
-        s.textContent = 'Run non disponibile su Open-Meteo (' + runParam(runDt) + '). Prova un altro run con le frecce.'; }
-      console.error(err);
-    }
+    document.getElementById('cruscotto-updated').textContent =
+      'Aggiornato: ' + new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  } catch(err) {
+    setStatus('Errore: ' + err.message);
+    console.error(err);
   }
-
-  function vaiA(i) {
-    runIndex = Math.max(0, Math.min(runs.length - 1, i));
-    sel.value = runIndex;
-    disegna(runs[runIndex]);
-  }
-
-  sel.addEventListener('change', () => vaiA(parseInt(sel.value, 10)));
-  document.getElementById('mt-run-prev').addEventListener('click', () => vaiA(runIndex + 1)); // più vecchio
-  document.getElementById('mt-run-next').addEventListener('click', () => vaiA(runIndex - 1)); // più recente
-
-  vaiA(0); // parte dal run più recente
 }
 
-initMeteogrammaRicreato();
+init();
 
+async function initBarre() {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=45.867&longitude=10.855&hourly=wind_speed_10m,wind_direction_10m&models=italia_meteo_arpae_icon_2i&wind_speed_unit=ms&forecast_days=3&timezone=Europe%2FRome`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`Open-Meteo ${r.status}`);
+    const d = await r.json();
+    const times = d.hourly.time;
+    const speeds = d.hourly.wind_speed_10m;
+    const dirs = d.hourly.wind_direction_10m;
+
+    document.getElementById('barre-status').style.display = 'none';
+
+    const labels = times.map(t => {
+      const dt = parseLocalHourString(t) || new Date(t);
+      return String(dt.getHours()).padStart(2, '0');
+    });
+
+    const wrap = document.getElementById('barre-wrap');
+    const visibleW = wrap ? wrap.clientWidth : 800;
+    const pxPerBar = Math.max(visibleW / 48, 14);
+    const w = Math.round(times.length * pxPerBar);
+
+    const ctx = document.getElementById('barre-canvas');
+    ctx.style.width = w + 'px';
+    ctx.width = w;
+    ctx.style.height = '260px';
+    ctx.height = 260;
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: speeds,
+          backgroundColor: '#e63c1e',
+          borderWidth: 0,
+          barPercentage: 0.8,
+        }]
+      },
+      options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 0,
+              font: { size: 9 },
+              callback: function(val, i) {
+                const dt = parseLocalHourString(times[i]) || new Date(times[i]);
+                const h = dt.getHours();
+                if (h === 0) {
+                  const gg = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'][dt.getDay()];
+                  return gg + ' ' + String(dt.getDate()).padStart(2,'0') + '/' + String(dt.getMonth()+1).padStart(2,'0');
+                }
+                if (h % 3 === 0) return String(h).padStart(2,'0');
+                return null;
+              }
+            },
+            grid: { display: false }
+          },
+          y: {
+            title: { display: true, text: 'm/s' },
+            min: 0,
+            grid: { color: '#edf0f5' },
+            ticks: { font: { size: 9 } }
+          }
+        }
+      },
+      plugins: [{
+        id: 'arrows',
+        afterDraw(chart) {
+          const { ctx, chartArea, scales } = chart;
+          const arrowY = chartArea.bottom + 18;
+          times.forEach((t, i) => {
+            const dt = parseLocalHourString(t) || new Date(t);
+            if (dt.getHours() % 2 !== 0) return;
+            const xPos = scales.x.getPixelForValue(i);
+            const deg = dirs[i];
+            if (deg === null || deg === undefined) return;
+            ctx.save();
+            ctx.translate(xPos, arrowY);
+            ctx.rotate((deg * Math.PI) / 180);
+            ctx.beginPath();
+            ctx.moveTo(0, -6);
+            ctx.lineTo(3, 3);
+            ctx.lineTo(0, 1);
+            ctx.lineTo(-3, 3);
+            ctx.closePath();
+            ctx.fillStyle = '#1a3a5c99';
+            ctx.fill();
+            ctx.restore();
+          });
+        }
+      }]
+    });
+  } catch(err) {
+    document.getElementById('barre-status').textContent = 'Errore: ' + err.message;
+  }
+}
+
+initBarre();
+
+async function initMixed() {
+  try {
+    const [ch1, icon2i, pressione] = await Promise.all([
+      fetchVento('meteoswiss_icon_ch1', 2),
+      fetchVento('italia_meteo_arpae_icon_2i', 3, 'wind_speed_10m', 45.867, 10.855, 'kn'),
+      fetchPressione()
+    ]);
+
+    document.getElementById('mixed-status').style.display = 'none';
+
+    const times = ch1.time;
+    const rafficheCH1 = ch1.wind_gusts_10m;
+    const icon2iMap = buildSeriesMap(icon2i.time, icon2i.wind_speed_10m);
+    const dataICON2I = times.map(t => icon2iMap[t] ?? null);
+    const dataPress = buildInterpolatedPressureSeries(pressione, times);
+
+    const wrap = document.getElementById('mixed-wrap');
+    const visibleW = wrap ? wrap.clientWidth : 800;
+    const pxPerHour = Math.max(visibleW / Math.min(times.length, 168), 12);
+    const w = Math.round(times.length * pxPerHour);
+
+    const ctx = document.getElementById('mixed-canvas');
+    ctx.style.width = w + 'px';
+    ctx.width = w;
+    ctx.style.height = '420px';
+    ctx.height = 420;
+
+    new Chart(ctx, {
+      data: {
+        labels: times,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Meteotrentino ICON-2I (kn)',
+            data: dataICON2I,
+            backgroundColor: '#e63c1eaa',
+            borderColor: '#e63c1e',
+            borderWidth: 1,
+            yAxisID: 'yVento',
+            order: 2
+          },
+          {
+            type: 'line',
+            label: 'MeteoSwiss ICON-CH1 (kn)',
+            data: rafficheCH1,
+            borderColor: '#1a3a5c',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.3,
+            yAxisID: 'yVento',
+            order: 1
+          },
+          {
+            type: 'line',
+            label: 'ΔP Brescia–Bolzano (hPa)',
+            data: dataPress,
+            borderColor: '#ebc402',
+            borderWidth: 1.5,
+            borderDash: [4, 3],
+            pointRadius: 0,
+            tension: 0,
+            yAxisID: 'yPress',
+            order: 3
+          }
+        ]
+      },
+      options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 0,
+              autoSkip: false,
+              callback: function(val, index) {
+                return buildHourTickLabel(times, index);
+              }
+            },
+            grid: { display: false }
+          },
+          yVento: {
+            position: 'left',
+            title: { display: true, text: 'Vento (kn)' },
+            grid: { color: '#edf0f5' },
+            ticks: { color: '#e63c1e' }
+          },
+          yPress: {
+            position: 'right',
+            title: { display: true, text: 'ΔP (hPa)' },
+            grid: { display: false },
+            ticks: { color: '#9e9e9e' },
+            min: -MAX_PRESS_ABS,
+            max: MAX_PRESS_ABS
+          }
+        }
+      },
+      plugins: [pluginSoglie('soglieM', {zero:'#888', pos:'#9e9e9e66', neg:'#9e9e9e66'})]
+    });
+  } catch(err) {
+    document.getElementById('mixed-status').textContent = 'Errore: ' + err.message;
+    console.error(err);
+  }
+}
+
+initMixed();
 
 async function initMixedKn() {
   try {

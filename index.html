@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Vento Garda · Previsioni Vento Torbole Alto Garda</title>
-  <meta name="description" content="Previsioni di vento e meteo per Torbole e l'Alto Garda. Grafico dettagliato delle raffiche per spot, Pelèr e Ora, delta pressione Bolzano–Brescia con i modelli più accreditati.">
+  <meta name="description" content="Previsioni vento Torbole e Alto Garda: raffiche per spot, Pelèr e Óra, delta pressione Bolzano–Brescia. I modelli più affidabili in un'unica pagina, testata dai windsurfer del lago.">
   <link rel="stylesheet" href="style.css">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -12,6 +12,15 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#0a2e52">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "VentoGarda",
+    "url": "https://ventogarda.it/",
+    "description": "Previsioni vento per Torbole e l'Alto Garda dedicate a windsurfer e kitesurfer: raffiche per spot, Pelèr e Óra, delta pressione Bolzano–Brescia, modelli MeteoSwiss e Meteotrentino in un'unica pagina."
+  }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -102,7 +111,6 @@
     </div>
     <div class="card-footer">
       <span>Fonte: Meteotrentino</span>
-      <a class="btn-open" href="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_Riva.png" target="_blank">Apri ↗</a>
     </div>
   </div>
 
@@ -166,7 +174,20 @@
     </div>
     <div class="card-footer">
       <span>Fonte: Meteotrentino</span>
-      <a class="btn-open" href="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png" target="_blank">Apri ↗</a>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER FISARMONICA — accent: navy -->
+  <div class="card">
+    <div class="card-header card-header--split" onclick="toggleDisclaimer()" style="cursor:pointer;">
+      <span class="label">Disclaimer · Fonti e utilizzo</span>
+      <button class="btn-minimal btn-minimal--toggle" id="btn-disclaimer">Apri <svg width="10" height="7" viewBox="0 0 12 8" fill="none" style="vertical-align:middle;margin-left:3px;"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div id="disclaimer-wrap" style="display:none;">
+      <div class="card-body info-body">
+        <p>Le previsioni meteo, le raffiche e i dati di pressione riportati provengono direttamente dai modelli ufficiali (MeteoSwiss, Meteotrentino, Deutscher Wetterdienst) e non sono elaborati da VentoGarda.</p>
+        <p>VentoGarda non è un servizio meteorologico ufficiale: verifica sempre le condizioni reali prima di entrare in acqua. Uso a rischio dell'utente.</p>
+      </div>
     </div>
   </div>
 
@@ -187,7 +208,7 @@
 </main>
 
 <footer>
-  <p class="footer-disclaimer">Le previsioni riportate sono una stima indicativa elaborata da fonti terze. VentoGarda non è un servizio meteorologico ufficiale. Verifica sempre le condizioni reali prima di entrare in acqua. Uso a rischio dell'utente.</p>
+  <p class="footer-disclaimer">Verifica sempre le condizioni reali prima di entrare in acqua. Uso a rischio dell'utente.</p>
   <p class="footer-sources">Dati: <a href="https://www.meteoswiss.admin.ch" target="_blank">MeteoSwiss</a> · <a href="https://www.meteotrentino.it" target="_blank">Meteotrentino</a> · <a href="https://www.dwd.de" target="_blank">Deutscher Wetterdienst</a></p>
   <p class="footer-links"><a href="/privacy/">Privacy Policy</a> · <a href="/privacy/#cookie">Cookie Policy</a> · <a href="mailto:info@ventogarda.it">info@ventogarda.it</a></p>
 </footer>
@@ -236,6 +257,13 @@
     const open = wrap.style.display === "none";
     wrap.style.display = open ? "block" : "none";
     btn.innerHTML = open ? `Chiudi ${chevronUp}` : `Leggi ${chevronDown}`;
+  }
+  function toggleDisclaimer() {
+    const wrap = document.getElementById("disclaimer-wrap");
+    const btn = document.getElementById("btn-disclaimer");
+    const open = wrap.style.display === "none";
+    wrap.style.display = open ? "block" : "none";
+    btn.innerHTML = open ? `Chiudi ${chevronUp}` : `Apri ${chevronDown}`;
   }
 </script>
 

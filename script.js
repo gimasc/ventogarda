@@ -23,6 +23,9 @@ const SLOT_NOMI = ["Mat","Pom","Ser"];
 
 let vistaModo  = "slot";
 let meteoCache = null;
+// Info sulla freschezza delle RAFFICHE (il dato critico per chi va in acqua):
+// fonte 'live' = preso in tempo reale ora; 'cache' = dal file GitHub (generated_at)
+let raffInfo = { fonte: null, orario: null };
 const adesso = new Date();
 
 // ============================================================
@@ -35,6 +38,23 @@ function kmhToKn(kmh) {
 
 function toLocalTime(isoString) {
   return new Date(isoString + "Z");
+}
+
+// Testo dell'etichetta di freschezza per il grafico raffiche.
+// live  → valorizza il dato in tempo reale; cache → indica l'ora dell'ultimo aggiornamento.
+function testoFreschezzaRaffiche(info) {
+  const d = info.orario ? new Date(info.orario) : null;
+  const oraValida = d && !isNaN(d.getTime());
+  const hhmm = oraValida
+    ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+    : null;
+  if (info.fonte === 'live') {
+    return hhmm ? `Aggiornato in tempo reale · ${hhmm}` : 'Aggiornato in tempo reale';
+  }
+  if (info.fonte === 'cache') {
+    return hhmm ? `Aggiornato alle ${hhmm}` : 'Aggiornato di recente';
+  }
+  return null;
 }
 
 // ============================================================
@@ -394,15 +414,18 @@ async function fetchRafficeOpenMeteo(timeout = 3000) {
 }
 
 async function caricaDati() {
-  // 1. Prova Open-Meteo veloce (3s)
+  // 1. Prova Open-Meteo veloce (3s) — dato in tempo reale
   try {
-    return await fetchRafficeOpenMeteo(3000);
+    const dati = await fetchRafficeOpenMeteo(3000);
+    raffInfo = { fonte: 'live', orario: new Date().toISOString() };
+    return dati;
   } catch(e) {
     console.warn("Open-Meteo lento raffiche, provo cache:", e.message);
   }
-  // 2. Prova cache
+  // 2. Prova cache — dato dal file GitHub, orario = generated_at
   try {
     const cache = await caricaCache();
+    raffInfo = { fonte: 'cache', orario: cache.generated_at || null };
     return cache.spots.map(s => ({
       nome: s.nome, colore: s.colore,
       raffiche: s.raffiche.map(kmhToKn),
@@ -412,8 +435,10 @@ async function caricaDati() {
   } catch(e) {
     console.warn("Cache non disponibile, riprovo Open-Meteo (10s):", e.message);
   }
-  // 3. Ultimo tentativo Open-Meteo con timeout lungo
-  return await fetchRafficeOpenMeteo(10000);
+  // 3. Ultimo tentativo Open-Meteo con timeout lungo — di nuovo tempo reale
+  const dati = await fetchRafficeOpenMeteo(10000);
+  raffInfo = { fonte: 'live', orario: new Date().toISOString() };
+  return dati;
 }
 
 function disegnaGrafico(dati) {
@@ -521,6 +546,10 @@ function setStatus(msg, tipo = 'info') {
 }
 
 async function init() {
+  const wrapTimeline = document.getElementById("timeline-meteo");
+  const wrapVento = document.getElementById("grafico-vento-wrap");
+
+  raffInfo = { fonte: null, orario: null }; // verrà valorizzato dal caricamento raffiche
   setStatus('Caricamento da MeteoSwiss...');
 
   try {
@@ -547,6 +576,26 @@ async function init() {
     raffHint.style.display = wrapVento.scrollLeft > 20 ? 'none' : 'flex';
   });
     const chartRef = disegnaGrafico(dati);
+
+    // Etichetta di freschezza, mostrata SEMPRE:
+    // - dato live  → segnale di freschezza (valore aggiunto)
+    // - dato cache → trasparenza sull'orario dell'ultimo aggiornamento
+    // Posizionata dentro l'area del grafico, appena sopra i numeri delle ore
+    // (non in fondo al canvas, per non sovrapporsi alle frecce di direzione).
+    const testoFresch = testoFreschezzaRaffiche(raffInfo);
+    if (testoFresch) {
+      const isLive = raffInfo.fonte === 'live';
+      const colore = isLive ? '#1b9e3e' : '#94a3b8';
+      // chartArea.bottom è il bordo inferiore dell'area dati (sopra i tick delle ore).
+      // chartArea.left è il bordo sinistro (subito a destra dell'asse Y / ordinate).
+      const area = (chartRef && chartRef.chartArea) ? chartRef.chartArea : null;
+      const areaBottom = area && area.bottom ? area.bottom : 230;
+      const areaLeft = area && area.left ? area.left : 40;
+      const tag = document.createElement('div');
+      tag.style.cssText = `position:absolute;left:${areaLeft + 6}px;top:${areaBottom - 18}px;font-size:.6rem;color:${colore};background:rgba(255,255,255,0.82);padding:2px 6px;border-radius:3px;pointer-events:none;z-index:10;`;
+      tag.textContent = testoFresch;
+      wrapVento.appendChild(tag);
+    }
 
   } catch (e) {
     if (wrapTimeline) wrapTimeline.innerHTML = "";
