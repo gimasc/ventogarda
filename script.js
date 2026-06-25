@@ -61,7 +61,7 @@ function testoFreschezzaRaffiche(info) {
 // WMO → stile
 // ============================================================
 
-function wmoToStile(code) {
+function wmoToStile(code, mm, prob) {
   if (code === 0)               return { bg: "#f5c842", tipo: "sereno",    scuro: false, nuvola: 0 };
   if (code === 1)               return { bg: "#f5c842", tipo: "velato",    scuro: false, nuvola: 1 };
   if (code === 2)               return { bg: "#f5c842", tipo: "parz",      scuro: false, nuvola: 2 };
@@ -69,7 +69,17 @@ function wmoToStile(code) {
   if (code >= 51 && code <= 67) return { bg: "#686860", tipo: "pioggia",   scuro: true,  nuvola: 0 };
   if (code >= 71 && code <= 77) return { bg: "#7888a0", tipo: "neve",      scuro: true,  nuvola: 0 };
   if (code >= 80 && code <= 82) return { bg: "#585850", tipo: "pioggia",   scuro: true,  nuvola: 0 };
-  if (code >= 95 && code <= 99) return { bg: "#6b6880", tipo: "temporale", scuro: true,  nuvola: 0 };
+  if (code >= 95 && code <= 99) {
+    // Filtro "temporale-fantasma": il modello grezzo a volte segnala temporale (95-99)
+    // senza alcuna precipitazione né probabilità reale. In quel caso declassiamo a
+    // nuvoloso (niente fulmine). La pioggia/probabilità eventuali restano disegnate a parte.
+    const pioggia = Number.isFinite(mm) ? mm : 0;
+    const probab  = Number.isFinite(prob) ? prob : 0;
+    if (pioggia < 0.2 && probab < 30) {
+      return { bg: "#909088", tipo: "nuvoloso", scuro: true, nuvola: 0 };
+    }
+    return { bg: "#6b6880", tipo: "temporale", scuro: true,  nuvola: 0 };
+  }
   return                               { bg: "#909088", tipo: "nuvoloso",  scuro: true,  nuvola: 0 };
 }
 
@@ -219,10 +229,10 @@ function disegnaRiepilogo(meteo) {
     const moda = [...g.codici].sort((a,b) =>
       g.codici.filter(v=>v===b).length - g.codici.filter(v=>v===a).length
     )[0] ?? 3;
-    const stile   = wmoToStile(moda);
     const tempMax = g.temp.length ? Math.round(Math.max(...g.temp)) : "—";
     const probMax = g.prob.length ? Math.round(Math.max(...g.prob)) : 0;
     const mmTot   = g.mm.length   ? g.mm.reduce((a,b)=>a+b, 0)     : 0;
+    const stile   = wmoToStile(moda, mmTot, probMax);
     const gg      = GIORNI[g.data.getDay()];
     html += `
       <div style="display:flex;flex-direction:column;align-items:center;width:28px;">
@@ -281,7 +291,7 @@ function disegnaTimelineOre(meteo) {
       const prob   = meteo.prob[i]   !== null ? meteo.prob[i] : 0;
       const mm     = meteo.mm[i]     !== null ? meteo.mm[i]   : 0;
       const codice = meteo.codici[i] ?? 3;
-      const stile  = wmoToStile(codice);
+      const stile  = wmoToStile(codice, mm, prob);
       const hLabel = String(ora.getHours()).padStart(2, "0");
 
       html += `<div style="display:flex;flex-direction:column;align-items:center;width:44px;">
@@ -349,10 +359,10 @@ function disegnaTimelineSlot(meteo) {
       const moda = [...s.codici].sort((a,b) =>
         s.codici.filter(v=>v===b).length - s.codici.filter(v=>v===a).length
       )[0] ?? 3;
-      const stile = wmoToStile(moda);
       const temp  = Math.round(s.temp.reduce((a,b)=>a+b)/s.temp.length);
       const prob  = Math.round(Math.max(...s.prob));
       const mm    = s.mm.reduce((a,b)=>a+b, 0);
+      const stile = wmoToStile(moda, mm, prob);
 
       html += `<div style="display:flex;flex-direction:column;align-items:center;">
         ${rettangolo(stile.bg, stile.scuro, temp, prob, mm, stile.tipo, 44, 62, 12, stile.nuvola)}
