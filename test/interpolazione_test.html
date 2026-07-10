@@ -6,6 +6,27 @@
   <title>Vento Garda · Cruscotto Test</title>
   <link rel="stylesheet" href="../style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>const LOC_ID = "torbole";</script>
+  <script src="localita.js"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    function loadGA() {
+      if (document.getElementById('ga-script')) return;
+      const s = document.createElement('script');
+      s.id = 'ga-script';
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-XL49TL4C1F';
+      document.head.appendChild(s);
+      gtag('js', new Date());
+      gtag('config', 'G-XL49TL4C1F');
+    }
+    if (localStorage.getItem('cookie_consent') === 'accepted') loadGA();
+  </script>
 </head>
 <body>
 <div class="page-container">
@@ -55,6 +76,7 @@
   </div>
 
   <!-- SCHEDA 2: meteogramma RICREATO da noi (dati grezzi ICON-2I) -->
+   <!--
   <div class="card">
     <div class="card-header">
       <div>
@@ -63,6 +85,11 @@
       </div>
     </div>
     <div class="card-body" style="padding:.5rem .9rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+      <div style="display:flex;gap:0;border:1px solid #999;border-radius:4px;overflow:hidden;">
+        <button id="mt-loc-riva" class="mt-loc-btn" style="cursor:pointer;border:none;background:#1a3a5c;color:#fff;padding:.2rem .7rem;font-size:.78rem;">Riva</button>
+        <button id="mt-loc-torbole" class="mt-loc-btn" style="cursor:pointer;border:none;background:#fff;color:#1a3a5c;padding:.2rem .7rem;font-size:.78rem;">Torbole</button>
+      </div>
+      <span style="width:1px;height:18px;background:#ccc;"></span>
       <button id="mt-run-prev" style="cursor:pointer;border:1px solid #999;background:#fff;border-radius:4px;padding:.2rem .55rem;font-size:.85rem;line-height:1;">‹</button>
       <select id="mt-run-select" style="font-size:.78rem;padding:.25rem .4rem;border:1px solid #999;border-radius:4px;background:#fff;"></select>
       <button id="mt-run-next" style="cursor:pointer;border:1px solid #999;background:#fff;border-radius:4px;padding:.2rem .55rem;font-size:.85rem;line-height:1;">›</button>
@@ -79,7 +106,7 @@
       <span>ICON-2I via Open-Meteo · run 00/12 UTC · Daten: ItaliaMeteo/ARPAE</span>
     </div>
   </div>
-
+-->
   <!-- MIXED CHART TUTTO IN KN -->
   <div class="card card--red">
     <div class="card-header">
@@ -108,6 +135,7 @@
   </div>
 
   <!-- CARD 4: RAFFICHE VS RAFFICHE -->
+   <!--
   <div class="card card--red">
     <div class="card-header">
       <div>
@@ -132,6 +160,7 @@
       <span>MeteoSwiss ICON-CH1 · Meteotrentino ICON-2I · DWD MOSMIX-L</span>
     </div>
   </div>
+  -->
 
 <footer>
   <p class="footer-sources">Dati: MeteoSwiss ICON-CH1 · Meteotrentino ICON-2I · DWD MOSMIX-L via Open-Meteo</p>
@@ -488,14 +517,27 @@ async function initMeteogrammaRicreato() {
   const RUN_HOURS_UTC = [0, 12];
   const GIORNI_INDIETRO = 3;
 
+  // Località selezionabili: Riva (come il meteogramma ufficiale) e Torbole (spot reale).
+  // Verificato: cadono in celle di griglia ICON-2I diverse → dati diversi.
+  const LOCALITA_MG = {
+    riva:    { nome: 'Riva',    lat: 45.867,   lon: 10.855 },
+    torbole: { nome: 'Torbole', lat: 45.86212, lon: 10.87536 }
+  };
+  let locCorrente = 'riva'; // default Riva, per far verificare la corrispondenza col loro
+
   function buildRunList() {
     const out = [];
     const now = new Date();
+    // Il Single Runs API archivia i run con qualche ora di ritardo rispetto
+    // all'ora di inizializzazione. Scarto i run più giovani di MARGINE_ORE
+    // per non chiedere run non ancora disponibili (che darebbero 400).
+    const MARGINE_ORE = 7;
+    const limite = new Date(now.getTime() - MARGINE_ORE * 3600 * 1000);
     for (let d = 0; d <= GIORNI_INDIETRO; d++) {
       for (const h of RUN_HOURS_UTC) {
         const dt = new Date(Date.UTC(
           now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - d, h, 0, 0));
-        if (dt <= now) out.push(dt);
+        if (dt <= limite) out.push(dt);
       }
     }
     // Più recente in cima
@@ -534,8 +576,9 @@ async function initMeteogrammaRicreato() {
     statusEl.textContent = 'Caricamento run ' + runParam(dt) + '…';
 
     // Single Runs API: richiede uno specifico run per init time UTC
+    const loc = LOCALITA_MG[locCorrente];
     const params = new URLSearchParams({
-      latitude: 45.867, longitude: 10.855,
+      latitude: loc.lat, longitude: loc.lon,
       hourly: 'wind_speed_10m,wind_direction_10m',
       models: 'italia_meteo_arpae_icon_2i',
       wind_speed_unit: 'ms',
@@ -558,7 +601,7 @@ async function initMeteogrammaRicreato() {
 
       document.getElementById('mt-ricreato-status').style.display = 'none';
       document.getElementById('mt-ricreato-prod').textContent =
-        'Run del modello: ' + runLabel(runDt);
+        LOCALITA_MG[locCorrente].nome + ' · Run del modello: ' + runLabel(runDt);
 
       const pxPerHour = 13;
       const w = times.length * pxPerHour;
@@ -619,10 +662,16 @@ async function initMeteogrammaRicreato() {
         giorni.map(g => '<span>' + g + '</span>').join('');
 
     } catch (err) {
+      console.warn('Run non disponibile (' + runParam(runDt) + '):', err.message);
+      // Auto-fallback: prova il run precedente (più vecchio), che è più probabilmente archiviato
+      if (runIndex < runs.length - 1) {
+        runIndex++;
+        sel.value = runIndex;
+        return disegna(runs[runIndex]);
+      }
       const s = document.getElementById('mt-ricreato-status');
       if (s) { s.style.display = 'block';
-        s.textContent = 'Run non disponibile su Open-Meteo (' + runParam(runDt) + '). Prova un altro run con le frecce.'; }
-      console.error(err);
+        s.textContent = 'Dati ICON-2I momentaneamente non disponibili. Riprova tra poco.'; }
     }
   }
 
@@ -635,6 +684,25 @@ async function initMeteogrammaRicreato() {
   sel.addEventListener('change', () => vaiA(parseInt(sel.value, 10)));
   document.getElementById('mt-run-prev').addEventListener('click', () => vaiA(runIndex + 1)); // più vecchio
   document.getElementById('mt-run-next').addEventListener('click', () => vaiA(runIndex - 1)); // più recente
+
+  // Selettore località Riva/Torbole
+  const btnRiva = document.getElementById('mt-loc-riva');
+  const btnTorbole = document.getElementById('mt-loc-torbole');
+  function aggiornaBottoniLoc() {
+    const attivo = 'background:#1a3a5c;color:#fff;';
+    const inattivo = 'background:#fff;color:#1a3a5c;';
+    const base = 'cursor:pointer;border:none;padding:.2rem .7rem;font-size:.78rem;';
+    btnRiva.style.cssText = base + (locCorrente === 'riva' ? attivo : inattivo);
+    btnTorbole.style.cssText = base + (locCorrente === 'torbole' ? attivo : inattivo);
+  }
+  function cambiaLoc(loc) {
+    if (locCorrente === loc) return;
+    locCorrente = loc;
+    aggiornaBottoniLoc();
+    disegna(runs[runIndex]); // ridisegna lo stesso run con le nuove coordinate
+  }
+  btnRiva.addEventListener('click', () => cambiaLoc('riva'));
+  btnTorbole.addEventListener('click', () => cambiaLoc('torbole'));
 
   vaiA(0); // parte dal run più recente
 }
