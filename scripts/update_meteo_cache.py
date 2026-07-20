@@ -17,10 +17,10 @@ LOCALITA = {
         "lat_meteo": 45.86212,
         "lon_meteo": 10.87536,
         "spots": [
-            {"nome": "Spiaggia Lucertole", "colore": "#ebc402", "lat": 45.86212, "lon": 10.87536},
-            {"nome": "Hotel Pier",         "colore": "#0901fc", "lat": 45.84928, "lon": 10.86224},
+            {"nome": "Spiaggia Lucertole", "colore": "#ebc402", "lat": 45.84928, "lon": 10.86224},
+            {"nome": "Hotel Pier",         "colore": "#0901fc", "lat": 45.84487, "lon": 10.82867},
             {"nome": "Terrazza Ponale",    "colore": "#e65100", "lat": 45.87807, "lon": 10.83904},
-            {"nome": "Conca d'Oro",        "colore": "#15b101", "lat": 45.84487, "lon": 10.82867},
+            {"nome": "Conca d'Oro",        "colore": "#15b101", "lat": 45.86212, "lon": 10.87536},
         ]
     },
     "malcesine": {
