@@ -1,0 +1,982 @@
+// ============================================================
+// METEO GARDA · TORBOLE
+// Dati vento: MeteoSwiss ICON-CH1 via Open-Meteo
+// Dati meteo: ICON Seamless via Open-Meteo
+// ============================================================
+
+// Dati dalla configurazione localita.js
+// LOC_ID è definito nell index.html di ogni località
+const _loc   = LOCALITA[typeof LOC_ID !== "undefined" ? LOC_ID : "torbole"];
+const SPOTS      = _loc.spots;
+const LAT_METEO  = _loc.lat;
+const LON_METEO  = _loc.lon;
+
+const SOGLIE = [
+  { kn: 10, colore: "#bbbbbb", label: "10 kn" },
+  { kn: 20, colore: "#999999", label: "20 kn" },
+  { kn: 30, colore: "#666666", label: "30 kn" },
+];
+
+const GIORNI  = ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"];
+const SLOT_ORE = [[6,11],[12,17],[18,22]];
+const SLOT_NOMI = ["Mat","Pom","Ser"];
+
+let vistaModo  = "slot";
+let meteoCache = null;
+// Info sulla freschezza delle RAFFICHE (il dato critico per chi va in acqua):
+// fonte 'live' = preso in tempo reale ora; 'cache' = dal file GitHub (generated_at)
+let raffInfo = { fonte: null, orario: null };
+const adesso = new Date();
+
+// ============================================================
+// UTILITÀ
+// ============================================================
+
+function kmhToKn(kmh) {
+  return kmh !== null ? Math.round(kmh / 1.852 * 10) / 10 : null;
+}
+
+function toLocalTime(isoString) {
+  return new Date(isoString + "Z");
+}
+
+// Testo dell'etichetta di freschezza per il grafico raffiche.
+// In regime cache-first la fonte e' sempre 'cache': mostriamo l'ora del
+// generated_at del JSON. Se il dato e' vecchio oltre soglia, dicitura piu' generica.
+function testoFreschezzaRaffiche(info) {
+  const d = info.orario ? new Date(info.orario) : null;
+  const oraValida = d && !isNaN(d.getTime());
+  if (!oraValida) return "aggiornata a ultima release disponibile";
+
+  const hhmm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  const oreFa = (Date.now() - d.getTime()) / 3600000;
+
+  // Oltre 4h = probabile che il cron abbia saltato piu' di un run ICON-CH1
+  // (che escono ogni 3h): dicitura onesta senza fissare un orario ingannevole.
+  if (oreFa > 4) {
+    return "aggiornata a ultima release disponibile";
+  }
+  return `Dati MeteoSwiss · aggiornati alle ${hhmm}`;
+}
+
+// ============================================================
+// WMO → stile
+// ============================================================
+
+function wmoToStile(code, mm, prob) {
+  if (code === 0)               return { bg: "#f5c842", tipo: "sereno",    scuro: false, nuvola: 0 };
+  if (code === 1)               return { bg: "#f5c842", tipo: "velato",    scuro: false, nuvola: 1 };
+  if (code === 2)               return { bg: "#f5c842", tipo: "parz",      scuro: false, nuvola: 2 };
+  if (code === 3)               return { bg: "#909088", tipo: "nuvoloso",  scuro: true,  nuvola: 0 };
+  if (code >= 51 && code <= 67) return { bg: "#686860", tipo: "pioggia",   scuro: true,  nuvola: 0 };
+  if (code >= 71 && code <= 77) return { bg: "#7888a0", tipo: "neve",      scuro: true,  nuvola: 0 };
+  if (code >= 80 && code <= 82) return { bg: "#585850", tipo: "pioggia",   scuro: true,  nuvola: 0 };
+  if (code >= 95 && code <= 99) {
+    // Filtro "temporale-fantasma": il modello grezzo a volte segnala temporale (95-99)
+    // senza alcuna precipitazione né probabilità reale. In quel caso declassiamo a
+    // nuvoloso (niente fulmine). La pioggia/probabilità eventuali restano disegnate a parte.
+    const pioggia = Number.isFinite(mm) ? mm : 0;
+    const probab  = Number.isFinite(prob) ? prob : 0;
+    if (pioggia < 0.2 && probab < 30) {
+      return { bg: "#909088", tipo: "nuvoloso", scuro: true, nuvola: 0 };
+    }
+    return { bg: "#6b6880", tipo: "temporale", scuro: true,  nuvola: 0 };
+  }
+  return                               { bg: "#909088", tipo: "nuvoloso",  scuro: true,  nuvola: 0 };
+}
+
+// Nuvola: barra grigio chiaro che entra da destra, proporzionale alla nuvolosità
+// size 0=nessuna, 1=velato (~35%), 2=parziale (~60%)
+function svgNuvola(size, w, h) {
+  if (size === 0) return "";
+  const col = "#b8bfc8";
+  const larghezza = size === 1 ? Math.round(w * 0.38) : Math.round(w * 0.65);
+  return `<div style="position:absolute;top:0;right:0;width:${larghezza}px;height:100%;background:${col};z-index:1;"></div>`;
+}
+
+// ============================================================
+// RETTANGOLO METEO RIUTILIZZABILE
+// fill = mm reali, numero = probabilità %
+// ============================================================
+
+function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs, nuvola) {
+  // Testo sempre scuro — leggibile su tutti gli sfondi
+  const colT = "#1a1a1a";
+  const colP = "#1a1a1a";
+  const fillH = mm > 0 ? Math.min(Math.round(mm / 2 * 50), 50) : 0;
+  const fillPioggia = prob > 0
+    ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${Math.max(fillH, 4)}px;background:#3d6fd4;z-index:1;"></div>`
+    : "";
+  const cloud = svgNuvola(nuvola || 0, w, h);
+  const fulmine = tipo === "temporale"
+    ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;">
+         <svg width="14" height="20" viewBox="0 0 18 26" fill="none"><polygon points="10,0 3,14 9,14 8,26 15,12 9,12" fill="#ffe566"/></svg>
+       </div>`
+    : "";
+  const probStr = prob > 0 ? `${prob}%` : "";
+  return `<div style="width:${w}px;height:${h}px;border-radius:5px;background:${bg};position:relative;overflow:hidden;border:0.5px solid rgba(0,0,0,0.12);">
+    ${cloud}
+    ${fillPioggia}
+    ${fulmine}
+    <span style="position:absolute;top:4px;left:0;right:0;text-align:center;font-size:${fs}px;font-weight:500;color:${colT};z-index:10;">${temp}°</span>
+    <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:${Math.max(fs-2,8)}px;font-weight:500;color:${colP};z-index:10;">${probStr}</span>
+  </div>`;
+}
+
+// ============================================================
+// CARICA DATI — Open-Meteo con fallback su JSON cachato
+// Se Open-Meteo risponde entro 3s → dati freschi
+// Se timeout o errore → JSON cachato (aggiornato ogni 30 min da GitHub Actions)
+// ============================================================
+
+async function fetchConTimeout(url, ms = 3000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r;
+  } catch(e) {
+    clearTimeout(timer);
+    throw e;
+  }
+}
+
+async function caricaCache() {
+  const r = await fetch(`/data/meteo_${LOC_ID}.json?_=${Date.now()}`);
+  if (!r.ok) throw new Error("Cache non disponibile");
+  return r.json();
+}
+
+async function fetchMeteoOpenMeteo(timeout = 3000) {
+  const baseParams = {
+    latitude:  LAT_METEO,
+    longitude: LON_METEO,
+    hourly:    "temperature_2m,precipitation_probability,precipitation,weather_code",
+    timezone:  "Europe/Rome",
+  };
+  const [rCH1, rSeamless] = await Promise.all([
+    fetchConTimeout(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 2, models: "meteoswiss_icon_ch1" })}`, timeout),
+    fetchConTimeout(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 7, models: "icon_seamless" })}`, timeout),
+  ]);
+  const [ch1, seamless] = await Promise.all([rCH1.json(), rSeamless.json()]);
+  if (!ch1.hourly || !seamless.hourly) throw new Error("Dati mancanti");
+  const cutoff = ch1.hourly.time[ch1.hourly.time.length - 1];
+  const ore = [], temp = [], prob = [], mm = [], codici = [];
+  seamless.hourly.time.forEach((t, i) => {
+    if (t <= cutoff) {
+      const idx = ch1.hourly.time.indexOf(t);
+      if (idx !== -1) {
+        ore.push(toLocalTime(t)); temp.push(ch1.hourly.temperature_2m[idx]);
+        prob.push(ch1.hourly.precipitation_probability[idx]);
+        mm.push(ch1.hourly.precipitation[idx]); codici.push(ch1.hourly.weather_code[idx]);
+      }
+    } else {
+      ore.push(toLocalTime(t)); temp.push(seamless.hourly.temperature_2m[i]);
+      prob.push(seamless.hourly.precipitation_probability[i]);
+      mm.push(seamless.hourly.precipitation[i]); codici.push(seamless.hourly.weather_code[i]);
+    }
+  });
+  return { ore, temp, prob, mm, codici };
+}
+
+async function caricaMeteo() {
+  // ---- CACHE-FIRST ----
+  // Il browser legge SEMPRE e SOLO il JSON statico del nostro sito.
+  // Nessuna chiamata diretta a Open-Meteo dal browser: cosi' il traffico degli
+  // utenti non tocca mai Open-Meteo, a prescindere da quanti sono (nessun 429).
+  // La freschezza reale la garantisce il cron lato server.
+  const cache = await caricaCache();
+  const m = cache.meteo;
+  return { ore: m.time.map(toLocalTime), temp: m.temp, prob: m.prob, mm: m.mm, codici: m.codici };
+
+  /* ---- VECCHIA LOGICA A 3 LIVELLI (disattivata) ----
+     Chiamava Open-Meteo in diretta dal browser di ogni utente: sotto carico
+     forte (stesso IP mobile condiviso) rischiava errori 429. Conservata per
+     riferimento; non riattivare senza rivedere il rischio di scala.
+
+  // 1. Prova Open-Meteo veloce (3s)
+  try {
+    return await fetchMeteoOpenMeteo(3000);
+  } catch(e) {
+    console.warn("Open-Meteo lento, provo cache:", e.message);
+  }
+  // 2. Prova cache
+  try {
+    setStatus('Connessione lenta — uso dati recenti...', 'warn');
+    const cache = await caricaCache();
+    const m = cache.meteo;
+    return { ore: m.time.map(toLocalTime), temp: m.temp, prob: m.prob, mm: m.mm, codici: m.codici };
+  } catch(e) {
+    console.warn("Cache non disponibile, riprovo Open-Meteo (10s):", e.message);
+  }
+  // 3. Ultimo tentativo Open-Meteo con timeout lungo
+  setStatus('Connessione a MeteoSwiss lenta — riprovo...', 'warn');
+  return await fetchMeteoOpenMeteo(10000);
+  */
+}
+
+// ============================================================
+// RIEPILOGO GIORNI (mini rettangoli nell'header)
+// ============================================================
+
+function disegnaRiepilogo(meteo) {
+  const wrapper = document.getElementById("riepilogo-giorni");
+  if (!wrapper) return;
+
+  const giorni = {};
+  meteo.ore.forEach((ora, i) => {
+    const key = ora.toDateString();
+    if (!giorni[key]) giorni[key] = { temp:[], prob:[], mm:[], codici:[], data: ora };
+    const h = ora.getHours();
+    if (h >= 8 && h <= 20) {
+      giorni[key].codici.push(meteo.codici[i] ?? 3);
+      if (meteo.temp[i] !== null) giorni[key].temp.push(meteo.temp[i]);
+      if (meteo.prob[i] !== null) giorni[key].prob.push(meteo.prob[i]);
+      if (meteo.mm[i]   !== null) giorni[key].mm.push(meteo.mm[i]);
+    }
+  });
+
+  const chiavi = Object.keys(giorni).slice(0, 7);
+  let html = '<div style="display:flex;gap:3px;align-items:flex-end;">';
+
+  chiavi.forEach(key => {
+    const g = giorni[key];
+    const moda = [...g.codici].sort((a,b) =>
+      g.codici.filter(v=>v===b).length - g.codici.filter(v=>v===a).length
+    )[0] ?? 3;
+    const tempMax = g.temp.length ? Math.round(Math.max(...g.temp)) : "—";
+    const probMax = g.prob.length ? Math.round(Math.max(...g.prob)) : 0;
+    const mmTot   = g.mm.length   ? g.mm.reduce((a,b)=>a+b, 0)     : 0;
+    const stile   = wmoToStile(moda, mmTot, probMax);
+    const gg      = GIORNI[g.data.getDay()];
+    html += `
+      <div style="display:flex;flex-direction:column;align-items:center;width:28px;">
+        ${rettangolo(stile.bg, stile.scuro, tempMax, probMax, mmTot, stile.tipo, 28, 40, 9)}
+        <span style="font-size:8px;color:#6d96b8;margin-top:2px;">${gg}</span>
+      </div>`;
+  });
+
+  html += "</div>";
+  wrapper.innerHTML = html;
+}
+
+// ============================================================
+// TIMELINE ORA PER ORA
+// ============================================================
+
+function disegnaTimelineOre(meteo) {
+  const wrapper = document.getElementById("timeline-meteo");
+  if (!wrapper) return;
+
+  const adesso = new Date();
+  let start = 0;
+  while (start < meteo.ore.length && meteo.ore[start] < adesso) start++;
+
+  // Raggruppa per giorno mantenendo ordine
+  const gruppi = {};
+  for (let i = start; i < meteo.ore.length; i++) {
+    const dayKey = meteo.ore[i].toDateString();
+    if (!gruppi[dayKey]) gruppi[dayKey] = { data: meteo.ore[i], ore: [] };
+    gruppi[dayKey].ore.push(i);
+  }
+
+  let html = '<div style="display:flex;gap:3px;width:max-content;padding:4px 0;align-items:flex-start;">';
+  let primo = true;
+
+  Object.keys(gruppi).forEach(key => {
+    const g    = gruppi[key];
+    const gg   = GIORNI[g.data.getDay()];
+    const data = `${gg} ${String(g.data.getDate()).padStart(2,"0")}/${String(g.data.getMonth()+1).padStart(2,"0")}`;
+
+    // Separatore tra giorni
+    if (!primo) {
+      html += `<div style="display:flex;align-items:stretch;margin:0 4px;">
+        <div style="width:1px;background:#4fc3f730;align-self:stretch;margin-top:18px;"></div>
+      </div>`;
+    }
+    primo = false;
+
+    html += `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <span style="font-size:9px;color:#1a1a1a;font-style:italic;white-space:nowrap;">${data}</span>
+      <div style="display:flex;gap:1px;">`;
+
+    g.ore.forEach(i => {
+      const ora    = meteo.ore[i];
+      const temp   = meteo.temp[i]   !== null ? Math.round(meteo.temp[i]) : "—";
+      const prob   = meteo.prob[i]   !== null ? meteo.prob[i] : 0;
+      const mm     = meteo.mm[i]     !== null ? meteo.mm[i]   : 0;
+      const codice = meteo.codici[i] ?? 3;
+      const stile  = wmoToStile(codice, mm, prob);
+      const hLabel = String(ora.getHours()).padStart(2, "0");
+
+      html += `<div style="display:flex;flex-direction:column;align-items:center;width:44px;">
+        ${rettangolo(stile.bg, stile.scuro, temp, prob, mm, stile.tipo, 44, 62, 12, stile.nuvola)}
+        <span style="font-size:9px;color:#6d96b8;margin-top:2px;">${hLabel}</span>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  html += "</div>";
+  wrapper.innerHTML = html;
+}
+
+// ============================================================
+// TIMELINE 3 SLOT AL GIORNO
+// ============================================================
+
+function disegnaTimelineSlot(meteo) {
+  const wrapper = document.getElementById("timeline-meteo");
+  if (!wrapper) return;
+
+  const giorni = {};
+  meteo.ore.forEach((ora, i) => {
+    const dayKey = ora.toDateString();
+    if (!giorni[dayKey]) giorni[dayKey] = { data: ora, slot: [null, null, null] };
+    const h = ora.getHours();
+    SLOT_ORE.forEach(([da, a], si) => {
+      if (h >= da && h <= a && ora >= adesso) {
+        if (!giorni[dayKey].slot[si]) giorni[dayKey].slot[si] = { temp:[], prob:[], mm:[], codici:[] };
+        const s = giorni[dayKey].slot[si];
+        if (meteo.temp[i]   !== null) s.temp.push(meteo.temp[i]);
+        if (meteo.prob[i]   !== null) s.prob.push(meteo.prob[i]);
+        if (meteo.mm[i]     !== null) s.mm.push(meteo.mm[i]);
+        s.codici.push(meteo.codici[i] ?? 3);
+      }
+    });
+  });
+
+  // Filtra i giorni che hanno almeno un slot con dati
+  const chiavi = Object.keys(giorni).filter(key => 
+    giorni[key].slot.some(s => s && s.temp.length > 0)
+  );
+
+  let html = '<div style="display:flex;gap:3px;width:max-content;padding:4px 0;align-items:flex-start;">';
+
+  chiavi.forEach(key => {
+    const g    = giorni[key];
+    const gg   = GIORNI[g.data.getDay()];
+    const data = `${gg} ${String(g.data.getDate()).padStart(2,"0")}/${String(g.data.getMonth()+1).padStart(2,"0")}`;
+
+    // Separatore tra giorni (non prima del primo)
+    if (html !== '<div style="display:flex;gap:3px;width:max-content;padding:4px 0;align-items:flex-start;">') {
+      html += `<div style="display:flex;align-items:stretch;margin:0 4px;">
+        <div style="width:1px;background:#4fc3f730;align-self:stretch;margin-top:18px;"></div>
+      </div>`;
+    }
+    html += `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <span style="font-size:9px;color:#1a1a1a;font-style:italic;white-space:nowrap;">${data}</span>
+      <div style="display:flex;gap:3px;">`;
+
+    g.slot.forEach((s, si) => {
+      if (!s || s.temp.length === 0) return;
+      const moda = [...s.codici].sort((a,b) =>
+        s.codici.filter(v=>v===b).length - s.codici.filter(v=>v===a).length
+      )[0] ?? 3;
+      const temp  = Math.round(s.temp.reduce((a,b)=>a+b)/s.temp.length);
+      const prob  = Math.round(Math.max(...s.prob));
+      const mm    = s.mm.reduce((a,b)=>a+b, 0);
+      const stile = wmoToStile(moda, mm, prob);
+
+      html += `<div style="display:flex;flex-direction:column;align-items:center;">
+        ${rettangolo(stile.bg, stile.scuro, temp, prob, mm, stile.tipo, 44, 62, 12, stile.nuvola)}
+        <span style="font-size:8px;color:#6d96b8;margin-top:2px;">${SLOT_NOMI[si]}</span>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  html += "</div>";
+  wrapper.innerHTML = html;
+}
+
+// ============================================================
+// TOGGLE
+// ============================================================
+
+function disegnaTimeline(meteo) {
+  if (vistaModo === "ore") disegnaTimelineOre(meteo);
+  else disegnaTimelineSlot(meteo);
+}
+
+function aggiornaBottoni() {
+  const btnOre  = document.getElementById("btn-ore");
+  const btnSlot = document.getElementById("btn-slot");
+  if (!btnOre || !btnSlot) return;
+  if (vistaModo === "ore") {
+    btnOre.classList.add("attivo");
+    btnSlot.classList.remove("attivo");
+  } else {
+    btnSlot.classList.add("attivo");
+    btnOre.classList.remove("attivo");
+  }
+}
+
+// ============================================================
+// GRAFICO VENTO
+// ============================================================
+
+async function fetchRafficeOpenMeteo(timeout = 3000) {
+  const url = "https://api.open-meteo.com/v1/forecast";
+  return Promise.all(SPOTS.map(async spot => {
+    const params = new URLSearchParams({
+      latitude: spot.lat, longitude: spot.lon,
+      hourly: "wind_gusts_10m,wind_direction_10m",
+      forecast_days: 2, models: "meteoswiss_icon_ch1",
+    });
+    const r = await fetchConTimeout(`${url}?${params}`, timeout);
+    const d = await r.json();
+    if (!d.hourly) throw new Error("Dati mancanti");
+    return {
+      nome: spot.nome, colore: spot.colore,
+      raffiche: d.hourly.wind_gusts_10m.map(kmhToKn),
+      direzione: d.hourly.wind_direction_10m,
+      ore: d.hourly.time.map(toLocalTime),
+    };
+  }));
+}
+
+async function caricaDati() {
+  // ---- CACHE-FIRST ----
+  // Sempre e solo il JSON statico. orario = generated_at del file (ora del
+  // nostro download lato server), mostrato all'utente come "aggiornati alle...".
+  const cache = await caricaCache();
+  raffInfo = { fonte: 'cache', orario: cache.generated_at || null };
+  return cache.spots.map(s => ({
+    nome: s.nome, colore: s.colore,
+    raffiche: s.raffiche.map(kmhToKn),
+    direzione: s.direzione,
+    ore: s.time.map(toLocalTime),
+  }));
+
+  /* ---- VECCHIA LOGICA A 3 LIVELLI (disattivata) ----
+     Chiamava Open-Meteo in diretta (4 spot) dal browser di ogni utente.
+     Conservata per riferimento; non riattivare senza rivedere il rischio di scala.
+
+  // 1. Prova Open-Meteo veloce (3s) — dato in tempo reale
+  try {
+    const dati = await fetchRafficeOpenMeteo(3000);
+    raffInfo = { fonte: 'live', orario: new Date().toISOString() };
+    return dati;
+  } catch(e) {
+    console.warn("Open-Meteo lento raffiche, provo cache:", e.message);
+  }
+  // 2. Prova cache — dato dal file GitHub, orario = generated_at
+  try {
+    const cache = await caricaCache();
+    raffInfo = { fonte: 'cache', orario: cache.generated_at || null };
+    return cache.spots.map(s => ({
+      nome: s.nome, colore: s.colore,
+      raffiche: s.raffiche.map(kmhToKn),
+      direzione: s.direzione,
+      ore: s.time.map(toLocalTime),
+    }));
+  } catch(e) {
+    console.warn("Cache non disponibile, riprovo Open-Meteo (10s):", e.message);
+  }
+  // 3. Ultimo tentativo Open-Meteo con timeout lungo — di nuovo tempo reale
+  const dati = await fetchRafficeOpenMeteo(10000);
+  raffInfo = { fonte: 'live', orario: new Date().toISOString() };
+  return dati;
+  */
+}
+
+function disegnaGrafico(dati) {
+  const ore    = dati[0].ore;
+  const labels = ore.map(d => `${String(d.getHours()).padStart(2,"0")}`);
+  let start = 0;
+  while (start < dati[0].raffiche.length && dati[0].raffiche[start] === null) start++;
+  let end = dati[0].raffiche.length;
+  while (end > start && dati[0].raffiche[end - 1] === null) end--;
+  const oreSlice    = ore.slice(start, end);
+  const labelsSlice = labels.slice(start, end);
+  const datasets = dati.map((s, i) => ({
+    label: s.nome, data: s.raffiche.slice(start, end),
+    borderColor: s.colore, borderWidth: i === 3 ? 2.8 : 1.8,
+    pointRadius: 0, tension: 0.3, fill: false, spanGaps: true,
+  }));
+  SOGLIE.forEach(soglia => {
+    datasets.push({
+      label: soglia.label, data: new Array(labelsSlice.length).fill(soglia.kn),
+      borderColor: soglia.colore, borderWidth: 1, borderDash: [4,4],
+      pointRadius: 0, fill: false,
+    });
+  });
+  const dayLines = [];
+  let lastDay2 = null;
+  oreSlice.forEach((d, i) => {
+    const day = d.toDateString();
+    if (day !== lastDay2) { lastDay2 = day; dayLines.push(i); }
+  });
+  const pluginGiorni = {
+    id: "giorni",
+    afterDraw(chart) {
+      const { ctx, scales: { x, y } } = chart;
+      dayLines.forEach(i => {
+        const xPos = x.getPixelForValue(i);
+        ctx.save();
+        ctx.strokeStyle = "#33333325"; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(xPos, chart.chartArea.top); ctx.lineTo(xPos, chart.chartArea.bottom); ctx.stroke();
+        const d = oreSlice[i];
+        const gg = GIORNI[d.getDay()];
+        ctx.fillStyle = "#555"; ctx.font = "italic 11px DM Sans, sans-serif";
+        ctx.fillText(`${gg} ${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`, xPos+4, chart.chartArea.top+14);
+        ctx.restore();
+      });
+      SOGLIE.forEach(soglia => {
+        const yPos = y.getPixelForValue(soglia.kn);
+        dayLines.forEach(i => {
+          const xPos = x.getPixelForValue(i);
+          ctx.save(); ctx.fillStyle = soglia.colore; ctx.font = "9px DM Sans, sans-serif";
+          ctx.fillText(soglia.label, xPos+2, yPos-3); ctx.restore();
+        });
+      });
+
+      // Frecce direzione vento nella zona bassa del grafico
+      const arrowY = chart.chartArea.bottom + 40;
+      oreSlice.forEach((ora, i) => {
+        const gradi = dati[3] ? dati[3].direzione[start + i] : null;
+        if (gradi === null) return;
+        const xPos = x.getPixelForValue(i);
+        ctx.save();
+        ctx.translate(xPos, arrowY);
+        ctx.rotate(((gradi + 180) * Math.PI) / 180);
+        ctx.beginPath();
+        ctx.moveTo(0, -8);
+        ctx.lineTo(4, 4);
+        ctx.lineTo(0, 1);
+        ctx.lineTo(-4, 4);
+        ctx.closePath();
+        ctx.fillStyle = "#1565c0bb";
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+  };
+  const canvas = document.getElementById("canvas-vento");
+  const chartRef = new Chart(canvas, {
+    type: "line", data: { labels: labelsSlice, datasets },
+    options: {
+      responsive: false, maintainAspectRatio: false, animation: false,
+      layout: { padding: { bottom: 30 } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} kn` } } },
+      scales: {
+        x: { ticks: { maxRotation: 90, minRotation: 90, font: { size: 10 }, color: "#444", maxTicksLimit: 50 }, grid: { color: "#e0e0e0" } },
+        y: { ticks: { color: "#444", font: { size: 11 } }, grid: { color: "#e0e0e0" }, title: { display: true, text: "Nodi (kn)", color: "#444" } }
+      }
+    },
+    plugins: [pluginGiorni],
+  });
+  return chartRef;
+}
+
+
+
+// ============================================================
+// AVVIO
+// ============================================================
+
+function setStatus(msg, tipo = 'info') {
+  const colori = { info: '#6d96b8', warn: '#f59e0b', error: '#e63c1e' };
+  const wrapTimeline = document.getElementById("timeline-meteo");
+  const wrapVento = document.getElementById("grafico-vento-wrap");
+  const stile = `text-align:center;color:${colori[tipo]};font-size:.8rem;padding:1rem;`;
+  if (wrapTimeline) wrapTimeline.innerHTML = `<p style="${stile}">${msg}</p>`;
+  if (wrapVento) wrapVento.innerHTML = `<p style="${stile}">${msg}</p>`;
+}
+
+async function init() {
+  const wrapTimeline = document.getElementById("timeline-meteo");
+  const wrapVento = document.getElementById("grafico-vento-wrap");
+
+  raffInfo = { fonte: null, orario: null }; // verrà valorizzato dal caricamento raffiche
+  setStatus('Caricamento da MeteoSwiss...');
+
+  try {
+    const [meteo, dati] = await Promise.all([caricaMeteo(), caricaDati()]);
+    meteoCache = meteo;
+    disegnaTimeline(meteo);
+    aggiornaBottoni();
+
+    document.getElementById("btn-ore")?.addEventListener("click", () => {
+      vistaModo = "ore"; aggiornaBottoni(); disegnaTimeline(meteoCache);
+    });
+    document.getElementById("btn-slot")?.addEventListener("click", () => {
+      vistaModo = "slot"; aggiornaBottoni(); disegnaTimeline(meteoCache);
+    });
+
+    wrapVento.innerHTML = '<canvas id="canvas-vento" width="1200" height="430"></canvas>';
+  // Freccia scroll raffiche
+  wrapVento.style.position = 'relative';
+  const raffHint = document.createElement('div');
+  raffHint.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:32px;display:flex;align-items:center;justify-content:center;background:linear-gradient(to right, transparent, rgba(255,255,255,0.95) 50%);pointer-events:none;z-index:10;';
+  raffHint.innerHTML = '<svg width="16" height="48" viewBox="0 0 16 48" fill="none"><polyline points="4,4 12,24 4,44" stroke="#1a3a5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg>';
+  wrapVento.appendChild(raffHint);
+  wrapVento.addEventListener('scroll', () => {
+    raffHint.style.display = wrapVento.scrollLeft > 20 ? 'none' : 'flex';
+  });
+    const chartRef = disegnaGrafico(dati);
+
+    // Etichetta di freschezza, mostrata SEMPRE:
+    // - dato live  → segnale di freschezza (valore aggiunto)
+    // - dato cache → trasparenza sull'orario dell'ultimo aggiornamento
+    // Posizionata dentro l'area del grafico, appena sopra i numeri delle ore
+    // (non in fondo al canvas, per non sovrapporsi alle frecce di direzione).
+    const testoFresch = testoFreschezzaRaffiche(raffInfo);
+    if (testoFresch) {
+      // Cache-first: etichetta sempre grigia (nessun caso "live" da evidenziare).
+      const colore = '#94a3b8';
+      // chartArea.bottom è il bordo inferiore dell'area dati (sopra i tick delle ore).
+      // chartArea.left è il bordo sinistro (subito a destra dell'asse Y / ordinate).
+      const area = (chartRef && chartRef.chartArea) ? chartRef.chartArea : null;
+      const areaBottom = area && area.bottom ? area.bottom : 230;
+      const areaLeft = area && area.left ? area.left : 40;
+      const tag = document.createElement('div');
+      tag.style.cssText = `position:absolute;left:${areaLeft + 6}px;top:${areaBottom - 18}px;font-size:.6rem;color:${colore};background:rgba(255,255,255,0.82);padding:2px 6px;border-radius:3px;pointer-events:none;z-index:10;`;
+      tag.textContent = testoFresch;
+      wrapVento.appendChild(tag);
+    }
+
+  } catch (e) {
+    if (wrapTimeline) wrapTimeline.innerHTML = "";
+    if (wrapVento) wrapVento.innerHTML = '<p style="text-align:center;color:#e65100;padding:2rem;">Dati momentaneamente non disponibili. Riprova tra qualche minuto.</p>';
+    console.error(e);
+  }
+}
+
+// ============================================================
+// MAPPA SPOTS
+// ============================================================
+
+let mappaIstanza = null;
+
+function toggleMappa() {
+  const wrap = document.getElementById("mappa-wrap");
+  const btn  = document.getElementById("btn-mappa");
+  if (!wrap) return;
+
+  if (wrap.style.display === "none") {
+    wrap.style.display = "block";
+    btn.classList.add("attivo");
+    const lgNorm = document.getElementById("legenda-normale");
+    if (lgNorm) lgNorm.style.display = "none";
+
+    // Inizializza mappa solo la prima volta
+    if (!mappaIstanza) {
+      mappaIstanza = L.map("mappa-leaflet", { zoomControl: false, attributionControl: false })
+        .setView([_loc.lat, _loc.lon], 11);
+
+      const tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19,
+      }).addTo(mappaIstanza);
+      // Filtro CSS solo sulle tiles, non sui marker
+      const style = document.createElement('style');
+      style.textContent = '#mappa-leaflet .leaflet-tile-pane { filter: hue-rotate(180deg) saturate(0.6) brightness(1.1); }';
+      document.head.appendChild(style);
+
+      // Pin per ogni spot - usa colore direttamente da SPOTS
+      SPOTS.forEach(spot => {
+        const col = spot.colore;
+        const icona = L.divIcon({
+          html: `<div style="width:14px;height:14px;border-radius:50%;background:${col};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.5);"></div>`,
+          className: "",
+          iconSize: [14, 14],
+          iconAnchor: [7, 7],
+        });
+        L.marker([spot.lat, spot.lon], { icon: icona }).addTo(mappaIstanza);
+      });
+
+      // Fix dimensioni dopo apertura
+      setTimeout(() => mappaIstanza.invalidateSize(), 100);
+    } else {
+      setTimeout(() => mappaIstanza.invalidateSize(), 100);
+    }
+  } else {
+    wrap.style.display = "none";
+    btn.classList.remove("attivo");
+    const lgNorm2 = document.getElementById("legenda-normale");
+    if (lgNorm2) lgNorm2.style.display = "";
+  }
+}
+
+// Aggiorna header con nome località e link all altra
+document.addEventListener("DOMContentLoaded", () => {
+  // Titolo e sottotitolo
+  const h1 = document.querySelector("header h1");
+  const p  = document.querySelector("header p");
+  const coords = document.querySelector(".header-coords");
+  if (coords) coords.innerHTML = `<span class="header-location">Lago di Garda · </span>${_loc.lat.toFixed(2)}°N ${_loc.lon.toFixed(2)}°E`;
+  if (p)  p.textContent  = _loc.nome + " · " + _loc.sottotitolo;
+
+  // Legenda spots dinamica
+  ["legenda-normale", "legenda-mappa"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = SPOTS.map(s =>
+      `<span><span class="dot" style="background:${s.colore}"></span>${s.nome}</span>`
+    ).join("");
+  });
+
+  init();
+});
+
+
+// ============================================================
+// GRAFICO PRESSIONE
+// ============================================================
+async function fetchPressione() {
+  const r = await fetch(((window.location.pathname.includes('/malcesine') ? '../' : '') + 'differenza-pressione/data/wind_garda.json?v=') + Date.now(), { cache: 'no-store' });
+  const d = await r.json();
+  return d.rows || [];
+}
+
+async function initPressione() {
+  try {
+    const rows = await fetchPressione();
+    if (!rows.length) { document.getElementById('press-status').textContent = 'Dati non disponibili'; return; }
+    document.getElementById('press-status').style.display = 'none';
+
+    const wrap = document.getElementById('press-wrap');
+    const visibleW = wrap ? wrap.clientWidth : 700;
+    // 6 giorni (144 ore) visibili nella finestra
+    const pxPerHour = visibleW / 144;
+    const w = Math.round(rows.length * pxPerHour);
+
+    // Nascondi scroll hint dopo primo scroll
+    const pressWrap = document.getElementById('press-wrap');
+    if (pressWrap) pressWrap.addEventListener('scroll', () => {
+      const hint = document.getElementById('press-scroll-hint');
+      if (hint) hint.style.display = pressWrap.scrollLeft > 20 ? 'none' : 'flex';
+    });
+
+    const ctx = document.getElementById('press-canvas');
+    ctx.style.width = w + 'px';
+    ctx.width = w;
+    ctx.style.height = '300px';
+    ctx.height = 300;
+
+    // Aggiusta frecce altezza dopo render
+    const arrows = document.getElementById('press-arrows');
+
+    const values = rows.map(r => r.delta_hpa);
+    const maxVal = Math.max(...values.filter(v => v !== null));
+    const minVal = Math.min(...values.filter(v => v !== null));
+    const pad = 1.5;
+    const yMax = Math.ceil((maxVal + pad) / 2) * 2;
+    const yMin = Math.floor((minVal - pad) / 2) * 2;
+
+    const pointColors = rows.map(r => r.delta_hpa >= 0 ? '#ff8a1f' : '#2f6bff');
+
+    const zeroAndLines = {
+      id: 'zeroAndLines',
+      beforeDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        // Linee verticali ogni 6 ore
+        const midnight = [];
+        rows.forEach((r, i) => {
+          const d = new Date(r.time);
+          const h = d.getHours();
+          if (h !== 0 && h !== 6 && h !== 12 && h !== 18) return;
+          const xPos = scales.x.getPixelForValue(i);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(xPos, chartArea.top);
+          ctx.lineTo(xPos, chartArea.bottom);
+          if (h === 0) {
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = '#1f293755';
+            ctx.setLineDash([]);
+            midnight.push({ xPos, time: r.time });
+          } else if (h === 12) {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#1f293733';
+            ctx.setLineDash([4, 3]);
+          } else {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#e2e7ef';
+            ctx.setLineDash([]);
+          }
+          ctx.stroke();
+          ctx.restore();
+        });
+        // Linea zero
+        const y0 = scales.y.getPixelForValue(0);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y0);
+        ctx.lineTo(chartArea.right, y0);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#1f2937';
+        ctx.setLineDash([]);
+        ctx.stroke();
+        ctx.restore();
+        // Soglie ±2
+        [2, -2].forEach(v => {
+          const y = scales.y.getPixelForValue(v);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y);
+          ctx.lineTo(chartArea.right, y);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = v > 0 ? '#e6510066' : '#1565c066';
+          ctx.setLineDash([6, 4]);
+          ctx.stroke();
+          ctx.restore();
+        });
+        // Aggiusta padding frecce
+        if (arrows) {
+          arrows.style.paddingTop = chartArea.top + 'px';
+          arrows.style.paddingBottom = (ctx.canvas.height - chartArea.bottom) + 'px';
+        }
+      },
+      afterDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        // Etichette giorno
+        const days = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+        const midnight = [];
+        rows.forEach((r, i) => {
+          if (new Date(r.time).getHours() === 0)
+            midnight.push({ xPos: scales.x.getPixelForValue(i), time: r.time });
+        });
+        midnight.forEach((m, idx) => {
+          const xEnd = idx + 1 < midnight.length ? midnight[idx+1].xPos : chartArea.right;
+          const xCenter = (m.xPos + xEnd) / 2;
+          const d = new Date(m.time);
+          const label = days[d.getDay()] + ' ' + String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+          ctx.save();
+          ctx.font = '700 11px system-ui, sans-serif';
+          const tw = ctx.measureText(label).width;
+          ctx.fillStyle = 'rgba(255,255,255,0.95)';
+          ctx.fillRect(xCenter - tw/2 - 3, chartArea.top - 18, tw + 6, 16);
+          ctx.fillStyle = '#1f2937cc';
+          ctx.textAlign = 'center';
+          ctx.fillText(label, xCenter, chartArea.top - 6);
+          ctx.restore();
+        });
+      }
+    };
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: rows.map((_, i) => i),
+        datasets: [{
+          data: values,
+          borderColor: '#3a8fb5',
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          tension: 0,
+          pointBackgroundColor: pointColors,
+          pointBorderColor: pointColors,
+          pointHoverBackgroundColor: '#3a8fb5',
+        }]
+      },
+      options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 24 } },
+        interaction: { mode: 'index', intersect: false },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(242,240,235,0.65)',
+            borderColor: '#d8d4cc',
+            borderWidth: 1,
+            titleColor: '#1a3a5c',
+            bodyColor: '#7a7060',
+            padding: 8,
+            callbacks: {
+              label(ctx) {
+                const r = rows[ctx.dataIndex];
+                return `ΔP: ${r.delta_hpa.toFixed(1)} hPa`;
+              },
+              title(items) {
+                const d = new Date(rows[items[0].dataIndex].time);
+                return d.toLocaleString('it-IT', { weekday:'short', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 0,
+              autoSkip: false,
+              callback(val, index) {
+                const d = new Date(rows[index].time);
+                const h = d.getHours();
+                if (h !== 0 && h !== 6 && h !== 12 && h !== 18) return null;
+                return h === 0 ? '0' : String(h);
+              },
+              font(ctx) {
+                const h = ctx.index < rows.length ? new Date(rows[ctx.index].time).getHours() : 0;
+                return { weight: h === 0 ? '700' : '400', size: 9 };
+              }
+            },
+            grid: { display: false }
+          },
+          y: {
+            min: yMin,
+            max: yMax,
+            ticks: { stepSize: 2 },
+            title: { display: true, text: 'ΔP hPa' },
+            grid: { color: '#edf0f5' }
+          }
+        }
+      },
+      plugins: [zeroAndLines, {
+        id: 'oraPeler',
+        afterDraw(chart) {
+          const { ctx, chartArea, scales } = chart;
+          if (!scales.y) return;
+          const yOra = scales.y.getPixelForValue(2);
+          const yPeler = scales.y.getPixelForValue(-2);
+          const x = chartArea.left + 26;
+          ctx.save();
+          ctx.font = '700 8px system-ui, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#e65100cc';
+          ctx.beginPath();
+          ctx.moveTo(x, yOra - 8); ctx.lineTo(x+6, yOra); ctx.lineTo(x+3, yOra);
+          ctx.lineTo(x+3, yOra+5); ctx.lineTo(x-3, yOra+5); ctx.lineTo(x-3, yOra);
+          ctx.lineTo(x-6, yOra); ctx.closePath(); ctx.fill();
+          ctx.fillText('ORA', x+10, yOra+4);
+          ctx.fillStyle = '#1565c0cc';
+          ctx.beginPath();
+          ctx.moveTo(x, yPeler+8); ctx.lineTo(x+6, yPeler); ctx.lineTo(x+3, yPeler);
+          ctx.lineTo(x+3, yPeler-5); ctx.lineTo(x-3, yPeler-5); ctx.lineTo(x-3, yPeler);
+          ctx.lineTo(x-6, yPeler); ctx.closePath(); ctx.fill();
+          ctx.fillText('PELÈR', x+10, yPeler+4);
+          ctx.restore();
+        }
+      }, {
+        id: 'crosshair',
+        afterDraw(chart) {
+          if (!chart.tooltip._active || !chart.tooltip._active.length) return;
+          const { ctx, chartArea, scales } = chart;
+          const x = chart.tooltip._active[0].element.x;
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x, chartArea.top);
+          ctx.lineTo(x, chartArea.bottom);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#1a3a5c44';
+          ctx.setLineDash([4, 3]);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }]
+    });
+  } catch(err) {
+    document.getElementById('press-status').textContent = 'Errore: ' + err.message;
+    console.error(err);
+  }
+}
+
+initPressione();
