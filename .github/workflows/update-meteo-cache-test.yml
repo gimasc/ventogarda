@@ -1,0 +1,28 @@
+name: Update meteo cache TEST
+# Versione di PROVA: esegue update_meteo_cache_test.py e salva in data/test/.
+# Non tocca i file usati dal sito. Da eliminare a prova conclusa.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "45 * * * *"
+permissions:
+  contents: write
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+jobs:
+  update-cache-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Update meteo cache (test)
+        run: python scripts/update_meteo_cache_test.py
+      - name: Commit updated cache (test)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Cache TEST: aggiorna dati meteo (vento medio + ICON-2I)"
+          file_pattern: data/test/meteo_torbole.json data/test/meteo_malcesine.json
