@@ -183,12 +183,30 @@ def eta_ore_file(path: Path) -> float | None:
         return None
 
 
+LOG_FILE = Path("data/test/log_cache.txt")
+LOG_MAX_RIGHE = 500  # il log tiene solo le ultime N righe, per non crescere all'infinito
+
+
+def scrivi_log(righe_nuove: list[str]):
+    """Accoda le righe al log e taglia alle ultime LOG_MAX_RIGHE."""
+    try:
+        vecchie = LOG_FILE.read_text(encoding="utf-8").splitlines() if LOG_FILE.exists() else []
+        tutte = (vecchie + righe_nuove)[-LOG_MAX_RIGHE:]
+        LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        LOG_FILE.write_text("\n".join(tutte) + "\n", encoding="utf-8")
+    except Exception as e:
+        # il log non deve mai far fallire l'aggiornamento dei dati
+        print(f"  avviso: impossibile scrivere il log ({e})")
+
+
 def main():
     out_dir = Path("data/test")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     successi = 0
     localita_stantie = []  # localita' fallite E con cache troppo vecchia
+    ora = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
+    log = []  # righe da accodare al log di questa esecuzione
 
     for loc_id, cfg in LOCALITA.items():
         print(f"Scarico {loc_id}...")
@@ -197,6 +215,8 @@ def main():
             payload = genera_localita(loc_id, cfg)
             out_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
             print(f"  -> {out_file} scritto OK")
+            icon2i_ok = "si'" if payload.get("icon2i") else "NO"
+            log.append(f"{ora}Z  {loc_id}: OK (icon2i: {icon2i_ok})")
             successi += 1
         except Exception as e:
             # Isolamento: NON rilanciamo, le altre localita' vanno comunque tentate.
@@ -204,13 +224,17 @@ def main():
             eta = eta_ore_file(out_file)
             if eta is None:
                 print(f"  ATTENZIONE {loc_id}: nessuna cache esistente da servire.")
+                log.append(f"{ora}Z  {loc_id}: ERRORE ({e}) — nessuna cache esistente")
                 localita_stantie.append(loc_id)
             elif eta > SOGLIA_ETA_ORE:
                 print(f"  ATTENZIONE {loc_id}: cache vecchia di {eta:.1f}h (> {SOGLIA_ETA_ORE}h).")
+                log.append(f"{ora}Z  {loc_id}: ERRORE ({e}) — cache stantia ({eta:.1f}h)")
                 localita_stantie.append(loc_id)
             else:
                 print(f"  {loc_id}: uso la cache esistente ({eta:.1f}h fa), ancora valida.")
+                log.append(f"{ora}Z  {loc_id}: ERRORE ({e}) — resta la cache di {eta:.1f}h fa, valida")
 
+    scrivi_log(log)
     print(f"Completato: {successi}/{len(LOCALITA)} localita' aggiornate.")
 
     # Allarme (exit 1 => mail) solo se un problema E' PERSISTENTE:

@@ -41,11 +41,17 @@ function toLocalTime(isoString) {
 }
 
 // Testo dell'etichetta di freschezza per il grafico raffiche.
-// In regime cache-first la fonte e' sempre 'cache': mostriamo l'ora del
-// generated_at del JSON. Se il dato e' vecchio oltre soglia, dicitura piu' generica.
+// Fonte 'cache' (regime normale): mostriamo l'ora del generated_at del JSON.
+// Fonte 'live' (solo fallback provvisorio): dato preso in tempo reale ora.
 function testoFreschezzaRaffiche(info) {
   const d = info.orario ? new Date(info.orario) : null;
   const oraValida = d && !isNaN(d.getTime());
+  if (info.fonte === 'live') {
+    const hhmmLive = oraValida
+      ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+      : null;
+    return hhmmLive ? `Aggiornato in tempo reale · ${hhmmLive}` : 'Aggiornato in tempo reale';
+  }
   if (!oraValida) return "aggiornata a ultima release disponibile";
 
   const hhmm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
@@ -149,6 +155,39 @@ async function caricaCache() {
   return r.json();
 }
 
+// ---- FALLBACK PROVVISORIO ----
+// Regime normale: solo cache. Se la cache e' irraggiungibile o piu' vecchia
+// della soglia, si torna (provvisoriamente) alla chiamata diretta a Open-Meteo
+// e l'evento viene registrato (console + evento GA4 'cache_fallback').
+// Da rimuovere quando il sistema cache avra' dimostrato piena affidabilita'.
+const CACHE_MAX_ETA_ORE = 6;
+
+let _cachePromise = null;
+function caricaCacheUnaVolta() {
+  // meteo e raffiche leggono lo stesso file: una sola richiesta per pagina
+  if (!_cachePromise) _cachePromise = caricaCache();
+  return _cachePromise;
+}
+
+function etaCacheOre(cache) {
+  const d = cache && cache.generated_at ? new Date(cache.generated_at) : null;
+  if (!d || isNaN(d.getTime())) return Infinity;
+  return (Date.now() - d.getTime()) / 3600000;
+}
+
+function registraFallback(dove, motivo) {
+  console.warn(`[cache_fallback] ${dove}: ${motivo}`);
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'cache_fallback', {
+        sezione: dove,
+        motivo: String(motivo).slice(0, 100),
+        localita: typeof LOC_ID !== 'undefined' ? LOC_ID : 'torbole',
+      });
+    }
+  } catch (e) { /* il log non deve mai rompere la pagina */ }
+}
+
 async function fetchMeteoOpenMeteo(timeout = 3000) {
   const baseParams = {
     latitude:  LAT_METEO,
@@ -182,39 +221,23 @@ async function fetchMeteoOpenMeteo(timeout = 3000) {
 }
 
 async function caricaMeteo() {
-  // ---- CACHE-FIRST ----
-  // Il browser legge SEMPRE e SOLO il JSON statico del nostro sito.
-  // Nessuna chiamata diretta a Open-Meteo dal browser: cosi' il traffico degli
-  // utenti non tocca mai Open-Meteo, a prescindere da quanti sono (nessun 429).
-  // La freschezza reale la garantisce il cron lato server.
-  const cache = await caricaCache();
-  const m = cache.meteo;
-  return { ore: m.time.map(toLocalTime), temp: m.temp, prob: m.prob, mm: m.mm, codici: m.codici };
-
-  /* ---- VECCHIA LOGICA A 3 LIVELLI (disattivata) ----
-     Chiamava Open-Meteo in diretta dal browser di ogni utente: sotto carico
-     forte (stesso IP mobile condiviso) rischiava errori 429. Conservata per
-     riferimento; non riattivare senza rivedere il rischio di scala.
-
-  // 1. Prova Open-Meteo veloce (3s)
+  // ---- CACHE-FIRST con fallback provvisorio ----
+  // Via principale: il JSON statico del nostro sito (nessuna chiamata a
+  // Open-Meteo dal browser => nessun rischio 429 nei picchi di traffico).
+  // Solo se la cache manca o e' vecchia oltre soglia: chiamata diretta.
   try {
-    return await fetchMeteoOpenMeteo(3000);
-  } catch(e) {
-    console.warn("Open-Meteo lento, provo cache:", e.message);
+    const cache = await caricaCacheUnaVolta();
+    const eta = etaCacheOre(cache);
+    if (eta <= CACHE_MAX_ETA_ORE) {
+      const m = cache.meteo;
+      return { ore: m.time.map(toLocalTime), temp: m.temp, prob: m.prob, mm: m.mm, codici: m.codici };
+    }
+    registraFallback('meteo', `cache vecchia di ${eta.toFixed(1)}h`);
+  } catch (e) {
+    registraFallback('meteo', e.message);
   }
-  // 2. Prova cache
-  try {
-    setStatus('Connessione lenta — uso dati recenti...', 'warn');
-    const cache = await caricaCache();
-    const m = cache.meteo;
-    return { ore: m.time.map(toLocalTime), temp: m.temp, prob: m.prob, mm: m.mm, codici: m.codici };
-  } catch(e) {
-    console.warn("Cache non disponibile, riprovo Open-Meteo (10s):", e.message);
-  }
-  // 3. Ultimo tentativo Open-Meteo con timeout lungo
-  setStatus('Connessione a MeteoSwiss lenta — riprovo...', 'warn');
+  // Fallback: chiamata diretta a Open-Meteo (provvisorio)
   return await fetchMeteoOpenMeteo(10000);
-  */
 }
 
 // ============================================================
@@ -441,48 +464,29 @@ async function fetchRafficeOpenMeteo(timeout = 3000) {
 }
 
 async function caricaDati() {
-  // ---- CACHE-FIRST ----
-  // Sempre e solo il JSON statico. orario = generated_at del file (ora del
-  // nostro download lato server), mostrato all'utente come "aggiornati alle...".
-  const cache = await caricaCache();
-  raffInfo = { fonte: 'cache', orario: cache.generated_at || null };
-  return cache.spots.map(s => ({
-    nome: s.nome, colore: s.colore,
-    raffiche: s.raffiche.map(kmhToKn),
-    direzione: s.direzione,
-    ore: s.time.map(toLocalTime),
-  }));
-
-  /* ---- VECCHIA LOGICA A 3 LIVELLI (disattivata) ----
-     Chiamava Open-Meteo in diretta (4 spot) dal browser di ogni utente.
-     Conservata per riferimento; non riattivare senza rivedere il rischio di scala.
-
-  // 1. Prova Open-Meteo veloce (3s) — dato in tempo reale
+  // ---- CACHE-FIRST con fallback provvisorio ----
+  // Via principale: il JSON statico (orario mostrato = generated_at del file).
+  // Solo se la cache manca o e' vecchia oltre soglia: chiamata diretta (4 spot).
   try {
-    const dati = await fetchRafficeOpenMeteo(3000);
-    raffInfo = { fonte: 'live', orario: new Date().toISOString() };
-    return dati;
-  } catch(e) {
-    console.warn("Open-Meteo lento raffiche, provo cache:", e.message);
+    const cache = await caricaCacheUnaVolta();
+    const eta = etaCacheOre(cache);
+    if (eta <= CACHE_MAX_ETA_ORE) {
+      raffInfo = { fonte: 'cache', orario: cache.generated_at || null };
+      return cache.spots.map(s => ({
+        nome: s.nome, colore: s.colore,
+        raffiche: s.raffiche.map(kmhToKn),
+        direzione: s.direzione,
+        ore: s.time.map(toLocalTime),
+      }));
+    }
+    registraFallback('raffiche', `cache vecchia di ${eta.toFixed(1)}h`);
+  } catch (e) {
+    registraFallback('raffiche', e.message);
   }
-  // 2. Prova cache — dato dal file GitHub, orario = generated_at
-  try {
-    const cache = await caricaCache();
-    raffInfo = { fonte: 'cache', orario: cache.generated_at || null };
-    return cache.spots.map(s => ({
-      nome: s.nome, colore: s.colore,
-      raffiche: s.raffiche.map(kmhToKn),
-      direzione: s.direzione,
-      ore: s.time.map(toLocalTime),
-    }));
-  } catch(e) {
-    console.warn("Cache non disponibile, riprovo Open-Meteo (10s):", e.message);
-  }
-  // 3. Ultimo tentativo Open-Meteo con timeout lungo — di nuovo tempo reale
+  // Fallback: chiamata diretta a Open-Meteo (provvisorio)
   const dati = await fetchRafficeOpenMeteo(10000);
   raffInfo = { fonte: 'live', orario: new Date().toISOString() };
   return dati;
-  */
 }
 
 function disegnaGrafico(dati) {
@@ -628,8 +632,8 @@ async function init() {
     // (non in fondo al canvas, per non sovrapporsi alle frecce di direzione).
     const testoFresch = testoFreschezzaRaffiche(raffInfo);
     if (testoFresch) {
-      // Cache-first: etichetta sempre grigia (nessun caso "live" da evidenziare).
-      const colore = '#94a3b8';
+      // Grigia in regime cache (normale), verde se e' scattato il fallback live.
+      const colore = raffInfo.fonte === 'live' ? '#1b9e3e' : '#94a3b8';
       // chartArea.bottom è il bordo inferiore dell'area dati (sopra i tick delle ore).
       // chartArea.left è il bordo sinistro (subito a destra dell'asse Y / ordinate).
       const area = (chartRef && chartRef.chartArea) ? chartRef.chartArea : null;
