@@ -179,6 +179,22 @@ function etaCacheOre(cache) {
   return (Date.now() - d.getTime()) / 3600000;
 }
 
+// ---- PREFERENZE DI VISUALIZZAZIONE ----
+// Restano sul dispositivo di chi visita (memoria locale del browser), non sul
+// nostro server, e non identificano nessuno: sono scelte di lettura fatte
+// dall'utente stesso. Se il browser le blocca (navigazione in incognito), si
+// riparte semplicemente dai valori di partenza, senza errori.
+const PREF_SERIE = 'vg_serie_vento';     // 'raffiche' | 'medio'
+const PREF_LOCALITA = 'vg_localita';     // 'torbole'  | 'malcesine'
+
+function leggiPreferenza(chiave) {
+  try { return localStorage.getItem(chiave); } catch (e) { return null; }
+}
+
+function salvaPreferenza(chiave, valore) {
+  try { localStorage.setItem(chiave, valore); } catch (e) { /* ignora */ }
+}
+
 function registraFallback(dove, motivo) {
   console.warn(`[cache_fallback] ${dove}: ${motivo}`);
   try {
@@ -514,8 +530,8 @@ function disegnaGrafico(dati) {
   }));
 
   // Vento medio: stessi colori degli spot ma TRATTEGGIATO, cosi' si distingue
-  // a colpo d'occhio. Nascosto all'avvio: si accende con il pulsante.
-  // Presente solo se il file dei dati lo contiene.
+  // a colpo d'occhio. Sempre disegnato, ma attenuato finche' non e' in primo
+  // piano. Presente solo se il file dei dati lo contiene.
   const haVentoMedio = dati.every(s => Array.isArray(s.ventoMedio));
   if (haVentoMedio) {
     dati.forEach((s, i) => {
@@ -523,7 +539,7 @@ function disegnaGrafico(dati) {
         label: `${s.nome} (medio)`, data: s.ventoMedio.slice(start, end),
         borderColor: s.colore, borderWidth: i === 3 ? 2.4 : 1.6,
         borderDash: [5, 4],
-        pointRadius: 0, tension: 0.3, fill: false, spanGaps: true, hidden: true,
+        pointRadius: 0, tension: 0.3, fill: false, spanGaps: true,
         serie: 'medio',
         coloreBase: s.colore, spessoreBase: i === 3 ? 2.4 : 1.6,
       });
@@ -607,9 +623,10 @@ function disegnaGrafico(dati) {
 
 // ============================================================
 // PULSANTI RAFFICHE / VENTO MEDIO
-// Il pulsante premuto per ultimo porta la sua serie in PRIMO PIANO;
-// l'altra, se visibile, resta disegnata ma attenuata, cosi' le due si
-// confrontano senza che il grafico diventi illeggibile.
+// Due soli stati, sempre entrambe le serie disegnate:
+//   A (iniziale) raffiche in primo piano, vento medio attenuato
+//   B            vento medio in primo piano, raffiche attenuate
+// Il pulsante della serie in primo piano e' rosso, l'altro grigio.
 // ============================================================
 
 function collegaPulsantiVento(chart) {
@@ -617,13 +634,16 @@ function collegaPulsantiVento(chart) {
   const btnMedio = document.getElementById("btn-vento-medio");
   if (!btnRaff || !btnMedio) return;
 
-  // I pulsanti esistono nella pagina ma restano nascosti finche' non c'e' il
-  // dato: cosi' le pagine non cambiano aspetto prima del primo aggiornamento.
+  // Pulsanti e separatore restano nascosti finche' i dati non contengono il
+  // vento medio: cosi' le pagine non cambiano aspetto prima del primo
+  // aggiornamento della sveglia.
   const gruppo = btnRaff.parentElement;
   if (gruppo) gruppo.style.display = "";
+  const separatore = document.getElementById("sep-vento");
+  if (separatore) separatore.style.display = "";
 
-  let visibili = { raffiche: true, medio: false };
-  let primoPiano = "raffiche";
+  // Riparte dalla serie scelta l'ultima volta su questo dispositivo.
+  let primoPiano = leggiPreferenza(PREF_SERIE) === "medio" ? "medio" : "raffiche";
 
   function attenua(colore) {
     // stesso colore, molto trasparente (aggiunge il canale alfa esadecimale)
@@ -632,34 +652,24 @@ function collegaPulsantiVento(chart) {
 
   function applica() {
     chart.data.datasets.forEach(d => {
-      if (!d.serie) return;                       // le soglie non si toccano
-      d.hidden = !visibili[d.serie];
+      if (!d.serie) return;                        // le soglie non si toccano
       const inPrimoPiano = d.serie === primoPiano;
-      const entrambe = visibili.raffiche && visibili.medio;
-      d.borderColor = (entrambe && !inPrimoPiano) ? attenua(d.coloreBase) : d.coloreBase;
-      d.borderWidth = (entrambe && !inPrimoPiano) ? Math.max(d.spessoreBase - 0.6, 1) : d.spessoreBase;
+      d.borderColor = inPrimoPiano ? d.coloreBase : attenua(d.coloreBase);
+      d.borderWidth = inPrimoPiano ? d.spessoreBase : Math.max(d.spessoreBase - 0.6, 1);
     });
-    btnRaff.classList.toggle("attivo", visibili.raffiche);
-    btnMedio.classList.toggle("attivo", visibili.medio);
+    btnRaff.classList.toggle("attivo", primoPiano === "raffiche");
+    btnMedio.classList.toggle("attivo", primoPiano === "medio");
     chart.update();
   }
 
-  function premi(serie) {
-    if (visibili[serie] && primoPiano === serie) {
-      // gia' in primo piano: il clic la spegne, ma non si spengono entrambe
-      const altra = serie === "raffiche" ? "medio" : "raffiche";
-      if (!visibili[altra]) return;
-      visibili[serie] = false;
-      primoPiano = altra;
-    } else {
-      visibili[serie] = true;
-      primoPiano = serie;
-    }
+  function scegli(serie) {
+    primoPiano = serie;
+    salvaPreferenza(PREF_SERIE, serie);   // la prossima visita riparte da qui
     applica();
   }
 
-  btnRaff.addEventListener("click", () => premi("raffiche"));
-  btnMedio.addEventListener("click", () => premi("medio"));
+  btnRaff.addEventListener("click", () => scegli("raffiche"));
+  btnMedio.addEventListener("click", () => scegli("medio"));
   applica();
 }
 
@@ -800,6 +810,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const coords = document.querySelector(".header-coords");
   if (coords) coords.innerHTML = `<span class="header-location">Lago di Garda · </span>${_loc.lat.toFixed(2)}°N ${_loc.lon.toFixed(2)}°E`;
   if (p)  p.textContent  = _loc.nome + " · " + _loc.sottotitolo;
+
+  // Ricorda la localita': chi frequenta solo Malcesine ci arriva diretto.
+  // La preferenza si aggiorna sia arrivando su una pagina, sia CLICCANDO una
+  // linguetta — quest'ultimo passaggio e' essenziale: senza, chi da Malcesine
+  // sceglie Torbole verrebbe rispedito indietro dalla home.
+  salvaPreferenza(PREF_LOCALITA, typeof LOC_ID !== "undefined" ? LOC_ID : "torbole");
+  document.querySelectorAll("a.loc-tab[href]").forEach(a => {
+    a.addEventListener("click", () => {
+      const dest = a.getAttribute("href").includes("malcesine") ? "malcesine" : "torbole";
+      salvaPreferenza(PREF_LOCALITA, dest);
+    });
+  });
 
   // Legenda spots dinamica
   ["legenda-normale", "legenda-mappa"].forEach(id => {
