@@ -84,15 +84,17 @@ def fetch(params: dict) -> dict:
 
 def genera_localita(loc_id: str, cfg: dict) -> dict:
     # 1. Timeline meteo ibrida: MeteoSwiss prime 48h + icon_seamless 7gg
+    # NB: nessun parametro "timezone" => Open-Meteo risponde in UTC (vedi nota
+    # nello script di produzione). Tutti gli orari del file sono omogenei in UTC.
     ch1 = fetch({
         "latitude": cfg["lat_meteo"], "longitude": cfg["lon_meteo"],
         "hourly": "temperature_2m,precipitation_probability,precipitation,weather_code",
-        "timezone": "Europe/Rome", "forecast_days": 2, "models": "meteoswiss_icon_ch1"
+        "forecast_days": 2, "models": "meteoswiss_icon_ch1"
     })
     seamless = fetch({
         "latitude": cfg["lat_meteo"], "longitude": cfg["lon_meteo"],
         "hourly": "temperature_2m,precipitation_probability,precipitation,weather_code",
-        "timezone": "Europe/Rome", "forecast_days": 7, "models": "icon_seamless"
+        "forecast_days": 7, "models": "icon_seamless"
     })
 
     cutoff = ch1["hourly"]["time"][-1]

@@ -1,0 +1,32 @@
+name: Recupero storico (una volta sola)
+# Ricostruisce l'archivio leggendo TUTTA la storia di Git: ogni salvataggio
+# passato dei JSON e' uno snapshot esatto di cio' che gli utenti hanno visto.
+# Si avvia solo a mano (pulsante "Run workflow"). Rieseguirlo non crea
+# duplicati, ma normalmente basta una volta.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+jobs:
+  recupera:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository (storia completa)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # serve tutta la storia, non solo l'ultimo stato
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Estrai lo storico dalla storia Git
+        run: python scripts/estrai_storico_git.py
+        env:
+          PYTHONPATH: scripts
+      - name: Commit archivio
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Archivio: recupero storico dalla storia Git"
+          file_pattern: data/storico/*.csv

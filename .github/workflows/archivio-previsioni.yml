@@ -1,0 +1,32 @@
+name: Archivio previsioni
+# Aggiunge ogni nuova release al file del mese in corso (data/storico/).
+# Gira due volte l'ora: le release del modello escono ogni ~3 ore, quindi e'
+# impossibile perderne una. Se non c'e' nulla di nuovo non scrive niente.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "10,40 * * * *"
+permissions:
+  contents: write
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+jobs:
+  archivia:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Archivia le previsioni correnti
+        run: python scripts/archivia_previsioni.py
+        working-directory: ${{ github.workspace }}
+        env:
+          PYTHONPATH: scripts
+      - name: Commit archivio
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Archivio: nuove previsioni"
+          file_pattern: data/storico/*.csv
