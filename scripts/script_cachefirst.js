@@ -150,7 +150,11 @@ async function fetchConTimeout(url, ms = 3000) {
 }
 
 async function caricaCache() {
-  const r = await fetch(`/data/meteo_${LOC_ID}.json?_=${Date.now()}`);
+  // Le pagine di prova possono puntare a una cartella dati diversa definendo
+  // CARTELLA_DATI prima di caricare questo script (es. "/data/test").
+  // Le pagine ufficiali non la definiscono e leggono i file di produzione.
+  const base = (typeof CARTELLA_DATI !== "undefined") ? CARTELLA_DATI : "/data";
+  const r = await fetch(`${base}/meteo_${LOC_ID}.json?_=${Date.now()}`);
   if (!r.ok) throw new Error("Cache non disponibile");
   return r.json();
 }
@@ -475,6 +479,9 @@ async function caricaDati() {
       return cache.spots.map(s => ({
         nome: s.nome, colore: s.colore,
         raffiche: s.raffiche.map(kmhToKn),
+        // Presente solo nei file generati dopo l'aggiunta del vento medio:
+        // se manca, il grafico non mostra i pulsanti e resta come prima.
+        ventoMedio: Array.isArray(s.vento_medio) ? s.vento_medio.map(kmhToKn) : null,
         direzione: s.direzione,
         ore: s.time.map(toLocalTime),
       }));
@@ -502,7 +509,26 @@ function disegnaGrafico(dati) {
     label: s.nome, data: s.raffiche.slice(start, end),
     borderColor: s.colore, borderWidth: i === 3 ? 2.8 : 1.8,
     pointRadius: 0, tension: 0.3, fill: false, spanGaps: true,
+    serie: 'raffiche',              // usato dai pulsanti per riconoscere la serie
+    coloreBase: s.colore, spessoreBase: i === 3 ? 2.8 : 1.8,
   }));
+
+  // Vento medio: stessi colori degli spot ma TRATTEGGIATO, cosi' si distingue
+  // a colpo d'occhio. Nascosto all'avvio: si accende con il pulsante.
+  // Presente solo se il file dei dati lo contiene.
+  const haVentoMedio = dati.every(s => Array.isArray(s.ventoMedio));
+  if (haVentoMedio) {
+    dati.forEach((s, i) => {
+      datasets.push({
+        label: `${s.nome} (medio)`, data: s.ventoMedio.slice(start, end),
+        borderColor: s.colore, borderWidth: i === 3 ? 2.4 : 1.6,
+        borderDash: [5, 4],
+        pointRadius: 0, tension: 0.3, fill: false, spanGaps: true, hidden: true,
+        serie: 'medio',
+        coloreBase: s.colore, spessoreBase: i === 3 ? 2.4 : 1.6,
+      });
+    });
+  }
   SOGLIE.forEach(soglia => {
     datasets.push({
       label: soglia.label, data: new Array(labelsSlice.length).fill(soglia.kn),
@@ -575,7 +601,66 @@ function disegnaGrafico(dati) {
     },
     plugins: [pluginGiorni],
   });
+  if (haVentoMedio) collegaPulsantiVento(chartRef);
   return chartRef;
+}
+
+// ============================================================
+// PULSANTI RAFFICHE / VENTO MEDIO
+// Il pulsante premuto per ultimo porta la sua serie in PRIMO PIANO;
+// l'altra, se visibile, resta disegnata ma attenuata, cosi' le due si
+// confrontano senza che il grafico diventi illeggibile.
+// ============================================================
+
+function collegaPulsantiVento(chart) {
+  const btnRaff  = document.getElementById("btn-raffiche");
+  const btnMedio = document.getElementById("btn-vento-medio");
+  if (!btnRaff || !btnMedio) return;
+
+  // I pulsanti esistono nella pagina ma restano nascosti finche' non c'e' il
+  // dato: cosi' le pagine non cambiano aspetto prima del primo aggiornamento.
+  const gruppo = btnRaff.parentElement;
+  if (gruppo) gruppo.style.display = "";
+
+  let visibili = { raffiche: true, medio: false };
+  let primoPiano = "raffiche";
+
+  function attenua(colore) {
+    // stesso colore, molto trasparente (aggiunge il canale alfa esadecimale)
+    return colore.length === 7 ? colore + "40" : colore;
+  }
+
+  function applica() {
+    chart.data.datasets.forEach(d => {
+      if (!d.serie) return;                       // le soglie non si toccano
+      d.hidden = !visibili[d.serie];
+      const inPrimoPiano = d.serie === primoPiano;
+      const entrambe = visibili.raffiche && visibili.medio;
+      d.borderColor = (entrambe && !inPrimoPiano) ? attenua(d.coloreBase) : d.coloreBase;
+      d.borderWidth = (entrambe && !inPrimoPiano) ? Math.max(d.spessoreBase - 0.6, 1) : d.spessoreBase;
+    });
+    btnRaff.classList.toggle("attivo", visibili.raffiche);
+    btnMedio.classList.toggle("attivo", visibili.medio);
+    chart.update();
+  }
+
+  function premi(serie) {
+    if (visibili[serie] && primoPiano === serie) {
+      // gia' in primo piano: il clic la spegne, ma non si spengono entrambe
+      const altra = serie === "raffiche" ? "medio" : "raffiche";
+      if (!visibili[altra]) return;
+      visibili[serie] = false;
+      primoPiano = altra;
+    } else {
+      visibili[serie] = true;
+      primoPiano = serie;
+    }
+    applica();
+  }
+
+  btnRaff.addEventListener("click", () => premi("raffiche"));
+  btnMedio.addEventListener("click", () => premi("medio"));
+  applica();
 }
 
 

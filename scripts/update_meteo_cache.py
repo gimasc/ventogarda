@@ -115,20 +115,23 @@ def genera_localita(loc_id: str, cfg: dict) -> dict:
             meteo_mm.append(seamless["hourly"]["precipitation"][i])
             meteo_cod.append(seamless["hourly"]["weather_code"][i])
 
-    # 2. Raffiche per ogni spot
+    # 2. Raffiche + vento medio per ogni spot.
+    #    wind_speed_10m viaggia nella STESSA chiamata delle raffiche: un
+    #    parametro in piu', zero richieste aggiuntive a Open-Meteo.
     spots_data = []
     for spot in cfg["spots"]:
         d = fetch({
             "latitude": spot["lat"], "longitude": spot["lon"],
-            "hourly": "wind_gusts_10m,wind_direction_10m",
+            "hourly": "wind_gusts_10m,wind_direction_10m,wind_speed_10m",
             "forecast_days": 2, "models": "meteoswiss_icon_ch1"
         })
         spots_data.append({
-            "nome":      spot["nome"],
-            "colore":    spot["colore"],
-            "time":      d["hourly"]["time"],
-            "raffiche":  d["hourly"]["wind_gusts_10m"],
-            "direzione": d["hourly"]["wind_direction_10m"],
+            "nome":        spot["nome"],
+            "colore":      spot["colore"],
+            "time":        d["hourly"]["time"],
+            "raffiche":    d["hourly"]["wind_gusts_10m"],
+            "direzione":   d["hourly"]["wind_direction_10m"],
+            "vento_medio": d["hourly"].get("wind_speed_10m"),
         })
 
     return {
