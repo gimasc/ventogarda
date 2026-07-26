@@ -160,12 +160,13 @@
         <div class="label">Raffiche · Area Torbole / Riva</div>
         <div class="sub">Previsione oraria per spot</div>
       </div>
-      <div style="display:flex;align-items:center;gap:.4rem;">
-        <!-- Nascosto finche' i dati non contengono il vento medio: lo mostra lo script -->
-        <div class="btn-minimal-group" style="display:none;">
+      <div style="display:flex;align-items:center;gap:.55rem;">
+        <!-- Nascosti finche' i dati non contengono il vento medio: li mostra lo script -->
+        <div class="btn-minimal-group" style="display:none;gap:7px;">
           <button id="btn-raffiche" class="btn-minimal attivo">Raffiche</button>
           <button id="btn-vento-medio" class="btn-minimal">Vento medio</button>
         </div>
+        <span id="sep-vento" style="display:none;width:1px;height:11px;background:var(--faint);opacity:.5;"></span>
         <button onclick="toggleMappa()" id="btn-mappa" class="btn-minimal btn-minimal--red">Mappa <svg width="10" height="7" viewBox="0 0 12 8" fill="none" style="vertical-align:middle;margin-left:3px;"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
     </div>
