@@ -66,11 +66,12 @@
   <!-- AVVISO NOVITA' — mostrato una volta sola, poi ricordato dal browser.
        Per annunciare una novita' diversa: cambiare il testo qui e la sigla
        VERSIONE_NOVITA in scripts/script_cachefirst.js -->
-  <div id="novita" style="display:none;align-items:center;gap:.6rem;background:var(--card);border-left:3px solid var(--red);border-radius:5px;padding:.55rem .7rem;margin-bottom:.8rem;">
-    <span id="novita-testo" style="flex:1;font-size:.78rem;line-height:1.35;color:var(--text);">
-      <strong>Novit&agrave;</strong> · Sul grafico delle raffiche ora puoi vedere anche il <strong>vento</strong>: usa i due pulsanti in alto a destra della scheda.
+  <div id="novita" style="display:none;align-items:center;gap:.65rem;background:var(--card);border:1px solid var(--border);border-left:3px solid #ff3b1d;border-right:3px solid #ff3b1d;padding:.55rem .75rem;margin-bottom:.8rem;">
+    <span id="novita-testo" style="flex:1;font-size:.78rem;line-height:1.4;color:var(--text);">
+      <span style="font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#ff3b1d;">Novit&agrave;</span>
+      &nbsp;·&nbsp; V. 2.4 — Aggiunto oltre alle raffiche il grafico del <strong>vento</strong>
     </span>
-    <button id="novita-chiudi" aria-label="Chiudi avviso" style="flex:none;border:none;background:none;cursor:pointer;font-size:1.05rem;line-height:1;color:var(--text);opacity:.5;padding:.1rem .2rem;">&times;</button>
+    <button id="novita-chiudi" aria-label="Chiudi avviso" style="flex:none;border:none;background:none;cursor:pointer;font-size:1.1rem;line-height:1;color:var(--text);opacity:.45;padding:.1rem .25rem;">&times;</button>
   </div>
 
   <!-- INFO FISARMONICA — accent: navy -->
@@ -172,7 +173,7 @@
   <div class="card card--red">
     <div class="card-header card-header--split">
       <div>
-        <div class="label">Raffiche · Area Malcesine</div>
+        <div class="label">Raffiche / Vento · Area Malcesine</div>
         <div class="sub">Previsione oraria per spot</div>
       </div>
       <div style="display:flex;align-items:center;gap:.55rem;">
@@ -248,9 +249,10 @@
 </main>
 
 <footer>
-  <p class="footer-disclaimer">Verifica sempre le condizioni reali prima di entrare in acqua. Uso a rischio dell'utente.</p>
+  <p class="footer-disclaimer">Si declina ogni responsabilit&agrave; per l'utilizzo delle informazioni contenute. Verifica sempre le condizioni reali prima di entrare in acqua e attieniti alle indicazioni degli organi ufficiali.</p>
   <p class="footer-sources">Dati: <a href="https://www.meteoswiss.admin.ch" target="_blank">MeteoSwiss</a> · <a href="https://www.meteotrentino.it" target="_blank">Meteotrentino</a> · <a href="https://www.dwd.de" target="_blank">Deutscher Wetterdienst</a></p>
   <p class="footer-links"><a href="/privacy/">Privacy Policy</a> · <a href="/privacy/#cookie">Cookie Policy</a> · <a href="mailto:info@ventogarda.it">info@ventogarda.it</a></p>
+  <p class="footer-versione" style="font-size:.55rem;color:var(--faint);letter-spacing:.06em;margin-top:.35rem;">V. 2.4 · VentoGarda &copy; 2026 · Tutti i diritti riservati</p>
 </footer>
 
 </div><!-- /page-container -->

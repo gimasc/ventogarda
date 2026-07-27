@@ -191,7 +191,7 @@ const PREF_NOVITA = 'vg_novita_vista';   // ultima novita' gia' letta
 // Avviso novita': cambiare questa sigla fa ricomparire la striscia UNA volta
 // a tutti. Il testo sta nelle pagine (id="novita-testo"), qui c'e' solo la
 // versione, cosi' si annuncia una cosa nuova senza toccare il codice.
-const VERSIONE_NOVITA = '2026-07-vento';
+const VERSIONE_NOVITA = 'v2.4';
 
 function leggiPreferenza(chiave) {
   try { return localStorage.getItem(chiave); } catch (e) { return null; }
@@ -638,15 +638,15 @@ function disegnaGrafico(dati) {
 // ============================================================
 // AVVISO NOVITA'
 // Striscia discreta sopra la prima scheda, mostrata UNA volta sola per
-// versione. Non compare finche' l'utente non ha deciso sui cookie: due
-// avvisi insieme al primo accesso sarebbero fastidiosi.
+// versione. Compare subito al primo caricamento: sta in cima dentro la
+// pagina, mentre il banner dei cookie e' fisso in fondo allo schermo, quindi
+// non si sovrappongono.
 // ============================================================
 
 function mostraNovita() {
   const box = document.getElementById("novita");
   if (!box) return;
   if (leggiPreferenza(PREF_NOVITA) === VERSIONE_NOVITA) return;   // gia' letta
-  if (!leggiPreferenza("cookie_consent")) return;                 // aspetta la prossima visita
 
   box.style.display = "flex";
   const chiudi = document.getElementById("novita-chiudi");
