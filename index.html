@@ -12,6 +12,18 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#0a2e52">
+  <script>
+    // Localita' preferita: chi l'ultima volta stava a Malcesine ci torna
+    // direttamente. Il salto avviene SOLO da questa pagina; le linguette in
+    // alto aggiornano la preferenza prima di cambiare pagina, quindi chi
+    // sceglie Torbole non viene rispedito indietro. I motori di ricerca non
+    // hanno memoria locale, quindi per loro la home resta la home.
+    try {
+      if (localStorage.getItem('vg_localita') === 'malcesine') {
+        location.replace('malcesine/');
+      }
+    } catch (e) { /* memoria non disponibile: si resta qui */ }
+  </script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -61,6 +73,16 @@
 </header>
 
 <main>
+
+  <!-- AVVISO NOVITA' — mostrato una volta sola, poi ricordato dal browser.
+       Per annunciare una novita' diversa: cambiare il testo qui e la sigla
+       VERSIONE_NOVITA in scripts/script_cachefirst.js -->
+  <div id="novita" style="display:none;align-items:center;gap:.6rem;background:var(--card);border-left:3px solid var(--red);border-radius:5px;padding:.55rem .7rem;margin-bottom:.8rem;">
+    <span id="novita-testo" style="flex:1;font-size:.78rem;line-height:1.35;color:var(--text);">
+      <strong>Novit&agrave;</strong> · Sul grafico delle raffiche ora puoi vedere anche il <strong>vento</strong>: usa i due pulsanti in alto a destra della scheda.
+    </span>
+    <button id="novita-chiudi" aria-label="Chiudi avviso" style="flex:none;border:none;background:none;cursor:pointer;font-size:1.05rem;line-height:1;color:var(--text);opacity:.5;padding:.1rem .2rem;">&times;</button>
+  </div>
 
   <!-- INFO FISARMONICA — accent: navy -->
   <div class="card">
@@ -157,7 +179,15 @@
         <div class="label">Raffiche · Area Torbole / Riva</div>
         <div class="sub">Previsione oraria per spot</div>
       </div>
-      <button onclick="toggleMappa()" id="btn-mappa" class="btn-minimal btn-minimal--red">Mappa <svg width="10" height="7" viewBox="0 0 12 8" fill="none" style="vertical-align:middle;margin-left:3px;"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div style="display:flex;align-items:center;gap:.55rem;">
+        <!-- Nascosti finche' i dati non contengono il vento medio: li mostra lo script -->
+        <div class="btn-minimal-group" style="display:none;gap:7px;">
+          <button id="btn-raffiche" class="btn-minimal attivo">Raffiche</button>
+          <button id="btn-vento-medio" class="btn-minimal">Vento</button>
+        </div>
+        <span id="sep-vento" style="display:none;width:1px;height:11px;background:var(--faint);opacity:.5;"></span>
+        <button onclick="toggleMappa()" id="btn-mappa" class="btn-minimal btn-minimal--red">Mappa <svg width="10" height="7" viewBox="0 0 12 8" fill="none" style="vertical-align:middle;margin-left:3px;"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
     </div>
     <div id="mappa-wrap" style="display:none;">
       <div class="mappa-layout">

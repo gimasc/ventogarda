@@ -186,6 +186,12 @@ function etaCacheOre(cache) {
 // riparte semplicemente dai valori di partenza, senza errori.
 const PREF_SERIE = 'vg_serie_vento';     // 'raffiche' | 'medio'
 const PREF_LOCALITA = 'vg_localita';     // 'torbole'  | 'malcesine'
+const PREF_NOVITA = 'vg_novita_vista';   // ultima novita' gia' letta
+
+// Avviso novita': cambiare questa sigla fa ricomparire la striscia UNA volta
+// a tutti. Il testo sta nelle pagine (id="novita-testo"), qui c'e' solo la
+// versione, cosi' si annuncia una cosa nuova senza toccare il codice.
+const VERSIONE_NOVITA = '2026-07-vento';
 
 function leggiPreferenza(chiave) {
   try { return localStorage.getItem(chiave); } catch (e) { return null; }
@@ -629,6 +635,29 @@ function disegnaGrafico(dati) {
 // Il pulsante della serie in primo piano e' rosso, l'altro grigio.
 // ============================================================
 
+// ============================================================
+// AVVISO NOVITA'
+// Striscia discreta sopra la prima scheda, mostrata UNA volta sola per
+// versione. Non compare finche' l'utente non ha deciso sui cookie: due
+// avvisi insieme al primo accesso sarebbero fastidiosi.
+// ============================================================
+
+function mostraNovita() {
+  const box = document.getElementById("novita");
+  if (!box) return;
+  if (leggiPreferenza(PREF_NOVITA) === VERSIONE_NOVITA) return;   // gia' letta
+  if (!leggiPreferenza("cookie_consent")) return;                 // aspetta la prossima visita
+
+  box.style.display = "flex";
+  const chiudi = document.getElementById("novita-chiudi");
+  if (chiudi) {
+    chiudi.addEventListener("click", () => {
+      box.style.display = "none";
+      salvaPreferenza(PREF_NOVITA, VERSIONE_NOVITA);
+    });
+  }
+}
+
 function collegaPulsantiVento(chart) {
   const btnRaff  = document.getElementById("btn-raffiche");
   const btnMedio = document.getElementById("btn-vento-medio");
@@ -810,6 +839,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const coords = document.querySelector(".header-coords");
   if (coords) coords.innerHTML = `<span class="header-location">Lago di Garda · </span>${_loc.lat.toFixed(2)}°N ${_loc.lon.toFixed(2)}°E`;
   if (p)  p.textContent  = _loc.nome + " · " + _loc.sottotitolo;
+
+  mostraNovita();
 
   // Ricorda la localita': chi frequenta solo Malcesine ci arriva diretto.
   // La preferenza si aggiorna sia arrivando su una pagina, sia CLICCANDO una
