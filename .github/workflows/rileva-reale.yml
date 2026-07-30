@@ -1,0 +1,41 @@
+name: Rilevazione reale Torbole
+# Legge la stazione meteo del Circolo Surf Torbole (via relivecam.it) e salva
+# il dato misurato: data/reale_torbole.json per il sito, un file al giorno in
+# data/storico/reale/ per l'archivio.
+#
+# La stazione produce un dato al minuto, noi passiamo ogni dieci: per la scheda
+# del sito e' piu' che sufficiente. Se il fornitore esporra' un endpoint che
+# restituisce gli ultimi N minuti, questa cadenza resta valida e si raccolgono
+# tutti i campioni senza cambiare nulla qui.
+#
+# Le credenziali arrivano dai Secrets del repository (Settings > Secrets and
+# variables > Actions): RELIVECAM_USER e RELIVECAM_PASS. Non compaiono mai nel
+# codice ne' nei log.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+permissions:
+  contents: write
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+jobs:
+  rileva:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Rileva dato stazione
+        run: python scripts/rileva_reale.py
+        env:
+          RELIVECAM_USER: ${{ secrets.RELIVECAM_USER }}
+          RELIVECAM_PASS: ${{ secrets.RELIVECAM_PASS }}
+      - name: Commit dato reale
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Reale: nuova misura stazione Torbole"
+          file_pattern: data/reale_torbole.json data/storico/reale/*
