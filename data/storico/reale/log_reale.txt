@@ -33,3 +33,4 @@
 2026-08-02 04:01:39 UTC  OK  misura 2026-08-02 06:00:40 (ora italiana), nuova · vento 13.8 kn, raffica 20.8 kn, dir 23.0° · coda 27 punti di dettaglio + 33 ore · ritardo 1 min
 2026-08-02 06:44:04 UTC  OK  misura 2026-08-02 08:43:41 (ora italiana), nuova · vento 14.2 kn, raffica 18.9 kn, dir 25.0° · coda 27 punti di dettaglio + 34 ore · ritardo 0 min
 2026-08-02 09:03:08 UTC  OK  misura 2026-08-02 11:02:40 (ora italiana), nuova · vento 16.3 kn, raffica 22.7 kn, dir 59.0° · coda 27 punti di dettaglio + 35 ore · ritardo 0 min
+2026-08-02 10:49:19 UTC  OK  misura 2026-08-02 12:48:40 (ora italiana), nuova · vento 7.8 kn, raffica 10.9 kn, dir 33.0° · coda 27 punti di dettaglio + 36 ore · ritardo 1 min
