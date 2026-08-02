@@ -24,7 +24,8 @@ const SLOT_NOMI = ["Mat","Pom","Ser"];
 let vistaModo  = "slot";
 let meteoCache = null;
 // Info sulla freschezza delle RAFFICHE (il dato critico per chi va in acqua):
-// fonte 'live' = preso in tempo reale ora; 'cache' = dal file GitHub (generated_at)
+// fonte 'cache' = file già pronto entro la soglia; 'ritardo' = stesso file ma
+// oltre la soglia, mostrato lo stesso e dichiarato all'utente.
 let raffInfo = { fonte: null, orario: null };
 const adesso = new Date();
 
@@ -41,16 +42,18 @@ function toLocalTime(isoString) {
 }
 
 // Testo dell'etichetta di freschezza per il grafico raffiche.
-// Fonte 'cache' (regime normale): mostriamo l'ora del generated_at del JSON.
-// Fonte 'live' (solo fallback provvisorio): dato preso in tempo reale ora.
+// Fonte 'cache'   (regime normale): mostriamo l'ora del generated_at del JSON.
+// Fonte 'ritardo' (file oltre la soglia): stessi dati, ma lo diciamo apertamente.
 function testoFreschezzaRaffiche(info) {
   const d = info.orario ? new Date(info.orario) : null;
   const oraValida = d && !isNaN(d.getTime());
-  if (info.fonte === 'live') {
-    const hhmmLive = oraValida
+  if (info.fonte === 'ritardo') {
+    const hhmmRit = oraValida
       ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
       : null;
-    return hhmmLive ? `Aggiornato in tempo reale · ${hhmmLive}` : 'Aggiornato in tempo reale';
+    return hhmmRit
+      ? `Previsioni delle ${hhmmRit} · aggiornamento in ritardo`
+      : 'Aggiornamento in ritardo';
   }
   if (!oraValida) return "aggiornata a ultima release disponibile";
 
@@ -130,24 +133,12 @@ function rettangolo(bg, scuro, temp, prob, mm, tipo, w, h, fs, nuvola) {
 }
 
 // ============================================================
-// CARICA DATI — Open-Meteo con fallback su JSON cachato
-// Se Open-Meteo risponde entro 3s → dati freschi
-// Se timeout o errore → JSON cachato (aggiornato ogni 30 min da GitHub Actions)
+// CARICA DATI — solo dal JSON già pronto del nostro sito
+// Il browser non chiama mai Open-Meteo: che i visitatori siano 10 o 10.000,
+// le chiamate a Open-Meteo restano quelle della sveglia automatica.
+// Se il file manca, la pagina lo dice; se è vecchio, mostra comunque i dati
+// dichiarando il ritardo (vedi caricaMeteo / caricaDati).
 // ============================================================
-
-async function fetchConTimeout(url, ms = 3000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
-  try {
-    const r = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return r;
-  } catch(e) {
-    clearTimeout(timer);
-    throw e;
-  }
-}
 
 async function caricaCache() {
   // Le pagine di prova possono puntare a una cartella dati diversa definendo
@@ -159,11 +150,10 @@ async function caricaCache() {
   return r.json();
 }
 
-// ---- FALLBACK PROVVISORIO ----
-// Regime normale: solo cache. Se la cache e' irraggiungibile o piu' vecchia
-// della soglia, si torna (provvisoriamente) alla chiamata diretta a Open-Meteo
-// e l'evento viene registrato (console + evento GA4 'cache_fallback').
-// Da rimuovere quando il sistema cache avra' dimostrato piena affidabilita'.
+// ---- SOGLIA DI RITARDO ----
+// Oltre questa eta' il file e' considerato in ritardo: i dati si mostrano
+// lo stesso (meglio previsioni di stamattina che una pagina vuota) ma
+// l'etichetta sotto il grafico lo dichiara, e l'evento viene registrato.
 const CACHE_MAX_ETA_ORE = 6;
 
 let _cachePromise = null;
@@ -201,7 +191,12 @@ function salvaPreferenza(chiave, valore) {
   try { localStorage.setItem(chiave, valore); } catch (e) { /* ignora */ }
 }
 
-function registraFallback(dove, motivo) {
+// Segnala che il file già pronto è in ritardo o irraggiungibile.
+// Il nome dell'evento GA4 resta 'cache_fallback' anche se il ripiego su
+// Open-Meteo non esiste più: cambiarlo spezzerebbe lo storico in Analytics.
+// Il significato ora è «l'utente non ha visto dati freschi», che è la cosa
+// che vogliamo continuare a misurare.
+function registraProblemaCache(dove, motivo) {
   console.warn(`[cache_fallback] ${dove}: ${motivo}`);
   try {
     if (typeof gtag === 'function') {
@@ -214,56 +209,17 @@ function registraFallback(dove, motivo) {
   } catch (e) { /* il log non deve mai rompere la pagina */ }
 }
 
-async function fetchMeteoOpenMeteo(timeout = 3000) {
-  const baseParams = {
-    latitude:  LAT_METEO,
-    longitude: LON_METEO,
-    hourly:    "temperature_2m,precipitation_probability,precipitation,weather_code",
-    timezone:  "Europe/Rome",
-  };
-  const [rCH1, rSeamless] = await Promise.all([
-    fetchConTimeout(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 2, models: "meteoswiss_icon_ch1" })}`, timeout),
-    fetchConTimeout(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ ...baseParams, forecast_days: 7, models: "icon_seamless" })}`, timeout),
-  ]);
-  const [ch1, seamless] = await Promise.all([rCH1.json(), rSeamless.json()]);
-  if (!ch1.hourly || !seamless.hourly) throw new Error("Dati mancanti");
-  const cutoff = ch1.hourly.time[ch1.hourly.time.length - 1];
-  const ore = [], temp = [], prob = [], mm = [], codici = [];
-  seamless.hourly.time.forEach((t, i) => {
-    if (t <= cutoff) {
-      const idx = ch1.hourly.time.indexOf(t);
-      if (idx !== -1) {
-        ore.push(toLocalTime(t)); temp.push(ch1.hourly.temperature_2m[idx]);
-        prob.push(ch1.hourly.precipitation_probability[idx]);
-        mm.push(ch1.hourly.precipitation[idx]); codici.push(ch1.hourly.weather_code[idx]);
-      }
-    } else {
-      ore.push(toLocalTime(t)); temp.push(seamless.hourly.temperature_2m[i]);
-      prob.push(seamless.hourly.precipitation_probability[i]);
-      mm.push(seamless.hourly.precipitation[i]); codici.push(seamless.hourly.weather_code[i]);
-    }
-  });
-  return { ore, temp, prob, mm, codici };
-}
-
 async function caricaMeteo() {
-  // ---- CACHE-FIRST con fallback provvisorio ----
-  // Via principale: il JSON statico del nostro sito (nessuna chiamata a
-  // Open-Meteo dal browser => nessun rischio 429 nei picchi di traffico).
-  // Solo se la cache manca o e' vecchia oltre soglia: chiamata diretta.
-  try {
-    const cache = await caricaCacheUnaVolta();
-    const eta = etaCacheOre(cache);
-    if (eta <= CACHE_MAX_ETA_ORE) {
-      const m = cache.meteo;
-      return { ore: m.time.map(toLocalTime), temp: m.temp, prob: m.prob, mm: m.mm, codici: m.codici };
-    }
-    registraFallback('meteo', `cache vecchia di ${eta.toFixed(1)}h`);
-  } catch (e) {
-    registraFallback('meteo', e.message);
+  // Solo file già pronto. Se è oltre soglia lo diciamo (evento + console) ma
+  // i dati si mostrano lo stesso. Se il file non si scarica proprio, l'errore
+  // sale al chiamante, che mostra il messaggio di indisponibilità.
+  const cache = await caricaCacheUnaVolta();
+  const eta = etaCacheOre(cache);
+  if (eta > CACHE_MAX_ETA_ORE) {
+    registraProblemaCache('meteo', `file vecchio di ${eta.toFixed(1)}h`);
   }
-  // Fallback: chiamata diretta a Open-Meteo (provvisorio)
-  return await fetchMeteoOpenMeteo(10000);
+  const m = cache.meteo;
+  return { ore: m.time.map(toLocalTime), temp: m.temp, prob: m.prob, mm: m.mm, codici: m.codici };
 }
 
 // ============================================================
@@ -469,53 +425,29 @@ function aggiornaBottoni() {
 // GRAFICO VENTO
 // ============================================================
 
-async function fetchRafficeOpenMeteo(timeout = 3000) {
-  const url = "https://api.open-meteo.com/v1/forecast";
-  return Promise.all(SPOTS.map(async spot => {
-    const params = new URLSearchParams({
-      latitude: spot.lat, longitude: spot.lon,
-      hourly: "wind_gusts_10m,wind_direction_10m",
-      forecast_days: 2, models: "meteoswiss_icon_ch1",
-    });
-    const r = await fetchConTimeout(`${url}?${params}`, timeout);
-    const d = await r.json();
-    if (!d.hourly) throw new Error("Dati mancanti");
-    return {
-      nome: spot.nome, colore: spot.colore,
-      raffiche: d.hourly.wind_gusts_10m.map(kmhToKn),
-      direzione: d.hourly.wind_direction_10m,
-      ore: d.hourly.time.map(toLocalTime),
-    };
-  }));
-}
-
 async function caricaDati() {
-  // ---- CACHE-FIRST con fallback provvisorio ----
-  // Via principale: il JSON statico (orario mostrato = generated_at del file).
-  // Solo se la cache manca o e' vecchia oltre soglia: chiamata diretta (4 spot).
-  try {
-    const cache = await caricaCacheUnaVolta();
-    const eta = etaCacheOre(cache);
-    if (eta <= CACHE_MAX_ETA_ORE) {
-      raffInfo = { fonte: 'cache', orario: cache.generated_at || null };
-      return cache.spots.map(s => ({
-        nome: s.nome, colore: s.colore,
-        raffiche: s.raffiche.map(kmhToKn),
-        // Presente solo nei file generati dopo l'aggiunta del vento medio:
-        // se manca, il grafico non mostra i pulsanti e resta come prima.
-        ventoMedio: Array.isArray(s.vento_medio) ? s.vento_medio.map(kmhToKn) : null,
-        direzione: s.direzione,
-        ore: s.time.map(toLocalTime),
-      }));
-    }
-    registraFallback('raffiche', `cache vecchia di ${eta.toFixed(1)}h`);
-  } catch (e) {
-    registraFallback('raffiche', e.message);
+  // Solo file già pronto (orario mostrato = generated_at del file).
+  // Oltre soglia i dati si mostrano lo stesso, con l'etichetta che dichiara
+  // il ritardo. Se il file non si scarica, l'errore sale al chiamante.
+  const cache = await caricaCacheUnaVolta();
+  const eta = etaCacheOre(cache);
+  const inRitardo = eta > CACHE_MAX_ETA_ORE;
+  if (inRitardo) {
+    registraProblemaCache('raffiche', `file vecchio di ${eta.toFixed(1)}h`);
   }
-  // Fallback: chiamata diretta a Open-Meteo (provvisorio)
-  const dati = await fetchRafficeOpenMeteo(10000);
-  raffInfo = { fonte: 'live', orario: new Date().toISOString() };
-  return dati;
+  raffInfo = {
+    fonte: inRitardo ? 'ritardo' : 'cache',
+    orario: cache.generated_at || null,
+  };
+  return cache.spots.map(s => ({
+    nome: s.nome, colore: s.colore,
+    raffiche: s.raffiche.map(kmhToKn),
+    // Presente solo nei file generati dopo l'aggiunta del vento medio:
+    // se manca, il grafico non mostra i pulsanti e resta come prima.
+    ventoMedio: Array.isArray(s.vento_medio) ? s.vento_medio.map(kmhToKn) : null,
+    direzione: s.direzione,
+    ore: s.time.map(toLocalTime),
+  }));
 }
 
 function disegnaGrafico(dati) {
@@ -749,15 +681,15 @@ async function init() {
   });
     const chartRef = disegnaGrafico(dati);
 
-    // Etichetta di freschezza, mostrata SEMPRE:
-    // - dato live  → segnale di freschezza (valore aggiunto)
-    // - dato cache → trasparenza sull'orario dell'ultimo aggiornamento
+    // Etichetta di freschezza, mostrata SEMPRE: trasparenza sull'orario
+    // dell'ultimo aggiornamento.
     // Posizionata dentro l'area del grafico, appena sopra i numeri delle ore
     // (non in fondo al canvas, per non sovrapporsi alle frecce di direzione).
     const testoFresch = testoFreschezzaRaffiche(raffInfo);
     if (testoFresch) {
-      // Grigia in regime cache (normale), verde se e' scattato il fallback live.
-      const colore = raffInfo.fonte === 'live' ? '#1b9e3e' : '#94a3b8';
+      // Grigia in regime normale, arancione se il file è oltre la soglia:
+      // stesso arancione del messaggio di indisponibilità qui sotto.
+      const colore = raffInfo.fonte === 'ritardo' ? '#e65100' : '#94a3b8';
       // chartArea.bottom è il bordo inferiore dell'area dati (sopra i tick delle ore).
       // chartArea.left è il bordo sinistro (subito a destra dell'asse Y / ordinate).
       const area = (chartRef && chartRef.chartArea) ? chartRef.chartArea : null;
