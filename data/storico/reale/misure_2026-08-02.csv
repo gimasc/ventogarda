@@ -1,3 +1,4 @@
 istante_utc,istante_italia,localita,stazione,vento_medio_kn,raffica_kn,direzione_gradi,direzione_testo,vento_medio_ms,raffica_ms,temperatura_c,umidita_pct,punto_rugiada_c,pressione_hpa,radiazione_wm2,uv,pioggia_mm,pioggia_giorno_mm
 2026-08-01 22:08:40,2026-08-02 00:08:40,torbole,circolo_surf_torbole,7.8,13.8,55.0,NE,4.0,7.1,26.9,55.0,17.08,1007.3,0.0,0.0,0.0,0.0
 2026-08-01 23:12:40,2026-08-02 01:12:40,torbole,circolo_surf_torbole,8.7,19.8,329.0,NNW,4.5,10.2,26.2,58.0,17.27,1007.2,0.0,0.0,0.0,0.0
+2026-08-02 00:16:41,2026-08-02 02:16:41,torbole,circolo_surf_torbole,8.6,10.9,22.0,NNE,4.4,5.6,25.6,60.0,17.25,1006.89,0.0,0.0,0.0,0.0
