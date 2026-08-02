@@ -1,4 +1,10 @@
 name: Rilevazione reale Torbole
+# Una scrittura per volta sul repository. Se un altro lavoro sta gia'
+# salvando, questo aspetta il suo turno invece di sovrapporsi: e' cosi'
+# che si evita il push respinto (non-fast-forward).
+concurrency:
+  group: scrittura-repository
+  cancel-in-progress: false
 # Legge la stazione meteo del Circolo Surf Torbole (via relivecam.it) e salva
 # il dato misurato: data/reale_torbole.json per il sito, un file al giorno in
 # data/storico/reale/ per l'archivio.

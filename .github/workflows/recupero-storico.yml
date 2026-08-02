@@ -1,4 +1,10 @@
 name: Recupero storico (una volta sola)
+# Una scrittura per volta sul repository. Se un altro lavoro sta gia'
+# salvando, questo aspetta il suo turno invece di sovrapporsi: e' cosi'
+# che si evita il push respinto (non-fast-forward).
+concurrency:
+  group: scrittura-repository
+  cancel-in-progress: false
 # Ricostruisce l'archivio leggendo TUTTA la storia di Git: ogni salvataggio
 # passato dei JSON e' uno snapshot esatto di cio' che gli utenti hanno visto.
 # Si avvia solo a mano (pulsante "Run workflow"). Rieseguirlo non crea

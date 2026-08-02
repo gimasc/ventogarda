@@ -1,4 +1,10 @@
 name: Update meteo cache TEST
+# Una scrittura per volta sul repository. Se un altro lavoro sta gia'
+# salvando, questo aspetta il suo turno invece di sovrapporsi: e' cosi'
+# che si evita il push respinto (non-fast-forward).
+concurrency:
+  group: scrittura-repository
+  cancel-in-progress: false
 # Versione di PROVA: esegue update_meteo_cache_test.py e salva in data/test/.
 # Non tocca i file usati dal sito. Da eliminare a prova conclusa.
 on:

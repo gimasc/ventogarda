@@ -1,4 +1,10 @@
 name: Mantieni repository attivo
+# Una scrittura per volta sul repository. Se un altro lavoro sta gia'
+# salvando, questo aspetta il suo turno invece di sovrapporsi: e' cosi'
+# che si evita il push respinto (non-fast-forward).
+concurrency:
+  group: scrittura-repository
+  cancel-in-progress: false
 
 on:
   schedule:
