@@ -107,12 +107,43 @@
     </div>
   </div>
 -->
-  <!-- MIXED CHART TUTTO IN KN -->
+  <!-- MIXED CHART SU RAFFICHE — gemella di quella sotto, con due sole differenze:
+       Meteotrentino porta le RAFFICHE invece del vento medio, e le prende su
+       Torbole invece che su Riva. Cosi' l'indice confronta grandezze omogenee
+       (raffiche con raffiche) prese nello stesso punto. Formula invariata. -->
   <div class="card card--red">
     <div class="card-header">
       <div>
-        <div class="label">Interpolazione · Indice Vento</div>
-        <div class="sub">Meteotrentino barre rosse · MeteoSwiss linea blu · Pressione gialla (asse dx)</div>
+        <div class="label">Interpolazione · Indice Vento — raffiche</div>
+        <div class="sub">Raffiche di entrambi i modelli, su Torbole · Pressione gialla (asse dx)</div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:.5rem .9rem;">
+      <div class="cruscotto-legenda">
+        <span><span class="dot" style="background:#e63c1e"></span>Meteotrentino ICON-2I raffiche (kn)</span>
+        <span><span class="dot" style="background:#1a3a5c"></span>MeteoSwiss ICON-CH1 raffiche (kn)</span>
+        <span><span class="dot" style="background:#0ea5e9"></span>ΔP Brescia–Bolzano (hPa) — asse dx</span>
+        <span><span class="dot" style="background:#7c3aed"></span>Indice vento</span>
+      </div>
+    </div>
+    <div id="mixedraff-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
+      Caricamento…
+    </div>
+    <div class="img-wrap img-scroll" id="mixedraff-wrap" style="padding:0;">
+      <canvas id="mixedraff-canvas"></canvas>
+    </div>
+    <div class="card-footer">
+      <span>MeteoSwiss ICON-CH1 · Meteotrentino ICON-2I · DWD MOSMIX-L</span>
+    </div>
+  </div>
+
+  <!-- MIXED CHART TUTTO IN KN — versione originale: Meteotrentino porta il
+       VENTO MEDIO, e lo prende su Riva. Tenuta come termine di paragone. -->
+  <div class="card card--red">
+    <div class="card-header">
+      <div>
+        <div class="label">Interpolazione · Indice Vento — vento medio</div>
+        <div class="sub">Meteotrentino vento medio su Riva · MeteoSwiss raffiche · Pressione gialla (asse dx)</div>
       </div>
     </div>
     <div class="card-body" style="padding:.5rem .9rem;">
@@ -135,7 +166,6 @@
   </div>
 
   <!-- CARD 4: RAFFICHE VS RAFFICHE -->
-   <!--
   <div class="card card--red">
     <div class="card-header">
       <div>
@@ -160,7 +190,6 @@
       <span>MeteoSwiss ICON-CH1 · Meteotrentino ICON-2I · DWD MOSMIX-L</span>
     </div>
   </div>
-  -->
 
 <footer>
   <p class="footer-sources">Dati: MeteoSwiss ICON-CH1 · Meteotrentino ICON-2I · DWD MOSMIX-L via Open-Meteo</p>
@@ -817,7 +846,7 @@ async function initMixedKn() {
         datasets: [
           {
             type: 'bar',
-            label: 'Meteotrentino ICON-2I (kn)',
+            label: 'Meteotrentino',
             data: icon2iFirmato,
             backgroundColor: '#e63c1ecc',
             borderColor: '#e63c1e',
@@ -827,7 +856,7 @@ async function initMixedKn() {
           },
           {
             type: 'line',
-            label: 'MeteoSwiss ICON-CH1 (kn)',
+            label: 'MeteoSwiss',
             data: ch1Firmato,
             borderColor: '#1a3a5c',
             borderWidth: 2.5,
@@ -838,7 +867,7 @@ async function initMixedKn() {
           },
           {
             type: 'line',
-            label: 'ΔP Brescia–Bolzano (hPa)',
+            label: 'ΔP',
             data: dataPress,
             borderColor: '#0ea5e9',
             backgroundColor: '#0ea5e9',
@@ -852,7 +881,7 @@ async function initMixedKn() {
           },
           {
             type: 'line',
-            label: 'Indice vento',
+            label: 'Indice',
             data: dataIndice,
             borderColor: '#7c3aed',
             backgroundColor: '#7c3aed',
@@ -877,18 +906,24 @@ async function initMixedKn() {
             bodyColor: '#1a1a1a',
             borderColor: '#d8d4cc',
             borderWidth: 1,
+            // Tooltip essenziale: niente intestazione con la data (l'ora si legge
+            // sull'asse) e niente verso Ora/Peler (si vede dal segno del grafico).
+            // L'indice sta in seconda riga, subito sotto il primo modello.
+            itemSort(a, b) {
+              const rango = l => l === 'Meteotrentino' ? 0 : l === 'Indice' ? 1 : l === 'MeteoSwiss' ? 2 : 3;
+              return rango(a.dataset.label) - rango(b.dataset.label);
+            },
             callbacks: {
+              title: () => [],
               labelColor(ctx) {
-                const c = ctx.dataset.label === 'Indice vento' ? indiceColor(ctx.parsed.y) : (ctx.dataset.borderColor || ctx.dataset.backgroundColor);
+                const c = ctx.dataset.label === 'Indice' ? indiceColor(ctx.parsed.y) : (ctx.dataset.borderColor || ctx.dataset.backgroundColor);
                 return { borderColor: c, backgroundColor: c };
               },
               label(ctx) {
                 const v = ctx.parsed.y;
-                const val = v !== null ? Math.abs(v).toFixed(1) : '—';
-                if (ctx.dataset.yAxisID === 'yPress') return `${ctx.dataset.label}: ${v?.toFixed(1)} hPa`;
-                const verso = v > 0 ? ' (Ora/Sud)' : v < 0 ? ' (Pelèr/Nord)' : '';
-                if (ctx.dataset.label === 'Indice vento') return `${ctx.dataset.label}: ${val} kn`;
-                return `${ctx.dataset.label}: ${val} kn${verso}`;
+                if (v === null || v === undefined) return `${ctx.dataset.label}: —`;
+                if (ctx.dataset.yAxisID === 'yPress') return `${ctx.dataset.label}: ${v.toFixed(1)} hPa`;
+                return `${ctx.dataset.label}: ${Math.abs(v).toFixed(1)} kn`;
               }
             }
           }
@@ -951,6 +986,215 @@ async function initMixedKn() {
 }
 
 initMixedKn();
+
+async function initMixedRaffiche() {
+  try {
+    const [ch1, icon2i] = await Promise.all([
+      fetchVento('meteoswiss_icon_ch1', 2, 'wind_gusts_10m,wind_direction_10m'),
+      fetchVento('italia_meteo_arpae_icon_2i', 3, 'wind_gusts_10m,wind_direction_10m', 45.86212, 10.87536, 'kn')
+    ]);
+
+    // Pressione isolata: un suo fallimento NON deve impedire il disegno del vento
+    let pressione = [];
+    try {
+      pressione = await fetchPressione();
+    } catch (ep) {
+      console.warn('[Pressione] fetch fallita:', ep.message, '— il grafico vento procede senza pressione.');
+    }
+
+    document.getElementById('mixedraff-status').style.display = 'none';
+
+    const times = ch1.time;
+
+    // --- MeteoSwiss: intensità (raffiche) + direzione → segno ---
+    const rafficheCH1 = ch1.wind_gusts_10m;
+    const segniCH1 = risolviSegni(ch1.wind_direction_10m);
+    const ch1Firmato = applicaSegno(rafficheCH1, segniCH1);
+
+    // --- Meteotrentino: RAFFICHE + direzione → segno ---
+    //     Differenza dall'altra scheda: qui si confrontano raffiche con
+    //     raffiche, e il punto e' Torbole per entrambi i modelli.
+    const icon2iMap = buildSeriesMap(icon2i.time, icon2i.wind_gusts_10m);
+    const icon2iDirMap = buildSeriesMap(icon2i.time, icon2i.wind_direction_10m);
+    const dataICON2Ikn = times.map(t => icon2iMap[t] ?? null);
+    const dirICON2I = times.map(t => icon2iDirMap[t] ?? null);
+    const segniICON2I = risolviSegni(dirICON2I);
+    const icon2iFirmato = applicaSegno(dataICON2Ikn, segniICON2I);
+
+    const dataPress = buildInterpolatedPressureSeries(pressione, times);
+    const dataIndice = times.map((t, i) => calcolaIndiceVento(rafficheCH1[i], dataICON2Ikn[i], dataPress[i]));
+
+    // Diagnostica pressione: quanti punti validi? (visibile in console)
+    const pressValidi = dataPress.filter(Number.isFinite).length;
+    console.log(`[Pressione] righe sorgente: ${pressione.length}, punti interpolati validi: ${pressValidi}/${times.length}`);
+    if (pressione.length) {
+      console.log('[Pressione] esempio prima riga sorgente:', pressione[0]);
+      console.log('[Pressione] esempio primo time vento:', times[0]);
+    }
+
+    const wrap = document.getElementById('mixedraff-wrap');
+    const visibleW = wrap ? wrap.clientWidth : 800;
+    const pxPerHour = Math.max(visibleW / Math.min(times.length, 168), 12);
+    const w = Math.round(times.length * pxPerHour);
+
+    const ctx = document.getElementById('mixedraff-canvas');
+    ctx.style.width = w + 'px';
+    ctx.width = w;
+    ctx.style.height = '420px';
+    ctx.height = 420;
+
+    // Range Y simmetrico attorno allo zero, considerando vento firmato E indice
+    const tuttiValori = [...ch1Firmato, ...icon2iFirmato, ...dataIndice]
+      .filter(Number.isFinite).map(Math.abs);
+    const maxVento = tuttiValori.length ? Math.max(...tuttiValori) : 30;
+    const ventoLim = Math.ceil((maxVento + 2) / 5) * 5; // arrotonda a multipli di 5
+
+    const chartMkn = new Chart(ctx, {
+      data: {
+        labels: times,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Meteotrentino',
+            data: icon2iFirmato,
+            backgroundColor: '#e63c1ecc',
+            borderColor: '#e63c1e',
+            borderWidth: 1,
+            yAxisID: 'yVento',
+            order: 3
+          },
+          {
+            type: 'line',
+            label: 'MeteoSwiss',
+            data: ch1Firmato,
+            borderColor: '#1a3a5c',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            tension: 0.3,
+            yAxisID: 'yVento',
+            order: 2
+          },
+          {
+            type: 'line',
+            label: 'ΔP',
+            data: dataPress,
+            borderColor: '#0ea5e9',
+            backgroundColor: '#0ea5e9',
+            borderWidth: 2.5,
+            borderDash: [],
+            pointRadius: 0,
+            spanGaps: true,
+            tension: 0.2,
+            yAxisID: 'yPress',
+            order: 4
+          },
+          {
+            type: 'line',
+            label: 'Indice',
+            data: dataIndice,
+            borderColor: '#7c3aed',
+            backgroundColor: '#7c3aed',
+            borderWidth: 3,
+            pointRadius: 0,
+            tension: 0.25,
+            yAxisID: 'yVento',
+            order: 0
+          }
+        ]
+      },
+      options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        layout: { padding: { bottom: 78 } },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(242,240,235,0.97)',
+            titleColor: '#1a1a1a',
+            bodyColor: '#1a1a1a',
+            borderColor: '#d8d4cc',
+            borderWidth: 1,
+            // Tooltip essenziale: niente intestazione con la data (l'ora si legge
+            // sull'asse) e niente verso Ora/Peler (si vede dal segno del grafico).
+            // L'indice sta in seconda riga, subito sotto il primo modello.
+            itemSort(a, b) {
+              const rango = l => l === 'Meteotrentino' ? 0 : l === 'Indice' ? 1 : l === 'MeteoSwiss' ? 2 : 3;
+              return rango(a.dataset.label) - rango(b.dataset.label);
+            },
+            callbacks: {
+              title: () => [],
+              labelColor(ctx) {
+                const c = ctx.dataset.label === 'Indice' ? indiceColor(ctx.parsed.y) : (ctx.dataset.borderColor || ctx.dataset.backgroundColor);
+                return { borderColor: c, backgroundColor: c };
+              },
+              label(ctx) {
+                const v = ctx.parsed.y;
+                if (v === null || v === undefined) return `${ctx.dataset.label}: —`;
+                if (ctx.dataset.yAxisID === 'yPress') return `${ctx.dataset.label}: ${v.toFixed(1)} hPa`;
+                return `${ctx.dataset.label}: ${Math.abs(v).toFixed(1)} kn`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            offset: false,
+            ticks: {
+              maxRotation: 0,
+              autoSkip: false,
+              callback: function(val, index) {
+                return buildHourTickLabelDense(times, index);
+              }
+            },
+            grid: {
+              display: true,
+              offset: false,
+              color: (c) => {
+                // Linea verticale solo dove c'è un'etichetta (ore pari)
+                const h = times[c.index] ? parseInt(times[c.index].slice(11, 13), 10) : -1;
+                return h % 2 === 0 ? '#cfd6de' : 'transparent';
+              },
+              lineWidth: 1,
+              drawTicks: false
+            }
+          },
+          yVento: {
+            position: 'left',
+            title: { display: true, text: 'Pelèr ← kn → Ora' },
+            grid: { color: '#edf0f5' },
+            ticks: { color: '#1a3a5c', callback: v => Math.abs(v) },
+            min: -ventoLim,
+            max: ventoLim
+          },
+          yPress: {
+            position: 'right',
+            title: { display: true, text: 'ΔP (hPa)', color: '#0ea5e9' },
+            grid: { display: false },
+            ticks: { color: '#0ea5e9' },
+            min: -MAX_PRESS_ABS,
+            max: MAX_PRESS_ABS
+          }
+        }
+      },
+      plugins: [pluginSoglie('soglieMkn'), pluginFrecceDue('frecceMkn'), pluginAsseTempo('tempoMkn')]
+    });
+
+    // Aggancio le direzioni grezze per le due file di frecce
+    // (riga 0 = Meteotrentino rosso, riga 1 = MeteoSwiss blu)
+    chartMkn.$frecce = [
+      { dir: dirICON2I, colore: '#e63c1e', riga: 0 },
+      { dir: ch1.wind_direction_10m, colore: '#1a3a5c', riga: 1 }
+    ];
+    chartMkn.$times = times;
+    chartMkn.update();
+  } catch(err) {
+    document.getElementById('mixedraff-status').textContent = 'Errore: ' + err.message;
+    console.error(err);
+  }
+}
+
+initMixedRaffiche();
 
 async function initR2R() {
   try {
