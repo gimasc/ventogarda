@@ -107,10 +107,10 @@
     </div>
   </div>
 -->
-  <!-- MIXED CHART SU RAFFICHE — gemella di quella sotto, con due sole differenze:
-       Meteotrentino porta le RAFFICHE invece del vento medio, e le prende su
-       Torbole invece che su Riva. Cosi' l'indice confronta grandezze omogenee
-       (raffiche con raffiche) prese nello stesso punto. Formula invariata. -->
+  <!-- PRIMA DELLA COPPIA — raffiche. Entrambi i modelli portano le raffiche,
+       sullo stesso punto (Torbole). La gemella qui sotto fa lo stesso con il
+       vento medio: insieme dicono se conviene costruire l'indice sulle raffiche
+       o sul vento medio. Formula identica nelle due. -->
   <div class="card card--red">
     <div class="card-header">
       <div>
@@ -137,28 +137,28 @@
     </div>
   </div>
 
-  <!-- MIXED CHART TUTTO IN KN — versione originale: Meteotrentino porta il
-       VENTO MEDIO, e lo prende su Riva. Tenuta come termine di paragone. -->
+  <!-- SECONDA DELLA COPPIA — vento medio. Stessa formula e stesso punto della
+       scheda sopra, ma entrambi i modelli portano il vento medio. -->
   <div class="card card--red">
     <div class="card-header">
       <div>
         <div class="label">Interpolazione · Indice Vento — vento medio</div>
-        <div class="sub">Meteotrentino vento medio su Riva · MeteoSwiss raffiche · Pressione gialla (asse dx)</div>
+        <div class="sub">Vento medio di entrambi i modelli, su Torbole · Pressione gialla (asse dx)</div>
       </div>
     </div>
     <div class="card-body" style="padding:.5rem .9rem;">
       <div class="cruscotto-legenda">
-        <span><span class="dot" style="background:#e63c1e"></span>Meteotrentino ICON-2I (kn)</span>
-        <span><span class="dot" style="background:#1a3a5c"></span>MeteoSwiss ICON-CH1 (kn)</span>
+        <span><span class="dot" style="background:#e63c1e"></span>Meteotrentino ICON-2I vento medio (kn)</span>
+        <span><span class="dot" style="background:#1a3a5c"></span>MeteoSwiss ICON-CH1 vento medio (kn)</span>
         <span><span class="dot" style="background:#0ea5e9"></span>ΔP Brescia–Bolzano (hPa) — asse dx</span>
         <span><span class="dot" style="background:#7c3aed"></span>Indice vento</span>
       </div>
     </div>
-    <div id="mixedkn-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
+    <div id="mixedvento-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
       Caricamento…
     </div>
-    <div class="img-wrap img-scroll" id="mixedkn-wrap" style="padding:0;">
-      <canvas id="mixedkn-canvas"></canvas>
+    <div class="img-wrap img-scroll" id="mixedvento-wrap" style="padding:0;">
+      <canvas id="mixedvento-canvas"></canvas>
     </div>
     <div class="card-footer">
       <span>MeteoSwiss ICON-CH1 · Meteotrentino ICON-2I · DWD MOSMIX-L</span>
@@ -416,13 +416,91 @@ function applicaSegno(valori, segni) {
 }
 
 // [Inferenza] Formula proposta: media dei due modelli + contributo della pressione - penalità per disaccordo.
-function calcolaIndiceVento(swKn, trKn, deltaPressHpa) {
+// Parametri dell'indice, SEPARATI PER REGIME. Il Peler e' un fatto di
+// pressione, l'Ora e' un fatto di sole: i due non possono avere gli stessi
+// pesi. Tutti i numeri stanno qui, in modo che affinarli non richieda di
+// rimettere le mani nella formula.
+//
+// pesiExtra e' il gancio per la variabile che uscira' dall'analisi in corso:
+// bastera' aggiungerla qui con il suo peso (diverso per regime) e passarla
+// come quarto argomento. Finche' resta vuoto non cambia nulla.
+const REGIMI = {
+  ora: {
+    nome: 'Óra',
+    pesoSw:        0.65,   // MeteoSwiss e' il piu' affidabile sull'arco alpino
+    pesoTr:        0.35,   // Meteotrentino tende a sottostimare
+    pesoModelli:   0.75,   // i modelli comandano
+    pesoPressione: 0.25,   // la pressione conferma o smorza
+    penalita:      0.15,   // quanto pesa il disaccordo fra i due modelli
+    pesiExtra:     {}
+  },
+  peler: {
+    nome: 'Pelèr',
+    pesoSw:        0.65,
+    pesoTr:        0.35,
+    pesoModelli:   0.50,   // qui la pressione vale quanto i modelli
+    pesoPressione: 0.50,
+    penalita:      0.15,
+    pesiExtra:     {}
+  }
+};
+
+// NODI IMPLICITI DALLA PRESSIONE: equivalenza empirica ±2 hPa ≈ ±20 nodi.
+const KN_PER_HPA = 10;
+
+// swKn e trKn arrivano GIA' FIRMATI: positivi da sud (Ora), negativi da nord (Peler).
+// Restituisce { kn, verso } oppure { nd: true } se i due modelli si contraddicono
+// sulla direzione, oppure null se manca un ingrediente.
+function calcolaIndiceVento(swKn, trKn, deltaPressHpa, extra = {}) {
   if (![swKn, trKn, deltaPressHpa].every(Number.isFinite)) return null;
-  const media = (swKn + trKn) / 2;
-  const penalitaDisaccordo = Math.abs(swKn - trKn) * 0.35;
-  const contributoPressione = deltaPressHpa * 4;
-  const indice = media + contributoPressione - penalitaDisaccordo;
-  return Math.max(0, Math.min(40, Number(indice.toFixed(1))));
+
+  // Un modello dice Ora e l'altro Peler: non c'e' un indice onesto da dare.
+  if (swKn * trKn < 0) return { nd: true };
+
+  // Media PESATA: i pesi sono nel regime, ma per sceglierlo serve gia' il verso.
+  // La direzione non dipende dai pesi (sono uguali nei due regimi), quindi la
+  // decido sulla media semplice e poi calcolo quella pesata.
+  const verso = (swKn + trKn) >= 0 ? 1 : -1;  // il verso lo decide la media
+  const R = verso > 0 ? REGIMI.ora : REGIMI.peler;
+  const media = swKn * R.pesoSw + trKn * R.pesoTr;
+
+  let grezzo = media * R.pesoModelli
+             + (deltaPressHpa * KN_PER_HPA) * R.pesoPressione;
+  for (const [nome, peso] of Object.entries(R.pesiExtra)) {
+    if (Number.isFinite(extra[nome])) grezzo += extra[nome] * peso;
+  }
+
+  // grezzo * verso = quanto il conto conferma la direzione dei modelli.
+  // Se la pressione li ribalta il prodotto e' negativo e l'indice va a zero:
+  // una pressione contraria puo' annullare, non puo' creare vento opposto.
+  const intensita = grezzo * verso - Math.abs(swKn - trKn) * R.penalita;
+
+  return { kn: Math.min(40, Number(Math.max(0, intensita).toFixed(1))), verso };
+}
+
+// Cerchietto sullo zero dove l'indice e' n.d. (modelli discordi): lo spazio
+// vuoto da solo non distingue "non lo sappiamo" da "non c'e' vento".
+function pluginIndiceNd(id, nd) {
+  return {
+    id,
+    afterDraw(chart) {
+      const { ctx, scales: { x, yVento } } = chart;
+      if (!yVento) return;
+      const y0 = yVento.getPixelForValue(0);
+      ctx.save();
+      ctx.strokeStyle = '#7c3aed';
+      ctx.lineWidth = 1.4;
+      for (let i = 0; i < nd.length; i++) {
+        if (!nd[i]) continue;
+        const xPos = x.getPixelForValue(i);
+        if (xPos == null || isNaN(xPos)) continue;
+        ctx.beginPath();
+        ctx.arc(xPos, y0, 3, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  };
 }
 
 function pluginSoglie(id, colors={zero:'#555', pos:'#1565c066', neg:'#c6282866'}) {
@@ -780,11 +858,11 @@ function pluginFrecceDue(id) {
   };
 }
 
-async function initMixedKn() {
+async function initMixedVento() {
   try {
     const [ch1, icon2i] = await Promise.all([
-      fetchVento('meteoswiss_icon_ch1', 2, 'wind_gusts_10m,wind_direction_10m'),
-      fetchVento('italia_meteo_arpae_icon_2i', 3, 'wind_speed_10m,wind_direction_10m', 45.867, 10.855, 'kn')
+      fetchVento('meteoswiss_icon_ch1', 2, 'wind_speed_10m,wind_direction_10m'),
+      fetchVento('italia_meteo_arpae_icon_2i', 3, 'wind_speed_10m,wind_direction_10m', 45.86212, 10.87536, 'kn')
     ]);
 
     // Pressione isolata: un suo fallimento NON deve impedire il disegno del vento
@@ -795,12 +873,14 @@ async function initMixedKn() {
       console.warn('[Pressione] fetch fallita:', ep.message, '— il grafico vento procede senza pressione.');
     }
 
-    document.getElementById('mixedkn-status').style.display = 'none';
+    document.getElementById('mixedvento-status').style.display = 'none';
 
     const times = ch1.time;
 
-    // --- MeteoSwiss: intensità (raffiche) + direzione → segno ---
-    const rafficheCH1 = ch1.wind_gusts_10m;
+    // --- MeteoSwiss: VENTO MEDIO + direzione → segno ---
+    //     Gemella della scheda sopra: li' raffiche contro raffiche, qui vento
+    //     medio contro vento medio. Stesso punto (Torbole), stessa formula.
+    const rafficheCH1 = ch1.wind_speed_10m;
     const segniCH1 = risolviSegni(ch1.wind_direction_10m);
     const ch1Firmato = applicaSegno(rafficheCH1, segniCH1);
 
@@ -813,7 +893,11 @@ async function initMixedKn() {
     const icon2iFirmato = applicaSegno(dataICON2Ikn, segniICON2I);
 
     const dataPress = buildInterpolatedPressureSeries(pressione, times);
-    const dataIndice = times.map((t, i) => calcolaIndiceVento(rafficheCH1[i], dataICON2Ikn[i], dataPress[i]));
+    // Ai modelli si passano i valori FIRMATI: il segno porta la direzione.
+    const calcoli     = times.map((t, i) => calcolaIndiceVento(ch1Firmato[i], icon2iFirmato[i], dataPress[i]));
+    const dataIndice  = calcoli.map(c => (c && !c.nd) ? c.kn    : null);
+    const versiIndice = calcoli.map(c => (c && !c.nd) ? c.verso : null);
+    const ndIndice    = calcoli.map(c => !!(c && c.nd));
 
     // Diagnostica pressione: quanti punti validi? (visibile in console)
     const pressValidi = dataPress.filter(Number.isFinite).length;
@@ -823,12 +907,12 @@ async function initMixedKn() {
       console.log('[Pressione] esempio primo time vento:', times[0]);
     }
 
-    const wrap = document.getElementById('mixedkn-wrap');
+    const wrap = document.getElementById('mixedvento-wrap');
     const visibleW = wrap ? wrap.clientWidth : 800;
     const pxPerHour = Math.max(visibleW / Math.min(times.length, 168), 12);
     const w = Math.round(times.length * pxPerHour);
 
-    const ctx = document.getElementById('mixedkn-canvas');
+    const ctx = document.getElementById('mixedvento-canvas');
     ctx.style.width = w + 'px';
     ctx.width = w;
     ctx.style.height = '420px';
@@ -906,15 +990,18 @@ async function initMixedKn() {
             bodyColor: '#1a1a1a',
             borderColor: '#d8d4cc',
             borderWidth: 1,
-            // Tooltip essenziale: niente intestazione con la data (l'ora si legge
-            // sull'asse) e niente verso Ora/Peler (si vede dal segno del grafico).
-            // L'indice sta in seconda riga, subito sotto il primo modello.
+            // Tooltip essenziale: in testa solo l'ora (la data si legge sull'asse
+            // sotto il grafico), poi l'indice, poi il resto. Niente verso
+            // Ora/Peler: si vede dal segno nel grafico.
             itemSort(a, b) {
-              const rango = l => l === 'Meteotrentino' ? 0 : l === 'Indice' ? 1 : l === 'MeteoSwiss' ? 2 : 3;
+              const rango = l => l === 'Indice' ? 0 : l === 'Meteotrentino' ? 1 : l === 'MeteoSwiss' ? 2 : 3;
               return rango(a.dataset.label) - rango(b.dataset.label);
             },
             callbacks: {
-              title: () => [],
+              title: (items) => {
+                const t = times[items[0].dataIndex];
+                return t ? t.slice(11, 16) : '';
+              },
               labelColor(ctx) {
                 const c = ctx.dataset.label === 'Indice' ? indiceColor(ctx.parsed.y) : (ctx.dataset.borderColor || ctx.dataset.backgroundColor);
                 return { borderColor: c, backgroundColor: c };
@@ -923,8 +1010,16 @@ async function initMixedKn() {
                 const v = ctx.parsed.y;
                 if (v === null || v === undefined) return `${ctx.dataset.label}: —`;
                 if (ctx.dataset.yAxisID === 'yPress') return `${ctx.dataset.label}: ${v.toFixed(1)} hPa`;
+                if (ctx.dataset.label === 'Indice') {
+                  const f = versiIndice[ctx.dataIndex];
+                  const freccia = f > 0 ? ' ↑' : f < 0 ? ' ↓' : '';
+                  return `Indice: ${Math.abs(v).toFixed(1)} kn${freccia}`;
+                }
                 return `${ctx.dataset.label}: ${Math.abs(v).toFixed(1)} kn`;
-              }
+              },
+              // La riga dell'indice sparirebbe del tutto quando e' nulla:
+              // questa la rimette, dicendo perche'.
+              afterBody: (items) => ndIndice[items[0].dataIndex] ? 'Indice: n.d.' : ''
             }
           }
         },
@@ -968,7 +1063,7 @@ async function initMixedKn() {
           }
         }
       },
-      plugins: [pluginSoglie('soglieMkn'), pluginFrecceDue('frecceMkn'), pluginAsseTempo('tempoMkn')]
+      plugins: [pluginSoglie('soglieMkn'), pluginFrecceDue('frecceMkn'), pluginAsseTempo('tempoMkn'), pluginIndiceNd('ndMkn', ndIndice)]
     });
 
     // Aggancio le direzioni grezze per le due file di frecce
@@ -980,12 +1075,12 @@ async function initMixedKn() {
     chartMkn.$times = times;
     chartMkn.update();
   } catch(err) {
-    document.getElementById('mixedkn-status').textContent = 'Errore: ' + err.message;
+    document.getElementById('mixedvento-status').textContent = 'Errore: ' + err.message;
     console.error(err);
   }
 }
 
-initMixedKn();
+initMixedVento();
 
 async function initMixedRaffiche() {
   try {
@@ -1022,7 +1117,11 @@ async function initMixedRaffiche() {
     const icon2iFirmato = applicaSegno(dataICON2Ikn, segniICON2I);
 
     const dataPress = buildInterpolatedPressureSeries(pressione, times);
-    const dataIndice = times.map((t, i) => calcolaIndiceVento(rafficheCH1[i], dataICON2Ikn[i], dataPress[i]));
+    // Ai modelli si passano i valori FIRMATI: il segno porta la direzione.
+    const calcoli     = times.map((t, i) => calcolaIndiceVento(ch1Firmato[i], icon2iFirmato[i], dataPress[i]));
+    const dataIndice  = calcoli.map(c => (c && !c.nd) ? c.kn    : null);
+    const versiIndice = calcoli.map(c => (c && !c.nd) ? c.verso : null);
+    const ndIndice    = calcoli.map(c => !!(c && c.nd));
 
     // Diagnostica pressione: quanti punti validi? (visibile in console)
     const pressValidi = dataPress.filter(Number.isFinite).length;
@@ -1115,15 +1214,18 @@ async function initMixedRaffiche() {
             bodyColor: '#1a1a1a',
             borderColor: '#d8d4cc',
             borderWidth: 1,
-            // Tooltip essenziale: niente intestazione con la data (l'ora si legge
-            // sull'asse) e niente verso Ora/Peler (si vede dal segno del grafico).
-            // L'indice sta in seconda riga, subito sotto il primo modello.
+            // Tooltip essenziale: in testa solo l'ora (la data si legge sull'asse
+            // sotto il grafico), poi l'indice, poi il resto. Niente verso
+            // Ora/Peler: si vede dal segno nel grafico.
             itemSort(a, b) {
-              const rango = l => l === 'Meteotrentino' ? 0 : l === 'Indice' ? 1 : l === 'MeteoSwiss' ? 2 : 3;
+              const rango = l => l === 'Indice' ? 0 : l === 'Meteotrentino' ? 1 : l === 'MeteoSwiss' ? 2 : 3;
               return rango(a.dataset.label) - rango(b.dataset.label);
             },
             callbacks: {
-              title: () => [],
+              title: (items) => {
+                const t = times[items[0].dataIndex];
+                return t ? t.slice(11, 16) : '';
+              },
               labelColor(ctx) {
                 const c = ctx.dataset.label === 'Indice' ? indiceColor(ctx.parsed.y) : (ctx.dataset.borderColor || ctx.dataset.backgroundColor);
                 return { borderColor: c, backgroundColor: c };
@@ -1132,8 +1234,16 @@ async function initMixedRaffiche() {
                 const v = ctx.parsed.y;
                 if (v === null || v === undefined) return `${ctx.dataset.label}: —`;
                 if (ctx.dataset.yAxisID === 'yPress') return `${ctx.dataset.label}: ${v.toFixed(1)} hPa`;
+                if (ctx.dataset.label === 'Indice') {
+                  const f = versiIndice[ctx.dataIndex];
+                  const freccia = f > 0 ? ' ↑' : f < 0 ? ' ↓' : '';
+                  return `Indice: ${Math.abs(v).toFixed(1)} kn${freccia}`;
+                }
                 return `${ctx.dataset.label}: ${Math.abs(v).toFixed(1)} kn`;
-              }
+              },
+              // La riga dell'indice sparirebbe del tutto quando e' nulla:
+              // questa la rimette, dicendo perche'.
+              afterBody: (items) => ndIndice[items[0].dataIndex] ? 'Indice: n.d.' : ''
             }
           }
         },
@@ -1177,7 +1287,7 @@ async function initMixedRaffiche() {
           }
         }
       },
-      plugins: [pluginSoglie('soglieMkn'), pluginFrecceDue('frecceMkn'), pluginAsseTempo('tempoMkn')]
+      plugins: [pluginSoglie('soglieMkn'), pluginFrecceDue('frecceMkn'), pluginAsseTempo('tempoMkn'), pluginIndiceNd('ndMkn', ndIndice)]
     });
 
     // Aggancio le direzioni grezze per le due file di frecce
