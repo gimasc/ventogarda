@@ -6,6 +6,12 @@ Output:
   data/meteo_malcesine.json
 Viene eseguito dalla root della repository.
 
+Contenuto di ogni file:
+  meteo   timeline oraria (temperatura, pioggia, cielo) — MeteoSwiss + icon_seamless
+  spots   raffiche, direzione e vento medio per i 4 spot — MeteoSwiss ICON-CH1
+  icon2i  vento, raffiche e direzione sul centro localita' — modello Meteotrentino
+          (puo' essere null se quella singola chiamata fallisce)
+
 Robustezza:
   - retry con backoff su ogni chiamata (assorbe intoppi di rete transitori)
   - isolamento per localita' (una localita' che fallisce non fa crollare le altre)
@@ -134,6 +140,30 @@ def genera_localita(loc_id: str, cfg: dict) -> dict:
             "vento_medio": d["hourly"].get("wind_speed_10m"),
         })
 
+    # 3. Vento ICON-2I (il modello di Meteotrentino) sul centro della localita'.
+    #    Serve all'Indice Vento (interpolazione): la serie MeteoSwiss dell'indice
+    #    e' gia' nel file — lo spot "Conca d'Oro" ha le stesse coordinate del
+    #    centro Torbole — quindi qui manca solo il secondo modello.
+    #    ICON-2I copre 3 giorni contro i 2 degli spot: chi disegna deve allineare
+    #    per orario, non per posizione nell'elenco.
+    #    Opzionale per costruzione: se fallisce, icon2i resta None e tutto il
+    #    resto della cache viene salvato lo stesso.
+    icon2i_data = None
+    try:
+        d2i = fetch({
+            "latitude": cfg["lat_meteo"], "longitude": cfg["lon_meteo"],
+            "hourly": "wind_speed_10m,wind_direction_10m,wind_gusts_10m",
+            "forecast_days": 3, "models": "italia_meteo_arpae_icon_2i"
+        })
+        icon2i_data = {
+            "time":      d2i["hourly"]["time"],
+            "vento":     d2i["hourly"]["wind_speed_10m"],
+            "direzione": d2i["hourly"]["wind_direction_10m"],
+            "raffiche":  d2i["hourly"]["wind_gusts_10m"],
+        }
+    except Exception as e:
+        print(f"    avviso {loc_id}: dati ICON-2I non disponibili ({e}); continuo senza.")
+
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "localita": loc_id,
@@ -145,6 +175,7 @@ def genera_localita(loc_id: str, cfg: dict) -> dict:
             "codici": meteo_cod,
         },
         "spots": spots_data,
+        "icon2i": icon2i_data,
     }
 
 
