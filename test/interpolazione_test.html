@@ -938,13 +938,17 @@ async function initInterpolazione() {
           { type: 'bar',  label: 'Meteotrentino', data: INSIEMI[attiva].mt,
             backgroundColor: '#e63c1e40', borderColor: '#e63c1e59', borderWidth: 1,
             yAxisID: 'yVento', order: 4 },
+          // pointHoverRadius: 0 — senza, Chart.js accende un pallino su OGNI
+          // linea al passaggio del cursore, e se ne vedevano quattro invece dei
+          // due degli indici.
           { type: 'line', label: 'MeteoSwiss', data: INSIEMI[attiva].sw,
-            borderColor: '#1a3a5c73', borderWidth: 1.6, pointRadius: 0, tension: 0.3,
+            borderColor: '#1a3a5c73', borderWidth: 1.6,
+            pointRadius: 0, pointHoverRadius: 0, tension: 0.3,
             yAxisID: 'yVento', order: 3 },
           { type: 'line', label: 'ΔP', data: dataPress,
             borderColor: '#0d948873', backgroundColor: '#0d948873', borderWidth: 1.6,
-            borderDash: [7, 4], pointRadius: 0, spanGaps: true, tension: 0.2,
-            yAxisID: 'yPress', order: 2 },
+            borderDash: [7, 4], pointRadius: 0, pointHoverRadius: 0,
+            spanGaps: true, tension: 0.2, yAxisID: 'yPress', order: 2 },
           // I due indici: stesso spessore, distinti dalla tinta e dal tratteggio.
           // Sono le uniche due serie con i pallini sui punti orari — gli
           // ingredienti restano linee lisce, cosi' l'occhio distingue subito
