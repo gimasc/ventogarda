@@ -416,28 +416,28 @@ function applicaSegno(valori, segni) {
 }
 
 // [Inferenza] Formula proposta: media dei due modelli + contributo della pressione - penalità per disaccordo.
-// Parametri dell'indice, SEPARATI PER REGIME. Il Peler e' un fatto di
-// pressione, l'Ora e' un fatto di sole: i due non possono avere gli stessi
-// pesi. Tutti i numeri stanno qui, in modo che affinarli non richieda di
-// rimettere le mani nella formula.
+// Pesi fra i due modelli. Uguali nei due regimi, quindi stanno fuori: servono
+// gia' PRIMA di sapere quale regime sia, per calcolare la risultante delle
+// direzioni. Se un giorno dovessero cambiare da regime a regime, la risultante
+// andra' calcolata in due passate.
+const PESO_SW = 0.65;   // MeteoSwiss ICON-CH1: il piu' affidabile sull'arco alpino
+const PESO_TR = 0.35;   // Meteotrentino ICON-2I: tende a sottostimare
+
+// Parametri dell'indice, SEPARATI PER REGIME. Il Peler e' un fatto di pressione,
+// l'Ora e' un fatto di sole: non possono avere gli stessi pesi.
 //
-// pesiExtra e' il gancio per la variabile che uscira' dall'analisi in corso:
-// bastera' aggiungerla qui con il suo peso (diverso per regime) e passarla
-// come quarto argomento. Finche' resta vuoto non cambia nulla.
+// pesiExtra e' il gancio per la variabile che uscira' dall'analisi sui dati
+// grezzi: bastera' aggiungerla qui con il suo peso e passarla come argomento.
 const REGIMI = {
   ora: {
     nome: 'Óra',
-    pesoSw:        0.65,   // MeteoSwiss e' il piu' affidabile sull'arco alpino
-    pesoTr:        0.35,   // Meteotrentino tende a sottostimare
     pesoModelli:   0.75,   // i modelli comandano
     pesoPressione: 0.25,   // la pressione conferma o smorza
-    penalita:      0.15,   // quanto pesa il disaccordo fra i due modelli
+    penalita:      0.15,   // quanto pesa il disaccordo sull'INTENSITA'
     pesiExtra:     {}
   },
   peler: {
     nome: 'Pelèr',
-    pesoSw:        0.65,
-    pesoTr:        0.35,
     pesoModelli:   0.50,   // qui la pressione vale quanto i modelli
     pesoPressione: 0.50,
     penalita:      0.15,
@@ -445,37 +445,80 @@ const REGIMI = {
   }
 };
 
-// NODI IMPLICITI DALLA PRESSIONE: equivalenza empirica ±2 hPa ≈ ±20 nodi.
+// Equivalenza empirica: ±2 hPa ≈ ±20 nodi.
 const KN_PER_HPA = 10;
 
-// swKn e trKn arrivano GIA' FIRMATI: positivi da sud (Ora), negativi da nord (Peler).
-// Restituisce { kn, verso } oppure { nd: true } se i due modelli si contraddicono
-// sulla direzione, oppure null se manca un ingrediente.
-function calcolaIndiceVento(swKn, trKn, deltaPressHpa, extra = {}) {
-  if (![swKn, trKn, deltaPressHpa].every(Number.isFinite)) return null;
+// Fascia "vento di lato": quanti gradi attorno a est e a ovest. Stretta di
+// proposito — un flusso davvero trasversale al lago e' un'altra cosa dall'Ora
+// e dal Peler. DA APPROFONDIRE con la climatologia vera: 6 gradi e' una scelta
+// a naso, non sappiamo quanto spesso il Garda faccia davvero un flusso di lato.
+const LATERALE_GRADI = 6;
 
-  // Un modello dice Ora e l'altro Peler: non c'e' un indice onesto da dare.
-  if (swKn * trKn < 0) return { nd: true };
+// Oltre questa divergenza fra i due modelli non c'e' indice onesto da dare.
+// Sotto, i casi quasi opposti si sgonfiano da soli: i due vettori si annullano
+// a vicenda e la risultante viene corta, quindi l'indice basso.
+const OPPOSTI_GRADI = 175;
 
-  // Media PESATA: i pesi sono nel regime, ma per sceglierlo serve gia' il verso.
-  // La direzione non dipende dai pesi (sono uguali nei due regimi), quindi la
-  // decido sulla media semplice e poi calcolo quella pesata.
-  const verso = (swKn + trKn) >= 0 ? 1 : -1;  // il verso lo decide la media
-  const R = verso > 0 ? REGIMI.ora : REGIMI.peler;
-  const media = swKn * R.pesoSw + trKn * R.pesoTr;
 
-  let grezzo = media * R.pesoModelli
-             + (deltaPressHpa * KN_PER_HPA) * R.pesoPressione;
-  for (const [nome, peso] of Object.entries(R.pesiExtra)) {
-    if (Number.isFinite(extra[nome])) grezzo += extra[nome] * peso;
+function differenzaAngolare(a, b) {
+  const d = Math.abs(((a - b) % 360 + 360) % 360);
+  return d > 180 ? 360 - d : d;
+}
+
+// Risultante delle due direzioni, sommate come vettori e pesate per
+// affidabilita' del modello e intensita' prevista. Niente soglie da
+// attraversare: due modelli a 29 e 31 gradi danno 30, non due regimi diversi.
+function risultanteDirezione(swKn, swDir, trKn, trDir) {
+  const rad = g => g * Math.PI / 180;
+  const x = Math.abs(swKn) * PESO_SW * Math.sin(rad(swDir))
+          + Math.abs(trKn) * PESO_TR * Math.sin(rad(trDir));
+  const y = Math.abs(swKn) * PESO_SW * Math.cos(rad(swDir))
+          + Math.abs(trKn) * PESO_TR * Math.cos(rad(trDir));
+  return (Math.atan2(x, y) * 180 / Math.PI + 360) % 360;
+}
+
+// La direzione e' quella da cui il vento PROVIENE; la freccia indica dove VA,
+// come le frecce sotto il grafico.
+function classificaRisultante(g) {
+  if (differenzaAngolare(g, 90)  <= LATERALE_GRADI)
+    return { regime: 'laterale', verso: 1, freccia: '←' };   // da est, va a ovest
+  if (differenzaAngolare(g, 270) <= LATERALE_GRADI)
+    return { regime: 'laterale', verso: 1, freccia: '→' };   // da ovest, va a est
+  if (g > 90 && g < 270) return { regime: 'ora',   verso:  1, freccia: '↑' };
+  return                        { regime: 'peler', verso: -1, freccia: '↓' };
+}
+
+// Intensita' SENZA segno + verso per il disegno + freccia per il tooltip.
+// { nd: true } se i modelli sono opposti, null se manca un ingrediente.
+function calcolaIndiceVento(swKn, trKn, swDir, trDir, deltaPressHpa, extra = {}) {
+  if (![swKn, trKn, swDir, trDir].every(Number.isFinite)) return null;
+  if (differenzaAngolare(swDir, trDir) > OPPOSTI_GRADI) return { nd: true };
+
+  const c = classificaRisultante(risultanteDirezione(swKn, swDir, trKn, trDir));
+  const R = c.regime === 'peler' ? REGIMI.peler : REGIMI.ora;
+
+  const media = Math.abs(swKn) * PESO_SW + Math.abs(trKn) * PESO_TR;
+  const penalita = Math.abs(Math.abs(swKn) - Math.abs(trKn)) * R.penalita;
+
+  let grezzo;
+  if (c.regime === 'laterale') {
+    // Il ΔP Brescia-Bolzano descrive l'asse nord-sud del lago: su un flusso
+    // trasversale non dice nulla, e contarlo trasformerebbe una brezza da est
+    // in un Peler che non esiste. Qui contano solo i modelli.
+    grezzo = media;
+  } else {
+    if (!Number.isFinite(deltaPressHpa)) return null;
+    // Il contributo della pressione si conta CONCORDE al regime: col Peler un
+    // ΔP negativo conferma, quindi aggiunge.
+    const ventoPressione = deltaPressHpa * KN_PER_HPA * c.verso;
+    grezzo = media * R.pesoModelli + ventoPressione * R.pesoPressione;
+    for (const [nome, peso] of Object.entries(R.pesiExtra)) {
+      if (Number.isFinite(extra[nome])) grezzo += extra[nome] * peso;
+    }
   }
 
-  // grezzo * verso = quanto il conto conferma la direzione dei modelli.
-  // Se la pressione li ribalta il prodotto e' negativo e l'indice va a zero:
-  // una pressione contraria puo' annullare, non puo' creare vento opposto.
-  const intensita = grezzo * verso - Math.abs(swKn - trKn) * R.penalita;
-
-  return { kn: Math.min(40, Number(Math.max(0, intensita).toFixed(1))), verso };
+  const intensita = Math.max(0, grezzo - penalita);
+  return { kn: Math.min(40, Number(intensita.toFixed(1))), verso: c.verso, freccia: c.freccia };
 }
 
 // Cerchietto sullo zero dove l'indice e' n.d. (modelli discordi): lo spazio
@@ -893,11 +936,17 @@ async function initMixedVento() {
     const icon2iFirmato = applicaSegno(dataICON2Ikn, segniICON2I);
 
     const dataPress = buildInterpolatedPressureSeries(pressione, times);
-    // Ai modelli si passano i valori FIRMATI: il segno porta la direzione.
-    const calcoli     = times.map((t, i) => calcolaIndiceVento(ch1Firmato[i], icon2iFirmato[i], dataPress[i]));
-    const dataIndice  = calcoli.map(c => (c && !c.nd) ? c.kn    : null);
-    const versiIndice = calcoli.map(c => (c && !c.nd) ? c.verso : null);
-    const ndIndice    = calcoli.map(c => !!(c && c.nd));
+    // Si passano intensita' e DIREZIONI grezze: il verso lo decide la
+    // risultante vettoriale delle due, dentro calcolaIndiceVento.
+    const calcoli = times.map((t, i) => calcolaIndiceVento(
+      rafficheCH1[i], dataICON2Ikn[i],
+      ch1.wind_direction_10m[i], dirICON2I[i],
+      dataPress[i]));
+    // Disegnato COL SEGNO, cosi' col Peler scende sotto lo zero insieme ai
+    // modelli. Nel tooltip il numero resta senza segno, con la freccia.
+    const dataIndice   = calcoli.map(c => (c && !c.nd) ? c.kn * c.verso : null);
+    const frecceIndice = calcoli.map(c => (c && !c.nd) ? c.freccia : '');
+    const ndIndice     = calcoli.map(c => !!(c && c.nd));
 
     // Diagnostica pressione: quanti punti validi? (visibile in console)
     const pressValidi = dataPress.filter(Number.isFinite).length;
@@ -1011,9 +1060,7 @@ async function initMixedVento() {
                 if (v === null || v === undefined) return `${ctx.dataset.label}: —`;
                 if (ctx.dataset.yAxisID === 'yPress') return `${ctx.dataset.label}: ${v.toFixed(1)} hPa`;
                 if (ctx.dataset.label === 'Indice') {
-                  const f = versiIndice[ctx.dataIndex];
-                  const freccia = f > 0 ? ' ↑' : f < 0 ? ' ↓' : '';
-                  return `Indice: ${Math.abs(v).toFixed(1)} kn${freccia}`;
+                  return `Indice: ${Math.abs(v).toFixed(1)} kn ${frecceIndice[ctx.dataIndex]}`;
                 }
                 return `${ctx.dataset.label}: ${Math.abs(v).toFixed(1)} kn`;
               },
@@ -1117,11 +1164,17 @@ async function initMixedRaffiche() {
     const icon2iFirmato = applicaSegno(dataICON2Ikn, segniICON2I);
 
     const dataPress = buildInterpolatedPressureSeries(pressione, times);
-    // Ai modelli si passano i valori FIRMATI: il segno porta la direzione.
-    const calcoli     = times.map((t, i) => calcolaIndiceVento(ch1Firmato[i], icon2iFirmato[i], dataPress[i]));
-    const dataIndice  = calcoli.map(c => (c && !c.nd) ? c.kn    : null);
-    const versiIndice = calcoli.map(c => (c && !c.nd) ? c.verso : null);
-    const ndIndice    = calcoli.map(c => !!(c && c.nd));
+    // Si passano intensita' e DIREZIONI grezze: il verso lo decide la
+    // risultante vettoriale delle due, dentro calcolaIndiceVento.
+    const calcoli = times.map((t, i) => calcolaIndiceVento(
+      rafficheCH1[i], dataICON2Ikn[i],
+      ch1.wind_direction_10m[i], dirICON2I[i],
+      dataPress[i]));
+    // Disegnato COL SEGNO, cosi' col Peler scende sotto lo zero insieme ai
+    // modelli. Nel tooltip il numero resta senza segno, con la freccia.
+    const dataIndice   = calcoli.map(c => (c && !c.nd) ? c.kn * c.verso : null);
+    const frecceIndice = calcoli.map(c => (c && !c.nd) ? c.freccia : '');
+    const ndIndice     = calcoli.map(c => !!(c && c.nd));
 
     // Diagnostica pressione: quanti punti validi? (visibile in console)
     const pressValidi = dataPress.filter(Number.isFinite).length;
@@ -1235,9 +1288,7 @@ async function initMixedRaffiche() {
                 if (v === null || v === undefined) return `${ctx.dataset.label}: —`;
                 if (ctx.dataset.yAxisID === 'yPress') return `${ctx.dataset.label}: ${v.toFixed(1)} hPa`;
                 if (ctx.dataset.label === 'Indice') {
-                  const f = versiIndice[ctx.dataIndex];
-                  const freccia = f > 0 ? ' ↑' : f < 0 ? ' ↓' : '';
-                  return `Indice: ${Math.abs(v).toFixed(1)} kn${freccia}`;
+                  return `Indice: ${Math.abs(v).toFixed(1)} kn ${frecceIndice[ctx.dataIndex]}`;
                 }
                 return `${ctx.dataset.label}: ${Math.abs(v).toFixed(1)} kn`;
               },
