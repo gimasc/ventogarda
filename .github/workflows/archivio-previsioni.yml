@@ -35,4 +35,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Archivio: nuove previsioni"
-          file_pattern: data/storico/*.csv
+          # Due cose: i CSV mensili dell'archivio e la finestra recente della
+          # pressione ritagliata da quegli stessi CSV. Senza il secondo nome il
+          # file verrebbe scritto sul runner e buttato via con la macchina.
+          file_pattern: data/storico/*.csv data/pressione_recente.json
