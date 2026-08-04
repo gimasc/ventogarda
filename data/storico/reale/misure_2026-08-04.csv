@@ -1,8 +1,0 @@
-istante_utc,istante_italia,localita,stazione,vento_medio_kn,raffica_kn,direzione_gradi,direzione_testo,vento_medio_ms,raffica_ms,temperatura_c,umidita_pct,punto_rugiada_c,pressione_hpa,radiazione_wm2,uv,pioggia_mm,pioggia_giorno_mm
-2026-08-03 22:53:40,2026-08-04 00:53:40,torbole,circolo_surf_torbole,0.0,1.0,19.0,NNE,0.0,0.5,27.0,50.0,15.68,1007.2,0.0,0.0,0.0,0.0
-2026-08-04 00:12:41,2026-08-04 02:12:41,torbole,circolo_surf_torbole,4.3,6.0,23.0,NNE,2.2,3.1,26.0,52.0,15.37,1007.0,0.0,0.0,0.0,0.0
-2026-08-04 03:43:40,2026-08-04 05:43:40,torbole,circolo_surf_torbole,8.4,12.8,346.0,NNW,4.3,6.6,25.8,52.0,15.19,1007.2,0.31,0.0,0.0,0.0
-2026-08-04 06:16:40,2026-08-04 08:16:40,torbole,circolo_surf_torbole,7.4,11.9,36.0,NE,3.8,6.1,27.2,50.0,15.86,1007.67,204.77,1.0,0.0,0.0
-2026-08-04 09:16:40,2026-08-04 11:16:40,torbole,circolo_surf_torbole,2.9,3.9,195.0,SSW,1.5,2.0,31.3,45.0,17.92,1007.2,722.72,7.0,0.0,0.0
-2026-08-04 11:36:40,2026-08-04 13:36:40,torbole,circolo_surf_torbole,7.4,10.9,169.0,S,3.8,5.6,28.3,54.0,18.09,1006.49,860.86,8.0,0.0,0.0
-2026-08-04 13:23:41,2026-08-04 15:23:41,torbole,circolo_surf_torbole,10.1,11.9,193.0,SSW,5.2,6.1,29.5,50.0,17.97,1005.27,737.52,7.0,0.0,0.0
