@@ -253,13 +253,18 @@ function buildHourTickLabel(times, index) {
 
 // Etichette ore per la scheda Interpolazione: solo l'ora, ogni 2 ore.
 // La DATA e i separatori di giorno sono disegnati a parte dal plugin pluginAsseTempo.
+// NIENTE OFFSET QUI. Prima queste etichette usavano OFFSET_ORE_ETICHETTA = -2,
+// che serve al meteogramma ricreato per allinearsi all'immagine ufficiale di
+// Meteotrentino. Ma gli orari di questo grafico arrivano da Open-Meteo con
+// timezone=Europe/Rome, quindi sono GIA' ora italiana: sottrarre due ore
+// significava scrivere "22" sopra la mezzanotte, e far comparire il separatore
+// del giorno nuovo due ore prima. Qui l'ora si scrive com'e'.
 function buildHourTickLabelDense(times, index) {
   const t = times[index];
   if (!t) return null;
   const hReale = parseInt(t.slice(11, 13), 10);
   if (hReale % 2 !== 0) return null; // solo ore pari → ogni 2 ore
-  const hMost = ((hReale + OFFSET_ORE_ETICHETTA) % 24 + 24) % 24;
-  return String(hMost).padStart(2, '0');
+  return String(hReale).padStart(2, '0');
 }
 
 // Plugin: disegna dentro il grafico la DATA di ogni giorno (in alto) e una
@@ -399,6 +404,23 @@ const REGIMI = {
 
 // Equivalenza empirica: ±2 hPa ≈ ±20 nodi.
 const KN_PER_HPA = 10;
+
+// FORMA A MEDIA PESATA. L'indice e' una media fra due stime: quella dei modelli
+// e quella implicita nella pressione. Il contributo del ΔP si conta CONCORDE al
+// regime deciso dai modelli, e l'intensita' non scende sotto zero: una pressione
+// contraria smorza, non ribalta. Il verso resta quello dei modelli anche quando
+// il ΔP li contraddice.
+//
+// ESEMPI (raffiche 25 MeteoSwiss / 22 Meteotrentino, media pesata 23,9):
+//   ΔP +2,5 → 23,8 ↑   la pressione conferma, l'indice sta sui modelli
+//   ΔP  0   → 17,5 ↑   ΔP neutro pesa comunque 1/4: l'indice sta sotto i modelli
+//   ΔP −1   → 15,0 ↑   contraria: scende, ma resta Óra
+//   ΔP −4   →  6,6 ↑   molto contraria: quasi annullata, verso invariato
+//   ΔP −8   →  0,0 ↑   la pressione azzera, non ribalta
+// PELÈR (−25 / −22), dove la pressione pesa la meta' del totale:
+//   ΔP −1   → 16,5 ↓      ΔP −3 → 26,5 ↓      ΔP −5 → 36,5 ↓
+// MODELLI DEBOLI ma pressione forte, il caso dei giorni di Pelèr:
+//   modelli −5 / −3, ΔP −5 → 26,8 ↓  (i modelli non lo vedono, la pressione si)
 
 // Fascia "vento di lato": quanti gradi attorno a est e a ovest. Stretta di
 // proposito — un flusso davvero trasversale al lago e' un'altra cosa dall'Ora
@@ -873,6 +895,22 @@ async function initInterpolazione() {
     }
 
     document.getElementById('interp-status').style.display = 'none';
+
+    // L'indice esiste solo dove esistono ENTRAMBI i modelli, e MeteoSwiss
+    // ICON-CH1 e' a corto raggio: finisce prima di ICON-2I. Senza taglio il
+    // grafico proseguiva con le sole barre di Meteotrentino e la pressione, un
+    // pezzo di coda dove l'indice non c'e'. Si taglia dove finisce MeteoSwiss.
+    let ultimo = -1;
+    for (let i = 0; i < ch1.time.length; i++) {
+      if (Number.isFinite(ch1.wind_gusts_10m[i]) && Number.isFinite(ch1.wind_speed_10m[i])) ultimo = i;
+    }
+    if (ultimo < 0) throw new Error('MeteoSwiss non ha restituito dati');
+    const taglia = a => (a || []).slice(0, ultimo + 1);
+    ch1.time = taglia(ch1.time);
+    ch1.wind_gusts_10m = taglia(ch1.wind_gusts_10m);
+    ch1.wind_speed_10m = taglia(ch1.wind_speed_10m);
+    ch1.wind_direction_10m = taglia(ch1.wind_direction_10m);
+    console.log(`[Interpolazione] finestra: ${ch1.time[0]} → ${ch1.time[ch1.time.length - 1]} (${ch1.time.length} ore)`);
 
     const times = ch1.time;
     const dirCH1 = ch1.wind_direction_10m;
