@@ -109,9 +109,10 @@
 -->
   <!-- INTERPOLAZIONE — scheda unica, due pulsanti.
        Raffiche e vento medio sono la stessa formula sugli stessi punti: cambia
-       solo quale grandezza entra. I pulsanti scambiano cosa e' in primo piano;
-       l'indice dell'altra grandezza resta disegnato tratteggiato, come termine
-       di paragone. Nessun nuovo scaricamento: i dati sono gia' tutti in pagina. -->
+       solo quale grandezza entra, e i pulsanti scelgono quale. Si disegna una
+       sola linea di indice: la seconda era una quinta curva che confondeva, e
+       l'altra grandezza sta a un clic. Nessun nuovo scaricamento a ogni clic:
+       i dati sono gia' tutti in pagina. -->
   <div class="card card--red">
     <div class="card-header card-header--split">
       <div>
@@ -125,11 +126,10 @@
     </div>
     <div class="card-body" style="padding:.5rem .9rem;">
       <div class="cruscotto-legenda">
-        <span><span class="dot" style="background:#6d28d9"></span><strong><span id="interp-attiva">Indice raffiche</span></strong></span>
-        <span><span class="dot" style="background:#c084fc"></span><span id="interp-altra">Indice vento medio</span> (tratteggiato)</span>
-        <span><span class="dot" style="background:#e63c1e80"></span>Meteotrentino ICON-2I (<span class="interp-grandezza">raffiche</span>)</span>
-        <span><span class="dot" style="background:#1a3a5c80"></span>MeteoSwiss ICON-CH1 (<span class="interp-grandezza">raffiche</span>)</span>
-        <span><span class="dot" style="background:#0d948880"></span>ΔP Brescia–Bolzano (hPa) — asse dx</span>
+        <span><span class="dot" style="background:#7c3aed"></span><strong><span id="interp-attiva">Indice raffiche</span></strong></span>
+        <span><span class="dot" style="background:#94a3b8"></span>Meteotrentino ICON-2I (<span class="interp-grandezza">raffiche</span>) — barre</span>
+        <span><span class="dot" style="background:#e63c1e"></span>MeteoSwiss ICON-CH1 (<span class="interp-grandezza">raffiche</span>)</span>
+        <span><span class="dot" style="background:#3a8fb5"></span>ΔP Brescia–Bolzano (hPa) — asse dx</span>
       </div>
     </div>
     <div id="interp-status" class="card-body" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
@@ -308,6 +308,14 @@ function pluginAsseTempo(id) {
       ctx.restore();
     }
   };
+}
+
+// Scurisce un colore verso il nero. La scala dell'indice e' nata per una LINEA
+// su fondo bianco: usata come testo, il grigio chiaro e il giallo diventano
+// illeggibili. Per il tooltip si usa la stessa scala, ma scurita.
+function scurisci(hex, quanto = 0.45) {
+  const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  return '#' + c.map(x => Math.round(x * (1 - quanto)).toString(16).padStart(2, '0')).join('');
 }
 
 function indiceColor(v) {
@@ -916,6 +924,12 @@ async function initInterpolazione() {
     const dirCH1 = ch1.wind_direction_10m;
     const dirMap = buildSeriesMap(icon2i.time, icon2i.wind_direction_10m);
     const dirMT  = times.map(t => dirMap[t] ?? null);
+    // Freccia di direzione anche per i due modelli, da mostrare nel tooltip.
+    // Dipende solo dalla direzione, che e' la stessa per raffiche e vento
+    // medio: si calcola una volta sola. Il ΔP non ne ha una — e' una
+    // differenza di pressione, non un vento, quindi non ha verso.
+    const frecciaDi = g => Number.isFinite(g) ? classificaRisultante(g).freccia : '';
+    const FRECCE_MODELLI = { mt: dirMT.map(frecciaDi), sw: dirCH1.map(frecciaDi) };
     const dataPress = buildInterpolatedPressureSeries(pressione, times);
 
     // Un "insieme" per grandezza: valori firmati per il disegno, indice, frecce.
@@ -966,40 +980,46 @@ async function initInterpolazione() {
       data: {
         labels: times,
         datasets: [
-          // GERARCHIA DEI COLORI. I tre ingredienti — Meteotrentino rosso,
-          // MeteoSwiss blu, pressione verde acqua — stanno sullo sfondo in
-          // gradazione bassa: servono a capire da dove viene l'indice, non a
-          // essere letti uno per uno. I due indici sono i protagonisti, pieni
-          // e spessi. Le tinte sono tenute su famiglie diverse (rosso, blu,
-          // verde, viola) perche' prima blu scuro e azzurro si confondevano.
+          // GERARCHIA E TINTE.
+          // Le BARRE sono l'area piu' grande del grafico: qualunque tinta ci si
+          // metta colora tutta la pagina — con l'ambra sembrava lo schermo
+          // ingiallito. Quindi barre GRIGIE, neutre, che spariscono sul fondo
+          // avorio. Sono comunque riconoscibili per la forma, essendo le uniche
+          // a barre.
+          // QUATTRO COLORI, MASSIMO CONTRASTO FRA LORO:
+          //   grigio    barre di Meteotrentino (l'area grande resta neutra,
+          //             altrimenti tinge la pagina)
+          // Sono i colori del sito, quelli dell'appendice «Palette e brand»:
+          //   grigio  #94a3b8  neutro          → barre Meteotrentino
+          //   rosso   #e63c1e  dati critici    → linea MeteoSwiss
+          //   azzurro #3a8fb5  strumentale     → pressione, asse suo
+          //   viola   #7c3aed  «Indice Vento»  → l'indice della grandezza scelta
+          // Quattro famiglie diverse, gia' pensate per stare insieme. L'altra grandezza non
+          //             si disegna: era una quinta linea che confondeva, e sta
+          //             a un clic di distanza sul pulsante.
+          // Nessuna linea grigia: il grigio e' solo delle barre.
           // NB: assi, numeri e date restano a piena intensita', sotto in scales.
           { type: 'bar',  label: 'Meteotrentino', data: INSIEMI[attiva].mt,
-            backgroundColor: '#e63c1e40', borderColor: '#e63c1e59', borderWidth: 1,
+            backgroundColor: '#94a3b899', borderColor: '#64748bcc', borderWidth: 1,
             yAxisID: 'yVento', order: 4 },
           // pointHoverRadius: 0 — senza, Chart.js accende un pallino su OGNI
-          // linea al passaggio del cursore, e se ne vedevano quattro invece dei
-          // due degli indici.
+          // linea al passaggio del cursore, e se ne vedevano quattro invece del
+          // solo indice.
           { type: 'line', label: 'MeteoSwiss', data: INSIEMI[attiva].sw,
-            borderColor: '#1a3a5c73', borderWidth: 1.6,
+            borderColor: '#e63c1e', borderWidth: 1.8,
             pointRadius: 0, pointHoverRadius: 0, tension: 0.3,
             yAxisID: 'yVento', order: 3 },
           { type: 'line', label: 'ΔP', data: dataPress,
-            borderColor: '#0d948873', backgroundColor: '#0d948873', borderWidth: 1.6,
-            borderDash: [7, 4], pointRadius: 0, pointHoverRadius: 0,
+            borderColor: '#3a8fb5', backgroundColor: '#3a8fb5', borderWidth: 2.2,
+            pointRadius: 0, pointHoverRadius: 0,
             spanGaps: true, tension: 0.2, yAxisID: 'yPress', order: 2 },
-          // I due indici: stesso spessore, distinti dalla tinta e dal tratteggio.
-          // Sono le uniche due serie con i pallini sui punti orari — gli
-          // ingredienti restano linee lisce, cosi' l'occhio distingue subito
-          // "quello che leggo" da "quello che lo compone".
+          // L'indice: unica serie con i pallini sui punti orari. Gli ingredienti
+          // restano linee lisce, cosi' l'occhio distingue subito "quello che
+          // leggo" da "quello che lo compone".
           { type: 'line', label: 'Indice ' + ETICHETTA[attiva], data: INSIEMI[attiva].indice,
-            borderColor: '#6d28d9', backgroundColor: '#6d28d9', borderWidth: 2.8,
-            pointRadius: 2, pointBackgroundColor: '#6d28d9', pointBorderWidth: 0,
-            pointHoverRadius: 4.5, tension: 0.25, yAxisID: 'yVento', order: 0 },
-          { type: 'line', label: 'Indice ' + ETICHETTA[altra()], data: INSIEMI[altra()].indice,
-            borderColor: '#c084fc', backgroundColor: '#c084fc', borderWidth: 2.8,
-            borderDash: [5, 4],
-            pointRadius: 2, pointBackgroundColor: '#c084fc', pointBorderWidth: 0,
-            pointHoverRadius: 4.5, tension: 0.25, yAxisID: 'yVento', order: 1 }
+            borderColor: '#7c3aed', backgroundColor: '#7c3aed', borderWidth: 2.8,
+            pointRadius: 2, pointBackgroundColor: '#7c3aed', pointBorderWidth: 0,
+            pointHoverRadius: 4.5, tension: 0.25, yAxisID: 'yVento', order: 0 }
         ]
       },
       options: {
@@ -1020,7 +1040,7 @@ async function initInterpolazione() {
             // e la pressione. Si ordina per posizione nell'elenco dei dataset,
             // non per nome: le etichette cambiano con il pulsante.
             itemSort(a, b) {
-              const rango = i => i === 3 ? 0 : i === 4 ? 1 : i === 0 ? 2 : i === 1 ? 3 : 4;
+              const rango = i => i === 3 ? 0 : i === 0 ? 1 : i === 1 ? 2 : 3;
               return rango(a.datasetIndex) - rango(b.datasetIndex);
             },
             callbacks: {
@@ -1028,21 +1048,28 @@ async function initInterpolazione() {
                 const t = times[items[0].dataIndex];
                 return t ? t.slice(11, 16) : '';
               },
+              // Il quadratino resta SEMPRE del colore della linea: serve a dire
+              // "questa riga e' quella curva li'". A cambiare con il valore e'
+              // il testo, che e' l'informazione, non l'identita' della serie.
               labelColor(ctx) {
-                const c = (ctx.datasetIndex === 3 || ctx.datasetIndex === 4)
-                  ? indiceColor(ctx.parsed.y)
-                  : (ctx.dataset.borderColor || ctx.dataset.backgroundColor);
+                const c = ctx.dataset.borderColor || ctx.dataset.backgroundColor;
                 return { borderColor: c, backgroundColor: c };
+              },
+              labelTextColor(ctx) {
+                return ctx.datasetIndex === 3
+                  ? scurisci(indiceColor(ctx.parsed.y))
+                  : '#1a1a1a';
               },
               label(ctx) {
                 const v = ctx.parsed.y;
                 if (v === null || v === undefined) return `${ctx.dataset.label}: —`;
                 if (ctx.dataset.yAxisID === 'yPress') return `${ctx.dataset.label}: ${v.toFixed(1)} hPa`;
-                if (ctx.datasetIndex === 3 || ctx.datasetIndex === 4) {
-                  const f = (ctx.datasetIndex === 3 ? INSIEMI[attiva] : INSIEMI[altra()]).frecce[ctx.dataIndex];
-                  return `${ctx.dataset.label}: ${Math.abs(v).toFixed(1)} kn ${f}`;
+                if (ctx.datasetIndex === 3) {
+                  return `${ctx.dataset.label}: ${Math.abs(v).toFixed(1)} kn ${INSIEMI[attiva].frecce[ctx.dataIndex]}`;
                 }
-                return `${ctx.dataset.label}: ${Math.abs(v).toFixed(1)} kn`;
+                const fm = ctx.datasetIndex === 0 ? FRECCE_MODELLI.mt[ctx.dataIndex]
+                         : ctx.datasetIndex === 1 ? FRECCE_MODELLI.sw[ctx.dataIndex] : '';
+                return `${ctx.dataset.label}: ${Math.abs(v).toFixed(1)} kn ${fm}`;
               },
               afterBody: (items) => INSIEMI[attiva].nd[items[0].dataIndex] ? 'Indice: n.d.' : ''
             }
@@ -1072,8 +1099,8 @@ async function initInterpolazione() {
           yPress: {
             position: 'right',
             // Etichette e numeri a piena intensita': si attenua la linea, non l'asse.
-            title: { display: true, text: 'ΔP (hPa)', color: '#0d9488' },
-            grid: { display: false }, ticks: { color: '#0d9488' },
+            title: { display: true, text: 'ΔP (hPa)', color: '#3a8fb5' },
+            grid: { display: false }, ticks: { color: '#3a8fb5' },
             min: -MAX_PRESS_ABS, max: MAX_PRESS_ABS
           }
         }
@@ -1084,8 +1111,8 @@ async function initInterpolazione() {
     });
 
     chartInt.$frecce = [
-      { dir: dirMT,  colore: '#e63c1e', riga: 0 },
-      { dir: dirCH1, colore: '#1a3a5c', riga: 1 }
+      { dir: dirMT,  colore: '#94a3b8', riga: 0 },
+      { dir: dirCH1, colore: '#e63c1e', riga: 1 }
     ];
     chartInt.$times = times;
 
@@ -1095,18 +1122,15 @@ async function initInterpolazione() {
 
     function mostra(quale) {
       attiva = quale;
-      const A = INSIEMI[attiva], B = INSIEMI[altra()];
+      const A = INSIEMI[attiva];
       chartInt.data.datasets[0].data = A.mt;
       chartInt.data.datasets[1].data = A.sw;
       chartInt.data.datasets[3].data = A.indice;
       chartInt.data.datasets[3].label = 'Indice ' + ETICHETTA[attiva];
-      chartInt.data.datasets[4].data = B.indice;
-      chartInt.data.datasets[4].label = 'Indice ' + ETICHETTA[altra()];
       btnRaff.classList.toggle('attivo', quale === 'raffiche');
       btnVento.classList.toggle('attivo', quale === 'vento');
       document.querySelectorAll('.interp-grandezza').forEach(e => e.textContent = ETICHETTA[attiva]);
       document.getElementById('interp-attiva').textContent = 'Indice ' + ETICHETTA[attiva];
-      document.getElementById('interp-altra').textContent  = 'Indice ' + ETICHETTA[altra()];
       chartInt.update();
     }
     if (btnRaff)  btnRaff.addEventListener('click',  () => mostra('raffiche'));
