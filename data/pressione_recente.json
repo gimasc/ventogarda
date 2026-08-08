@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-08T13:07:46.299236+00:00",
+ "generated_at": "2026-08-08T13:54:01.390309+00:00",
  "descrizione": "Ore gia' passate, ritagliate dall'archivio delle previsioni. Per ogni ora il valore previsto con l'anticipo piu' corto. La previsione delle ore future sta in differenza-pressione/data/wind_garda.json",
  "ore_finestra": 48,
  "time": [
