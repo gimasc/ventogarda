@@ -29,7 +29,7 @@ const LOCALITA = {
     spots: [
       { nome: "Limone",        lat: 45.807156, lon: 10.791900, colore: "#ebc402" },
       { nome: "Navene",        lat: 45.804429, lon: 10.843017, colore: "#0901fc" },
-      { nome: "Parcheggione", lat: 45.775657, lon: 10.813822, colore: "#e65100" },
+      { nome: "Retelino",      lat: 45.775657, lon: 10.813822, colore: "#e65100" },
       { nome: "Campione",      lat: 45.754310, lon: 10.752089, colore: "#15b101" },
     ],
   },

@@ -45,7 +45,7 @@ LOCALITA = {
         "spots": [
             {"nome": "Limone",       "colore": "#ebc402", "lat": 45.81,  "lon": 10.79},
             {"nome": "Navene",       "colore": "#0901fc", "lat": 45.77,  "lon": 10.82},
-            {"nome": "Parcheggione", "colore": "#e65100", "lat": 45.755, "lon": 10.815},
+            {"nome": "Retelino",     "colore": "#e65100", "lat": 45.755, "lon": 10.815},
             {"nome": "Campione",     "colore": "#15b101", "lat": 45.735, "lon": 10.80},
         ]
     }
