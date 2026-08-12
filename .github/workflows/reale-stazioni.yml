@@ -1,0 +1,48 @@
+name: Vento reale — stazioni
+# Tiene aggiornati data/reale_torbole_surf.json e data/reale_hotel_pier.json,
+# che la scheda "in tempo reale" del sito legge.
+#
+# Contengono SOLO la finestra che si vede a schermo: ultimo dato, ultime 6 ore
+# minuto per minuto, dieci giorni in medie orarie. L'archivio completo — quasi
+# un milione di misure da giugno 2025 — sta nel repository privato
+# ventogarda-motore e non esce di li'.
+#
+# Ogni 10 minuti: sui repository pubblici le esecuzioni sono illimitate, quindi
+# la scheda puo' essere piu' fresca di quanto il motore privato si permetta.
+#
+# Credenziali dai Secrets del repository: RELIVECAM_USER e RELIVECAM_PASS. I
+# Secrets non sono leggibili nemmeno in un repository pubblico, e GitHub non li
+# passa ai workflow avviati da fork.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+permissions:
+  contents: write
+# Una scrittura per volta sul repository: se un altro lavoro sta gia' salvando,
+# questo aspetta il suo turno invece di sovrapporsi.
+concurrency:
+  group: scrittura-repository
+  cancel-in-progress: false
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Leggi le stazioni
+        run: python scripts/reale_stazioni.py
+        env:
+          RELIVECAM_USER: ${{ secrets.RELIVECAM_USER }}
+          RELIVECAM_PASS: ${{ secrets.RELIVECAM_PASS }}
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Reale: aggiorna vento misurato"
+          file_pattern: data/reale_*.json
