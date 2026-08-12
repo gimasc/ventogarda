@@ -1,0 +1,42 @@
+name: Pressione recente
+# Tiene aggiornato data/pressione_recente.json, che il grafico dell'Indice
+# Vento legge per avere il ΔP delle ore GIA' PASSATE — quelle che MOSMIX non
+# contiene piu' perche' riparte da poche ore prima di ogni run.
+#
+# Prima lo produceva archivia_previsioni.py insieme all'archivio delle
+# previsioni. L'archivio e' passato al repository privato ventogarda-motore,
+# questo file no: lo scarica il browser dei visitatori, quindi deve restare
+# qui. Non svela niente: sono valori di ΔP gia' disegnati sul sito, da dati
+# aperti DWD.
+#
+# Ogni ora: il file di previsione della pressione si aggiorna 4 volte al
+# giorno, ma passare ogni ora garantisce che nessuna ora "diventi passata"
+# senza che il suo valore venga registrato.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "50 * * * *"
+permissions:
+  contents: write
+concurrency:
+  group: scrittura-repository
+  cancel-in-progress: false
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Aggiorna la finestra recente
+        run: python scripts/pressione_recente.py
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Pressione: finestra recente"
+          file_pattern: data/pressione_recente.json
