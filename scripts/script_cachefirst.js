@@ -685,11 +685,32 @@ async function init() {
     // dell'ultimo aggiornamento.
     // Posizionata dentro l'area del grafico, appena sopra i numeri delle ore
     // (non in fondo al canvas, per non sovrapporsi alle frecce di direzione).
-    const testoFresch = testoFreschezzaRaffiche(raffInfo);
+        let testoFresch = testoFreschezzaRaffiche(raffInfo);
+    // Orizzonte reale della run MeteoSwiss: se i dati finiscono prima
+    // della fine di domani, lo dichiariamo invece di lasciare il grafico monco.
+    {
+      const raff0 = dati[0].raffiche;
+      let u = raff0.length;
+      while (u > 0 && raff0[u - 1] === null) u--;
+      if (u > 0) {
+        const fine = dati[0].ore[u - 1];
+        const limite = new Date();
+        limite.setDate(limite.getDate() + 1);
+        limite.setHours(20, 0, 0, 0);
+        if (fine < limite) {
+          const hh = String(fine.getHours()).padStart(2, "0") + ":" +
+                     String(fine.getMinutes()).padStart(2, "0");
+          testoFresch = "⚠ Previsioni ricevute incomplete: disponibili fino alle " +
+                        hh + ". Riprova più tardi";
+        }
+      }
+    }
+
     if (testoFresch) {
       // Grigia in regime normale, arancione se il file è oltre la soglia:
       // stesso arancione del messaggio di indisponibilità qui sotto.
-      const colore = raffInfo.fonte === 'ritardo' ? '#e65100' : '#94a3b8';
+            const colore = (raffInfo.fonte === 'ritardo' || testoFresch.startsWith('⚠')) ? '#e65100' : '#94a3b8';
+
       // chartArea.bottom è il bordo inferiore dell'area dati (sopra i tick delle ore).
       // chartArea.left è il bordo sinistro (subito a destra dell'asse Y / ordinate).
       const area = (chartRef && chartRef.chartArea) ? chartRef.chartArea : null;
