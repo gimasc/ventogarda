@@ -1,9 +1,8 @@
 {
- "generated_at": "2026-08-18T04:20:31.251524+00:00",
+ "generated_at": "2026-08-18T05:13:59.817892+00:00",
  "descrizione": "Ore gia' passate: per ciascuna, il valore previsto con l'anticipo piu' corto. La previsione delle ore future sta in differenza-pressione/data/wind_garda.json",
  "ore_finestra": 48,
  "time": [
-  "2026-08-16T05:00:00.000Z",
   "2026-08-16T06:00:00.000Z",
   "2026-08-16T07:00:00.000Z",
   "2026-08-16T08:00:00.000Z",
@@ -50,10 +49,10 @@
   "2026-08-18T01:00:00.000Z",
   "2026-08-18T02:00:00.000Z",
   "2026-08-18T03:00:00.000Z",
-  "2026-08-18T04:00:00.000Z"
+  "2026-08-18T04:00:00.000Z",
+  "2026-08-18T05:00:00.000Z"
  ],
  "delta_hpa": [
-  -3.2,
   -3.2,
   -3.1,
   -2.7,
@@ -100,6 +99,7 @@
   -3.3,
   -3.2,
   -3.0,
-  -3.7
+  -3.7,
+  -3.6
  ]
 }
