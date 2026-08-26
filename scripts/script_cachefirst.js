@@ -694,10 +694,8 @@ async function init() {
       while (u > 0 && raff0[u - 1] === null) u--;
       if (u > 0) {
         const fine = dati[0].ore[u - 1];
-        const limite = new Date();
-        limite.setDate(limite.getDate() + 1);
-        limite.setHours(20, 0, 0, 0);
-        if (fine < limite) {
+                const oreAvanti = (fine.getTime() - Date.now()) / 3600000;
+        if (oreAvanti < 18) {
           const hh = String(fine.getHours()).padStart(2, "0") + ":" +
                      String(fine.getMinutes()).padStart(2, "0");
           testoFresch = "⚠ Previsioni ricevute incomplete: disponibili fino alle " +
