@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T02:16:28.399746+00:00",
+  "generated_at": "2026-08-31T03:16:26.543911+00:00",
   "localita": "malcesine",
   "meteo": {
     "time": [
@@ -374,9 +374,9 @@
       0,
       0,
       0,
-      null,
-      null,
-      null,
+      0,
+      0,
+      9,
       null,
       null,
       null,
