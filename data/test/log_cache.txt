@@ -1,5 +1,3 @@
-2026-08-16 14:57Z  torbole: OK (icon2i: si')
-2026-08-16 14:57Z  malcesine: OK (icon2i: si')
 2026-08-16 15:56Z  torbole: OK (icon2i: si')
 2026-08-16 15:56Z  malcesine: OK (icon2i: si')
 2026-08-16 16:59Z  torbole: OK (icon2i: si')
@@ -498,3 +496,5 @@
 2026-09-01 18:49Z  malcesine: OK (icon2i: si')
 2026-09-01 22:01Z  torbole: OK (icon2i: si')
 2026-09-01 22:01Z  malcesine: OK (icon2i: si')
+2026-09-02 00:31Z  torbole: OK (icon2i: si')
+2026-09-02 00:31Z  malcesine: ERRORE (<urlopen error _ssl.c:999: The handshake operation timed out>) — resta la cache di 2.5h fa, valida
