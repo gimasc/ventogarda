@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[PROVA] Vento Garda · Previsioni Vento Malcesine Medio Garda</title>
+  <meta name="description" content="Previsioni vento Malcesine e Medio Garda: raffiche per spot, Pelèr e Óra, delta pressione Bolzano–Brescia. I modelli più affidabili in un'unica pagina, testata dai windsurfer del lago.">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#0a2e52">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "VentoGarda · Malcesine",
+    "url": "https://ventogarda.it/malcesine/",
+    "description": "Previsioni vento per Malcesine e il Medio Garda dedicate a windsurfer e kitesurfer: raffiche per spot, Pelèr e Óra, delta pressione Bolzano–Brescia, modelli MeteoSwiss e Meteotrentino in un'unica pagina."
+  }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>const LOC_ID = "malcesine";</script>
+  <script src="../localita.js"></script>
+  <!-- Google Analytics — caricato solo dopo consenso -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    function loadGA() {
+      if (document.getElementById('ga-script')) return;
+      const s = document.createElement('script');
+      s.id = 'ga-script';
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-XL49TL4C1F';
+      document.head.appendChild(s);
+      gtag('js', new Date());
+      gtag('config', 'G-XL49TL4C1F');
+    }
+    if (localStorage.getItem('cookie_consent') === 'accepted') loadGA();
+  </script>
+</head>
+<body>
+
+<div class="page-container">
+
+<header>
+  <h1>Vento <span>Garda</span></h1>
+  <div class="header-meta">
+    <div class="header-sub-block">
+      <div class="header-sub">Wind forecast system</div>
+      <div class="header-coords"><span class="header-location">Lago di Garda Medio · </span>45.76°N 10.81°E</div>
+    </div>
+    <div class="loc-tabs">
+      <a class="loc-tab" href="../">Torbole</a>
+      <span class="loc-tab attiva">Malcesine</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- AVVISO NOVITA' — mostrato una volta sola, poi ricordato dal browser.
+       Per annunciare una novita' diversa: cambiare il testo qui e la sigla
+       VERSIONE_NOVITA in scripts/script_cachefirst.js -->
+  <div id="novita" style="display:none;align-items:center;gap:.65rem;background:var(--card);border:1px solid var(--border);border-left:3px solid #ff3b1d;border-right:3px solid #ff3b1d;padding:.55rem .75rem;margin-bottom:.8rem;">
+    <span id="novita-testo" style="flex:1;font-size:.78rem;line-height:1.4;color:var(--text);">
+      <span style="font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#ff3b1d;">Novit&agrave;</span>
+      &nbsp;·&nbsp; V. 2.4 — Aggiunto oltre alle raffiche il grafico del <strong>vento</strong>
+    </span>
+    <button id="novita-chiudi" aria-label="Chiudi avviso" style="flex:none;border:none;background:none;cursor:pointer;font-size:1.1rem;line-height:1;color:var(--text);opacity:.45;padding:.1rem .25rem;">&times;</button>
+  </div>
+
+  <!-- INFO FISARMONICA — accent: navy -->
+  <div class="card">
+    <div class="card-header card-header--split" onclick="toggleInfo()" style="cursor:pointer;">
+      <span class="label">Info · Chi siamo - istruzioni</span>
+      <button class="btn-minimal btn-minimal--toggle" id="btn-info">Leggi <svg width="10" height="7" viewBox="0 0 12 8" fill="none" style="vertical-align:middle;margin-left:3px;"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div id="info-wrap" style="display:none;">
+      <div class="card-body info-body">
+        <p>Pagina dedicata ai praticanti di windsurf, kitesurf e sport velici sul Lago di Garda — Alto e Medio Garda.</p>
+        <p>Aggrega in un'unica pagina immediatamente consultabile  come una web app i modelli meteorologici più affidabili e usati dagli appassionati per  medio e alto Garda:</p>
+        <p><strong>1</strong> I dati meteo, elaborati con  modello MeteoSwiss ICON-CH1, aggiornati in tempo reale.</p>
+        <p>Legenda: Giallo: sereno. Grigio: nuvoloso. Blu: pioggia, con intensità indicata graficamente (colonna più alta) e percentuale di probabilità. Viola: temporale.</p>
+        <p><strong>2</strong> Le previsioni Meteotrentino, a cura dell'ufficio previsioni della Provincia Autonoma di Trento, elaborate con  modello ICON-2I, versione italiana ad alta risoluzione.</p>
+        <p><strong>3</strong> Il grafico della differenza di pressione Brescia/Ghedi–Bolzano, reso noto agli appassionati dal sito profiwetter.ch è l'indicatore barico considerato più affidabile per anticipare i venti termici Pelèr e Ora.</p>
+        <p>Viene riportato con aggiornamento in tempo reale, con estensione a 10 giorni, e con la possibilità di visualizzare le previsioni su base oraria.</p>
+        <p><strong>4</strong>Il grafico raffiche del modello MeteoSwiss ICON-CH1 — lo stesso della nota app MeteoSwiss, uno dei più precisi nell'area gardesana.</p>
+        <p>Rispetto all'app,  grafico consente un colpo d'occhio rapido di tutta la giornata e dei vari spot, con una visualizzazione più dettagliata dei valori numerici di intensità del vento in nodi e relativi orari, distinti per quattro diversi spot sulle due sponde del lago.</p>
+        <p>I modelli non sempre coincidono tra loro, ma l'elaborazione dei dati permette di ottenere una visione complessiva e affidabile delle condizioni meteorologiche.</p>
+        <p>Il sito è un progetto sempre in evoluzione, condiviso per tutti gli appassionati. Suggerimenti e contributi sono i benvenuti. Buon Vento!</p>
+        <p><strong>Come interpretare i dati</strong></p>
+        <p>Sulla base dell'esperienza e delle osservazioni empiriche sui dati, si possono dare le seguenti indicazioni:</p>
+        <p>- Il grafico di Meteotrentino è un buon indicatore sulla presenza di vento: una previsione da 7-8 m/s può essere considerata una soglia minima per un vento intorno ai 20 nodi.</p>
+        <p>- Il grafico della differenza di pressione indica una condizione generale: un delta di + o -2 hPa in media si può empiricamente far corrispondere ai 20 nodi di vento. Una differenza di pressione simile o più bassa tende a confermare o ridurre l'affidabilità degli altri modelli. </p>
+        <p> Ad esempio, se gli altri modelli prevedono vento, ma il delta è basso, la probabilità o l'intensità del vento potrebbe essere inferiore a quanto previsto.</p>
+        <p>- Il grafico delle raffiche di MeteoSwiss è uno dei più affidabili: pur tendendo a sovrastimare i valori, soprattutto per Torbole (30 nodi sono spesso 20, 20 nodi sono spesso 15), è spesso  più preciso nella previsioni degli orari di picco.</p>
+        <p>Naturalmente, questi sono solo riferimenti generali e non sostituiscono la valutazione individuale delle condizioni meteorologiche, nè i singoli modelli ufficiali.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE METEO — accent: azure -->
+  <div class="card card--azure">
+    <div class="card-header card-header--split">
+      <span class="label">Meteo · Previsioni</span>
+      <div class="btn-minimal-group">
+        <button id="btn-ore"  class="btn-minimal">Orario</button>
+        <button id="btn-slot" class="btn-minimal attivo">Giornaliero</button>
+      </div>
+    </div>
+    <div class="timeline-wrap">
+      <div id="timeline-meteo"></div>
+    </div>
+    <div class="card-footer">
+      <span>© MeteoSwiss</span>
+    </div>
+  </div>
+
+  <!-- METEOGRAMMA MEDIO GARDA — accent: navy -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="label">Medio Garda</div>
+        <div class="sub">Meteogramma</div>
+      </div>
+    </div>
+    <div class="img-wrap">
+      <img src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_MedioGarda.png"
+        referrerpolicy="no-referrer" alt="Meteogramma Medio Garda">
+    </div>
+    <div class="card-footer">
+      <span>Fonte: Meteotrentino</span>
+    </div>
+  </div>
+
+
+
+<!-- CARD PRESSIONE — stile Wind Machine -->
+  <div class="card card--azure">
+    <div class="card-header">
+      <div>
+        <div class="label">Δ Pressione Bolzano – Brescia</div>
+        <div class="sub">Pelér &amp; Óra</div>
+      </div>
+    </div>
+    <div id="press-status" style="font-size:.75rem;color:var(--muted);padding:.4rem .9rem;">
+      Caricamento…
+    </div>
+    <div class="img-wrap img-scroll" id="press-wrap" style="padding:0;background:white;position:relative;">
+        <canvas id="press-canvas"></canvas>
+        <div id="press-scroll-hint" style="
+          position:absolute;right:0;top:0;bottom:0;width:32px;
+          display:flex;align-items:center;justify-content:center;
+          background:linear-gradient(to right, transparent, rgba(255,255,255,0.95) 50%);
+          pointer-events:none;
+        ">
+          <svg width="16" height="48" viewBox="0 0 16 48" fill="none">
+            <polyline points="4,4 12,24 4,44" stroke="#1a3a5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+          </svg>
+        </div>
+    </div>
+    <div class="card-footer">
+      <span>Fonte: Deutscher Wetterdienst</span>
+    </div>
+  </div>
+
+  <!-- GRAFICO RAFFICHE — accent: red -->
+  <div class="card card--red">
+    <div class="card-header card-header--split">
+      <div>
+        <div class="label">Raffiche / Vento · Area Malcesine</div>
+        <div class="sub">Previsione oraria per spot</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.55rem;">
+        <!-- Nascosti finche' i dati non contengono il vento medio: li mostra lo script -->
+        <div class="btn-minimal-group" style="display:none;gap:7px;">
+          <button id="btn-raffiche" class="btn-minimal attivo">Raffiche</button>
+          <button id="btn-vento-medio" class="btn-minimal">Vento</button>
+        </div>
+        <span id="sep-vento" style="display:none;width:1px;height:11px;background:var(--faint);opacity:.5;"></span>
+        <button onclick="toggleMappa()" id="btn-mappa" class="btn-minimal btn-minimal--red">Mappa <svg width="10" height="7" viewBox="0 0 12 8" fill="none" style="vertical-align:middle;margin-left:3px;"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+    <div id="mappa-wrap" style="display:none;">
+      <div class="mappa-layout">
+        <div class="legenda-spots legenda-mappa-col" id="legenda-mappa"></div>
+        <div id="mappa-leaflet" style="height:160px;flex:1;"></div>
+      </div>
+    </div>
+    <div class="legenda-spots" id="legenda-normale"></div>
+    <div class="img-wrap img-scroll" id="grafico-vento-wrap"></div>
+    <div class="card-footer">
+      <span>Fonte: MeteoSwiss</span>
+    </div>
+  </div>
+
+  <!-- METEOGRAMMA WRF-UNITN — accent: navy -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="label">Medio Garda · Modello WRF – UNITN</div>
+        <div class="sub">Meteogramma</div>
+      </div>
+    </div>
+    <div class="img-wrap">
+      <img src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/medio_garda.png"
+        referrerpolicy="no-referrer" alt="Meteogramma WRF UNITN Medio Garda">
+    </div>
+    <div class="card-footer">
+      <span>Fonte: Meteotrentino</span>
+    </div>
+  </div>
+
+
+
+  <!-- ORA TORBOLE / RIVA — accent: navy -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="label">Óra · Torbole / Riva</div>
+        <div class="sub">Meteogramma</div>
+      </div>
+    </div>
+    <div class="img-wrap">
+      <img src="https://contenuti.meteotrentino.it/dati-meteo/meteogrammi/Icon2i_metgram_Riva.png"
+        referrerpolicy="no-referrer" alt="Meteogramma Óra Torbole">
+    </div>
+    <div class="card-footer">
+      <span>Fonte: Meteotrentino</span>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER FISARMONICA — accent: navy -->
+  <div class="card">
+    <div class="card-header card-header--split" onclick="toggleDisclaimer()" style="cursor:pointer;">
+      <span class="label">Disclaimer · Fonti e utilizzo</span>
+      <button class="btn-minimal btn-minimal--toggle" id="btn-disclaimer">Apri <svg width="10" height="7" viewBox="0 0 12 8" fill="none" style="vertical-align:middle;margin-left:3px;"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div id="disclaimer-wrap" style="display:none;">
+      <div class="card-body info-body">
+        <p>Le previsioni meteo, le raffiche e i dati di pressione riportati provengono direttamente dai modelli ufficiali (MeteoSwiss, Meteotrentino, Deutscher Wetterdienst) e non sono elaborati da VentoGarda.</p>
+        <p>L'uso di tali dati è ad escusiva cura e responsabilità dell'utente.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div class="card">
+    <div class="card-header card-header--split" onclick="toggleFeedback()" style="cursor:pointer;">
+      <span class="label">Feedback · Suggerimenti</span>
+      <button class="btn-minimal btn-minimal--toggle" id="btn-feedback-toggle">Apri <svg width="10" height="7" viewBox="0 0 12 8" fill="none" style="vertical-align:middle;margin-left:3px;"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div id="feedback-wrap" style="display:none;">
+      <div class="card-body info-body">
+        <p>Hai suggerimenti, segnalazioni o idee? Lasciaci un feedback — ci aiuta a migliorare il sito.</p>
+        <button data-tally-open="obvW71" data-tally-emoji-text="🌊" data-tally-emoji-animation="wave" class="loc-tab attiva" style="border-radius:0;font-size:.62rem;padding:.25rem .7rem;display:inline-block;width:auto;">Apri il sondaggio →</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p class="footer-disclaimer">Si declina ogni responsabilit&agrave; per l'utilizzo delle informazioni contenute. Verifica sempre le condizioni reali prima di entrare in acqua e attieniti alle indicazioni degli organi ufficiali.</p>
+  <p class="footer-sources">Dati: <a href="https://www.meteoswiss.admin.ch" target="_blank">MeteoSwiss</a> · <a href="https://www.meteotrentino.it" target="_blank">Meteotrentino</a> · <a href="https://www.dwd.de" target="_blank">Deutscher Wetterdienst</a></p>
+  <p class="footer-links"><a href="/privacy/">Privacy Policy</a> · <a href="/privacy/#cookie">Cookie Policy</a> · <a href="mailto:info@ventogarda.it">info@ventogarda.it</a></p>
+  <p class="footer-versione" style="font-size:.55rem;color:var(--faint);letter-spacing:.06em;margin-top:.35rem;">V. 2.4 · VentoGarda &copy; 2026 · Tutti i diritti riservati</p>
+</footer>
+
+</div><!-- /page-container -->
+
+<!-- COOKIE BANNER -->
+<div id="cookie-banner" style="display:none;">
+  <p>Questo sito utilizza cookie tecnici necessari al funzionamento e cookie analitici di terze parti per finalità statistiche e di miglioramento del servizio. I dati raccolti sono trattati in forma anonima e aggregata. Proseguendo la navigazione o cliccando "Accetta" presti il consenso all'utilizzo dei cookie analitici. Per esercitare i tuoi diritti o revocare il consenso consulta la <a href="/privacy/">Privacy Policy</a>.</p>
+  <div class="cookie-btns">
+    <button id="cookie-accept">Accetta</button>
+    <button id="cookie-reject">Rifiuta</button>
+  </div>
+</div>
+
+<script src="../scripts/script_maltempo.js"></script>
+<script>
+  const consent = localStorage.getItem('cookie_consent');
+  if (!consent) {
+    document.getElementById('cookie-banner').style.display = 'flex';
+  }
+  document.getElementById('cookie-accept').addEventListener('click', () => {
+    localStorage.setItem('cookie_consent', 'accepted');
+    document.getElementById('cookie-banner').style.display = 'none';
+    loadGA();
+  });
+  document.getElementById('cookie-reject').addEventListener('click', () => {
+    localStorage.setItem('cookie_consent', 'rejected');
+    document.getElementById('cookie-banner').style.display = 'none';
+  });
+</script>
+<script>
+  const chevronDown = `<svg width="10" height="7" viewBox="0 0 12 8" fill="none" style="vertical-align:middle;margin-left:3px;"><polyline points="1,1 6,7 11,1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const chevronUp = `<svg width="10" height="7" viewBox="0 0 12 8" fill="none" style="vertical-align:middle;margin-left:3px;"><polyline points="1,7 6,1 11,7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  function toggleFeedback() {
+    const wrap = document.getElementById("feedback-wrap");
+    const btn = document.getElementById("btn-feedback-toggle");
+    const open = wrap.style.display === "none";
+    wrap.style.display = open ? "block" : "none";
+    btn.innerHTML = open ? `Chiudi ${chevronUp}` : `Apri ${chevronDown}`;
+  }
+  function toggleInfo() {
+    const wrap = document.getElementById("info-wrap");
+    const btn = document.getElementById("btn-info");
+    const open = wrap.style.display === "none";
+    wrap.style.display = open ? "block" : "none";
+    btn.innerHTML = open ? `Chiudi ${chevronUp}` : `Leggi ${chevronDown}`;
+  }
+  function toggleDisclaimer() {
+    const wrap = document.getElementById("disclaimer-wrap");
+    const btn = document.getElementById("btn-disclaimer");
+    const open = wrap.style.display === "none";
+    wrap.style.display = open ? "block" : "none";
+    btn.innerHTML = open ? `Chiudi ${chevronUp}` : `Apri ${chevronDown}`;
+  }
+</script>
+
+<script async src="https://tally.so/widgets/embed.js"></script>
+</body>
+</html>
