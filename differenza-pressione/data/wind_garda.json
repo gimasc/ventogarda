@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T23:04:35.961812+00:00",
+  "generated_at": "2026-09-05T07:44:47.866775+00:00",
   "source": "DWD MOSMIX-L",
   "parameter": "PPPP",
   "stations": {
@@ -9,208 +9,172 @@
   "formula": "delta_hpa = brescia_ghedi_hpa - bolzano_hpa",
   "rows": [
     {
-      "time": "2026-09-04T22:00:00.000Z",
-      "bolzano_hpa": 1017.7,
-      "ghedi_hpa": 1016.6,
-      "delta_hpa": -1.1
-    },
-    {
-      "time": "2026-09-04T23:00:00.000Z",
-      "bolzano_hpa": 1017.8,
-      "ghedi_hpa": 1016.4,
-      "delta_hpa": -1.4
-    },
-    {
-      "time": "2026-09-05T00:00:00.000Z",
-      "bolzano_hpa": 1017.9,
-      "ghedi_hpa": 1016.2,
-      "delta_hpa": -1.7
-    },
-    {
-      "time": "2026-09-05T01:00:00.000Z",
-      "bolzano_hpa": 1018.0,
-      "ghedi_hpa": 1016.1,
-      "delta_hpa": -1.9
-    },
-    {
-      "time": "2026-09-05T02:00:00.000Z",
-      "bolzano_hpa": 1018.1,
-      "ghedi_hpa": 1016.0,
-      "delta_hpa": -2.1
-    },
-    {
-      "time": "2026-09-05T03:00:00.000Z",
-      "bolzano_hpa": 1018.1,
-      "ghedi_hpa": 1015.9,
-      "delta_hpa": -2.2
-    },
-    {
       "time": "2026-09-05T04:00:00.000Z",
-      "bolzano_hpa": 1018.3,
-      "ghedi_hpa": 1015.9,
-      "delta_hpa": -2.4
+      "bolzano_hpa": 1018.1,
+      "ghedi_hpa": 1015.8,
+      "delta_hpa": -2.3
     },
     {
       "time": "2026-09-05T05:00:00.000Z",
-      "bolzano_hpa": 1018.6,
+      "bolzano_hpa": 1018.4,
       "ghedi_hpa": 1015.9,
-      "delta_hpa": -2.7
+      "delta_hpa": -2.5
     },
     {
       "time": "2026-09-05T06:00:00.000Z",
-      "bolzano_hpa": 1018.9,
-      "ghedi_hpa": 1016.1,
-      "delta_hpa": -2.8
+      "bolzano_hpa": 1018.7,
+      "ghedi_hpa": 1016.0,
+      "delta_hpa": -2.7
     },
     {
       "time": "2026-09-05T07:00:00.000Z",
-      "bolzano_hpa": 1019.2,
-      "ghedi_hpa": 1016.3,
-      "delta_hpa": -2.9
+      "bolzano_hpa": 1018.8,
+      "ghedi_hpa": 1016.2,
+      "delta_hpa": -2.6
     },
     {
       "time": "2026-09-05T08:00:00.000Z",
-      "bolzano_hpa": 1019.1,
-      "ghedi_hpa": 1016.5,
+      "bolzano_hpa": 1019.0,
+      "ghedi_hpa": 1016.4,
       "delta_hpa": -2.6
     },
     {
       "time": "2026-09-05T09:00:00.000Z",
       "bolzano_hpa": 1018.8,
-      "ghedi_hpa": 1016.6,
-      "delta_hpa": -2.2
+      "ghedi_hpa": 1016.5,
+      "delta_hpa": -2.3
     },
     {
       "time": "2026-09-05T10:00:00.000Z",
-      "bolzano_hpa": 1018.3,
-      "ghedi_hpa": 1016.7,
-      "delta_hpa": -1.6
+      "bolzano_hpa": 1018.2,
+      "ghedi_hpa": 1016.5,
+      "delta_hpa": -1.7
     },
     {
       "time": "2026-09-05T11:00:00.000Z",
-      "bolzano_hpa": 1017.7,
-      "ghedi_hpa": 1016.5,
+      "bolzano_hpa": 1017.5,
+      "ghedi_hpa": 1016.3,
       "delta_hpa": -1.2
     },
     {
       "time": "2026-09-05T12:00:00.000Z",
-      "bolzano_hpa": 1017.0,
-      "ghedi_hpa": 1016.1,
-      "delta_hpa": -0.9
+      "bolzano_hpa": 1016.6,
+      "ghedi_hpa": 1015.9,
+      "delta_hpa": -0.7
     },
     {
       "time": "2026-09-05T13:00:00.000Z",
-      "bolzano_hpa": 1016.5,
-      "ghedi_hpa": 1015.8,
-      "delta_hpa": -0.7
+      "bolzano_hpa": 1016.1,
+      "ghedi_hpa": 1015.7,
+      "delta_hpa": -0.4
     },
     {
       "time": "2026-09-05T14:00:00.000Z",
-      "bolzano_hpa": 1016.0,
+      "bolzano_hpa": 1015.7,
       "ghedi_hpa": 1015.3,
-      "delta_hpa": -0.7
+      "delta_hpa": -0.4
     },
     {
       "time": "2026-09-05T15:00:00.000Z",
-      "bolzano_hpa": 1015.9,
+      "bolzano_hpa": 1015.6,
       "ghedi_hpa": 1015.1,
-      "delta_hpa": -0.8
+      "delta_hpa": -0.5
     },
     {
       "time": "2026-09-05T16:00:00.000Z",
-      "bolzano_hpa": 1016.1,
-      "ghedi_hpa": 1014.9,
-      "delta_hpa": -1.2
+      "bolzano_hpa": 1015.9,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -0.9
     },
     {
       "time": "2026-09-05T17:00:00.000Z",
       "bolzano_hpa": 1016.6,
-      "ghedi_hpa": 1014.8,
-      "delta_hpa": -1.8
+      "ghedi_hpa": 1014.9,
+      "delta_hpa": -1.7
     },
     {
       "time": "2026-09-05T18:00:00.000Z",
-      "bolzano_hpa": 1017.6,
-      "ghedi_hpa": 1015.0,
-      "delta_hpa": -2.6
+      "bolzano_hpa": 1017.5,
+      "ghedi_hpa": 1015.1,
+      "delta_hpa": -2.4
     },
     {
       "time": "2026-09-05T19:00:00.000Z",
-      "bolzano_hpa": 1018.8,
-      "ghedi_hpa": 1015.5,
-      "delta_hpa": -3.3
+      "bolzano_hpa": 1018.5,
+      "ghedi_hpa": 1015.4,
+      "delta_hpa": -3.1
     },
     {
       "time": "2026-09-05T20:00:00.000Z",
-      "bolzano_hpa": 1019.9,
-      "ghedi_hpa": 1016.2,
-      "delta_hpa": -3.7
+      "bolzano_hpa": 1019.5,
+      "ghedi_hpa": 1016.1,
+      "delta_hpa": -3.4
     },
     {
       "time": "2026-09-05T21:00:00.000Z",
-      "bolzano_hpa": 1020.8,
-      "ghedi_hpa": 1016.9,
-      "delta_hpa": -3.9
+      "bolzano_hpa": 1020.4,
+      "ghedi_hpa": 1016.7,
+      "delta_hpa": -3.7
     },
     {
       "time": "2026-09-05T22:00:00.000Z",
-      "bolzano_hpa": 1021.6,
-      "ghedi_hpa": 1017.5,
-      "delta_hpa": -4.1
+      "bolzano_hpa": 1021.3,
+      "ghedi_hpa": 1017.4,
+      "delta_hpa": -3.9
     },
     {
       "time": "2026-09-05T23:00:00.000Z",
-      "bolzano_hpa": 1022.2,
+      "bolzano_hpa": 1021.9,
       "ghedi_hpa": 1018.0,
-      "delta_hpa": -4.2
+      "delta_hpa": -3.9
     },
     {
       "time": "2026-09-06T00:00:00.000Z",
-      "bolzano_hpa": 1022.8,
+      "bolzano_hpa": 1022.5,
       "ghedi_hpa": 1018.4,
-      "delta_hpa": -4.4
+      "delta_hpa": -4.1
     },
     {
       "time": "2026-09-06T01:00:00.000Z",
-      "bolzano_hpa": 1023.4,
+      "bolzano_hpa": 1022.9,
       "ghedi_hpa": 1018.8,
-      "delta_hpa": -4.6
+      "delta_hpa": -4.1
     },
     {
       "time": "2026-09-06T02:00:00.000Z",
-      "bolzano_hpa": 1023.8,
+      "bolzano_hpa": 1023.4,
       "ghedi_hpa": 1019.1,
-      "delta_hpa": -4.7
+      "delta_hpa": -4.3
     },
     {
       "time": "2026-09-06T03:00:00.000Z",
-      "bolzano_hpa": 1024.2,
+      "bolzano_hpa": 1023.8,
       "ghedi_hpa": 1019.4,
-      "delta_hpa": -4.8
+      "delta_hpa": -4.4
     },
     {
       "time": "2026-09-06T04:00:00.000Z",
-      "bolzano_hpa": 1024.7,
+      "bolzano_hpa": 1024.3,
       "ghedi_hpa": 1019.7,
-      "delta_hpa": -5.0
+      "delta_hpa": -4.6
     },
     {
       "time": "2026-09-06T05:00:00.000Z",
-      "bolzano_hpa": 1025.0,
-      "ghedi_hpa": 1020.0,
-      "delta_hpa": -5.0
+      "bolzano_hpa": 1024.8,
+      "ghedi_hpa": 1020.1,
+      "delta_hpa": -4.7
     },
     {
       "time": "2026-09-06T06:00:00.000Z",
-      "bolzano_hpa": 1025.5,
-      "ghedi_hpa": 1020.5,
-      "delta_hpa": -5.0
+      "bolzano_hpa": 1025.3,
+      "ghedi_hpa": 1020.6,
+      "delta_hpa": -4.7
     },
     {
       "time": "2026-09-06T07:00:00.000Z",
-      "bolzano_hpa": 1025.6,
-      "ghedi_hpa": 1020.9,
-      "delta_hpa": -4.7
+      "bolzano_hpa": 1025.4,
+      "ghedi_hpa": 1021.0,
+      "delta_hpa": -4.4
     },
     {
       "time": "2026-09-06T08:00:00.000Z",
@@ -221,104 +185,104 @@
     {
       "time": "2026-09-06T09:00:00.000Z",
       "bolzano_hpa": 1024.9,
-      "ghedi_hpa": 1021.6,
-      "delta_hpa": -3.3
+      "ghedi_hpa": 1021.7,
+      "delta_hpa": -3.2
     },
     {
       "time": "2026-09-06T10:00:00.000Z",
-      "bolzano_hpa": 1024.3,
+      "bolzano_hpa": 1024.2,
       "ghedi_hpa": 1021.8,
-      "delta_hpa": -2.5
+      "delta_hpa": -2.4
     },
     {
       "time": "2026-09-06T11:00:00.000Z",
-      "bolzano_hpa": 1023.5,
+      "bolzano_hpa": 1023.4,
       "ghedi_hpa": 1021.7,
-      "delta_hpa": -1.8
+      "delta_hpa": -1.7
     },
     {
       "time": "2026-09-06T12:00:00.000Z",
-      "bolzano_hpa": 1022.7,
+      "bolzano_hpa": 1022.4,
       "ghedi_hpa": 1021.5,
-      "delta_hpa": -1.2
+      "delta_hpa": -0.9
     },
     {
       "time": "2026-09-06T13:00:00.000Z",
-      "bolzano_hpa": 1022.0,
-      "ghedi_hpa": 1021.3,
-      "delta_hpa": -0.7
+      "bolzano_hpa": 1021.8,
+      "ghedi_hpa": 1021.2,
+      "delta_hpa": -0.6
     },
     {
       "time": "2026-09-06T14:00:00.000Z",
-      "bolzano_hpa": 1021.3,
+      "bolzano_hpa": 1021.2,
       "ghedi_hpa": 1020.9,
-      "delta_hpa": -0.4
+      "delta_hpa": -0.3
     },
     {
       "time": "2026-09-06T15:00:00.000Z",
       "bolzano_hpa": 1020.8,
-      "ghedi_hpa": 1020.7,
-      "delta_hpa": -0.1
+      "ghedi_hpa": 1020.6,
+      "delta_hpa": -0.2
     },
     {
       "time": "2026-09-06T16:00:00.000Z",
-      "bolzano_hpa": 1020.8,
+      "bolzano_hpa": 1020.7,
       "ghedi_hpa": 1020.5,
-      "delta_hpa": -0.3
+      "delta_hpa": -0.2
     },
     {
       "time": "2026-09-06T17:00:00.000Z",
-      "bolzano_hpa": 1021.0,
-      "ghedi_hpa": 1020.5,
+      "bolzano_hpa": 1020.9,
+      "ghedi_hpa": 1020.4,
       "delta_hpa": -0.5
     },
     {
       "time": "2026-09-06T18:00:00.000Z",
-      "bolzano_hpa": 1021.6,
-      "ghedi_hpa": 1020.6,
+      "bolzano_hpa": 1021.5,
+      "ghedi_hpa": 1020.5,
       "delta_hpa": -1.0
     },
     {
       "time": "2026-09-06T19:00:00.000Z",
       "bolzano_hpa": 1022.3,
-      "ghedi_hpa": 1020.9,
-      "delta_hpa": -1.4
+      "ghedi_hpa": 1020.8,
+      "delta_hpa": -1.5
     },
     {
       "time": "2026-09-06T20:00:00.000Z",
-      "bolzano_hpa": 1023.0,
+      "bolzano_hpa": 1022.9,
       "ghedi_hpa": 1021.1,
-      "delta_hpa": -1.9
+      "delta_hpa": -1.8
     },
     {
       "time": "2026-09-06T21:00:00.000Z",
-      "bolzano_hpa": 1023.6,
+      "bolzano_hpa": 1023.5,
       "ghedi_hpa": 1021.5,
-      "delta_hpa": -2.1
+      "delta_hpa": -2.0
     },
     {
       "time": "2026-09-06T22:00:00.000Z",
-      "bolzano_hpa": 1023.9,
+      "bolzano_hpa": 1023.8,
       "ghedi_hpa": 1021.8,
-      "delta_hpa": -2.1
+      "delta_hpa": -2.0
     },
     {
       "time": "2026-09-06T23:00:00.000Z",
-      "bolzano_hpa": 1024.1,
+      "bolzano_hpa": 1024.0,
       "ghedi_hpa": 1022.0,
-      "delta_hpa": -2.1
+      "delta_hpa": -2.0
     },
     {
       "time": "2026-09-07T00:00:00.000Z",
-      "bolzano_hpa": 1024.3,
-      "ghedi_hpa": 1022.2,
-      "delta_hpa": -2.1
+      "bolzano_hpa": 1024.1,
+      "ghedi_hpa": 1022.1,
+      "delta_hpa": -2.0
     },
     {
       "time": "2026-09-07T01:00:00.000Z",
       "bolzano_hpa": 1024.2,
-      "ghedi_hpa": 1022.2,
-      "delta_hpa": -2.0
+      "ghedi_hpa": 1022.1,
+      "delta_hpa": -2.1
     },
     {
       "time": "2026-09-07T02:00:00.000Z",
@@ -334,489 +298,489 @@
     },
     {
       "time": "2026-09-07T04:00:00.000Z",
-      "bolzano_hpa": 1024.4,
-      "ghedi_hpa": 1021.8,
+      "bolzano_hpa": 1024.5,
+      "ghedi_hpa": 1021.9,
       "delta_hpa": -2.6
     },
     {
       "time": "2026-09-07T05:00:00.000Z",
-      "bolzano_hpa": 1024.4,
-      "ghedi_hpa": 1021.8,
-      "delta_hpa": -2.6
-    },
-    {
-      "time": "2026-09-07T06:00:00.000Z",
       "bolzano_hpa": 1024.6,
       "ghedi_hpa": 1021.9,
       "delta_hpa": -2.7
     },
     {
-      "time": "2026-09-07T07:00:00.000Z",
-      "bolzano_hpa": 1024.6,
+      "time": "2026-09-07T06:00:00.000Z",
+      "bolzano_hpa": 1024.8,
       "ghedi_hpa": 1022.0,
-      "delta_hpa": -2.6
+      "delta_hpa": -2.8
+    },
+    {
+      "time": "2026-09-07T07:00:00.000Z",
+      "bolzano_hpa": 1024.7,
+      "ghedi_hpa": 1022.0,
+      "delta_hpa": -2.7
     },
     {
       "time": "2026-09-07T08:00:00.000Z",
-      "bolzano_hpa": 1024.3,
-      "ghedi_hpa": 1022.0,
+      "bolzano_hpa": 1024.4,
+      "ghedi_hpa": 1022.1,
       "delta_hpa": -2.3
     },
     {
       "time": "2026-09-07T09:00:00.000Z",
       "bolzano_hpa": 1024.0,
-      "ghedi_hpa": 1021.9,
-      "delta_hpa": -2.1
+      "ghedi_hpa": 1022.0,
+      "delta_hpa": -2.0
     },
     {
       "time": "2026-09-07T10:00:00.000Z",
       "bolzano_hpa": 1023.1,
-      "ghedi_hpa": 1021.6,
-      "delta_hpa": -1.5
+      "ghedi_hpa": 1021.7,
+      "delta_hpa": -1.4
     },
     {
       "time": "2026-09-07T11:00:00.000Z",
-      "bolzano_hpa": 1022.4,
-      "ghedi_hpa": 1021.1,
-      "delta_hpa": -1.3
+      "bolzano_hpa": 1022.3,
+      "ghedi_hpa": 1021.3,
+      "delta_hpa": -1.0
     },
     {
       "time": "2026-09-07T12:00:00.000Z",
       "bolzano_hpa": 1021.6,
-      "ghedi_hpa": 1020.5,
-      "delta_hpa": -1.1
+      "ghedi_hpa": 1020.7,
+      "delta_hpa": -0.9
     },
     {
       "time": "2026-09-07T13:00:00.000Z",
       "bolzano_hpa": 1020.8,
-      "ghedi_hpa": 1019.7,
-      "delta_hpa": -1.1
+      "ghedi_hpa": 1019.9,
+      "delta_hpa": -0.9
     },
     {
       "time": "2026-09-07T14:00:00.000Z",
-      "bolzano_hpa": 1020.2,
-      "ghedi_hpa": 1019.1,
-      "delta_hpa": -1.1
+      "bolzano_hpa": 1020.0,
+      "ghedi_hpa": 1019.3,
+      "delta_hpa": -0.7
     },
     {
       "time": "2026-09-07T15:00:00.000Z",
       "bolzano_hpa": 1019.6,
-      "ghedi_hpa": 1018.6,
-      "delta_hpa": -1.0
+      "ghedi_hpa": 1018.7,
+      "delta_hpa": -0.9
     },
     {
       "time": "2026-09-07T16:00:00.000Z",
       "bolzano_hpa": 1019.4,
-      "ghedi_hpa": 1018.1,
-      "delta_hpa": -1.3
+      "ghedi_hpa": 1018.4,
+      "delta_hpa": -1.0
     },
     {
       "time": "2026-09-07T17:00:00.000Z",
       "bolzano_hpa": 1019.7,
-      "ghedi_hpa": 1017.9,
-      "delta_hpa": -1.8
+      "ghedi_hpa": 1018.1,
+      "delta_hpa": -1.6
     },
     {
       "time": "2026-09-07T18:00:00.000Z",
-      "bolzano_hpa": 1019.9,
-      "ghedi_hpa": 1017.8,
-      "delta_hpa": -2.1
+      "bolzano_hpa": 1020.0,
+      "ghedi_hpa": 1018.1,
+      "delta_hpa": -1.9
     },
     {
       "time": "2026-09-07T19:00:00.000Z",
-      "bolzano_hpa": 1020.4,
-      "ghedi_hpa": 1017.9,
-      "delta_hpa": -2.5
+      "bolzano_hpa": 1020.6,
+      "ghedi_hpa": 1018.2,
+      "delta_hpa": -2.4
     },
     {
       "time": "2026-09-07T20:00:00.000Z",
       "bolzano_hpa": 1021.2,
-      "ghedi_hpa": 1018.1,
-      "delta_hpa": -3.1
+      "ghedi_hpa": 1018.4,
+      "delta_hpa": -2.8
     },
     {
       "time": "2026-09-07T21:00:00.000Z",
       "bolzano_hpa": 1021.8,
-      "ghedi_hpa": 1018.3,
-      "delta_hpa": -3.5
+      "ghedi_hpa": 1018.7,
+      "delta_hpa": -3.1
     },
     {
       "time": "2026-09-07T22:00:00.000Z",
-      "bolzano_hpa": 1021.9,
-      "ghedi_hpa": 1018.5,
-      "delta_hpa": -3.4
+      "bolzano_hpa": 1022.1,
+      "ghedi_hpa": 1018.8,
+      "delta_hpa": -3.3
     },
     {
       "time": "2026-09-07T23:00:00.000Z",
-      "bolzano_hpa": 1021.9,
-      "ghedi_hpa": 1018.6,
+      "bolzano_hpa": 1022.1,
+      "ghedi_hpa": 1018.8,
       "delta_hpa": -3.3
     },
     {
       "time": "2026-09-08T00:00:00.000Z",
-      "bolzano_hpa": 1021.7,
-      "ghedi_hpa": 1018.3,
+      "bolzano_hpa": 1022.1,
+      "ghedi_hpa": 1018.7,
       "delta_hpa": -3.4
     },
     {
       "time": "2026-09-08T01:00:00.000Z",
-      "bolzano_hpa": 1021.6,
-      "ghedi_hpa": 1018.2,
+      "bolzano_hpa": 1021.8,
+      "ghedi_hpa": 1018.4,
       "delta_hpa": -3.4
     },
     {
       "time": "2026-09-08T02:00:00.000Z",
-      "bolzano_hpa": 1021.4,
-      "ghedi_hpa": 1018.0,
-      "delta_hpa": -3.4
+      "bolzano_hpa": 1021.7,
+      "ghedi_hpa": 1018.2,
+      "delta_hpa": -3.5
     },
     {
       "time": "2026-09-08T03:00:00.000Z",
-      "bolzano_hpa": 1021.2,
-      "ghedi_hpa": 1017.7,
+      "bolzano_hpa": 1021.4,
+      "ghedi_hpa": 1017.9,
       "delta_hpa": -3.5
     },
     {
       "time": "2026-09-08T04:00:00.000Z",
-      "bolzano_hpa": 1021.0,
-      "ghedi_hpa": 1017.5,
-      "delta_hpa": -3.5
-    },
-    {
-      "time": "2026-09-08T05:00:00.000Z",
-      "bolzano_hpa": 1021.0,
-      "ghedi_hpa": 1017.1,
-      "delta_hpa": -3.9
-    },
-    {
-      "time": "2026-09-08T06:00:00.000Z",
-      "bolzano_hpa": 1020.7,
-      "ghedi_hpa": 1017.0,
-      "delta_hpa": -3.7
-    },
-    {
-      "time": "2026-09-08T07:00:00.000Z",
-      "bolzano_hpa": 1020.5,
-      "ghedi_hpa": 1016.9,
+      "bolzano_hpa": 1021.3,
+      "ghedi_hpa": 1017.7,
       "delta_hpa": -3.6
     },
     {
+      "time": "2026-09-08T05:00:00.000Z",
+      "bolzano_hpa": 1021.4,
+      "ghedi_hpa": 1017.4,
+      "delta_hpa": -4.0
+    },
+    {
+      "time": "2026-09-08T06:00:00.000Z",
+      "bolzano_hpa": 1021.3,
+      "ghedi_hpa": 1017.4,
+      "delta_hpa": -3.9
+    },
+    {
+      "time": "2026-09-08T07:00:00.000Z",
+      "bolzano_hpa": 1021.0,
+      "ghedi_hpa": 1017.3,
+      "delta_hpa": -3.7
+    },
+    {
       "time": "2026-09-08T08:00:00.000Z",
-      "bolzano_hpa": 1019.9,
-      "ghedi_hpa": 1016.7,
+      "bolzano_hpa": 1020.4,
+      "ghedi_hpa": 1017.2,
       "delta_hpa": -3.2
     },
     {
       "time": "2026-09-08T09:00:00.000Z",
-      "bolzano_hpa": 1019.0,
-      "ghedi_hpa": 1016.4,
+      "bolzano_hpa": 1019.5,
+      "ghedi_hpa": 1016.9,
       "delta_hpa": -2.6
     },
     {
       "time": "2026-09-08T10:00:00.000Z",
-      "bolzano_hpa": 1018.1,
-      "ghedi_hpa": 1015.9,
+      "bolzano_hpa": 1018.6,
+      "ghedi_hpa": 1016.4,
       "delta_hpa": -2.2
     },
     {
       "time": "2026-09-08T11:00:00.000Z",
-      "bolzano_hpa": 1017.0,
-      "ghedi_hpa": 1015.5,
+      "bolzano_hpa": 1017.5,
+      "ghedi_hpa": 1016.0,
       "delta_hpa": -1.5
     },
     {
       "time": "2026-09-08T12:00:00.000Z",
-      "bolzano_hpa": 1015.7,
-      "ghedi_hpa": 1014.8,
-      "delta_hpa": -0.9
-    },
-    {
-      "time": "2026-09-08T13:00:00.000Z",
-      "bolzano_hpa": 1014.6,
-      "ghedi_hpa": 1013.9,
-      "delta_hpa": -0.7
-    },
-    {
-      "time": "2026-09-08T14:00:00.000Z",
-      "bolzano_hpa": 1013.8,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": -0.6
-    },
-    {
-      "time": "2026-09-08T15:00:00.000Z",
-      "bolzano_hpa": 1012.9,
-      "ghedi_hpa": 1012.5,
-      "delta_hpa": -0.4
-    },
-    {
-      "time": "2026-09-08T16:00:00.000Z",
-      "bolzano_hpa": 1012.5,
-      "ghedi_hpa": 1011.8,
-      "delta_hpa": -0.7
-    },
-    {
-      "time": "2026-09-08T17:00:00.000Z",
-      "bolzano_hpa": 1012.6,
-      "ghedi_hpa": 1011.5,
+      "bolzano_hpa": 1016.3,
+      "ghedi_hpa": 1015.2,
       "delta_hpa": -1.1
     },
     {
+      "time": "2026-09-08T13:00:00.000Z",
+      "bolzano_hpa": 1015.2,
+      "ghedi_hpa": 1014.4,
+      "delta_hpa": -0.8
+    },
+    {
+      "time": "2026-09-08T14:00:00.000Z",
+      "bolzano_hpa": 1014.3,
+      "ghedi_hpa": 1013.6,
+      "delta_hpa": -0.7
+    },
+    {
+      "time": "2026-09-08T15:00:00.000Z",
+      "bolzano_hpa": 1013.5,
+      "ghedi_hpa": 1013.0,
+      "delta_hpa": -0.5
+    },
+    {
+      "time": "2026-09-08T16:00:00.000Z",
+      "bolzano_hpa": 1013.1,
+      "ghedi_hpa": 1012.3,
+      "delta_hpa": -0.8
+    },
+    {
+      "time": "2026-09-08T17:00:00.000Z",
+      "bolzano_hpa": 1012.8,
+      "ghedi_hpa": 1012.0,
+      "delta_hpa": -0.8
+    },
+    {
       "time": "2026-09-08T18:00:00.000Z",
-      "bolzano_hpa": 1012.7,
-      "ghedi_hpa": 1011.1,
-      "delta_hpa": -1.6
+      "bolzano_hpa": 1013.0,
+      "ghedi_hpa": 1011.5,
+      "delta_hpa": -1.5
     },
     {
       "time": "2026-09-08T19:00:00.000Z",
-      "bolzano_hpa": 1012.7,
-      "ghedi_hpa": 1010.9,
-      "delta_hpa": -1.8
+      "bolzano_hpa": 1013.3,
+      "ghedi_hpa": 1011.2,
+      "delta_hpa": -2.1
     },
     {
       "time": "2026-09-08T20:00:00.000Z",
-      "bolzano_hpa": 1013.1,
-      "ghedi_hpa": 1010.7,
+      "bolzano_hpa": 1013.5,
+      "ghedi_hpa": 1011.1,
       "delta_hpa": -2.4
     },
     {
       "time": "2026-09-08T21:00:00.000Z",
-      "bolzano_hpa": 1013.2,
-      "ghedi_hpa": 1010.7,
+      "bolzano_hpa": 1013.6,
+      "ghedi_hpa": 1011.1,
       "delta_hpa": -2.5
     },
     {
       "time": "2026-09-08T22:00:00.000Z",
-      "bolzano_hpa": 1013.0,
-      "ghedi_hpa": 1010.7,
+      "bolzano_hpa": 1013.3,
+      "ghedi_hpa": 1011.0,
       "delta_hpa": -2.3
     },
     {
       "time": "2026-09-08T23:00:00.000Z",
-      "bolzano_hpa": 1012.7,
-      "ghedi_hpa": 1010.5,
-      "delta_hpa": -2.2
+      "bolzano_hpa": 1013.1,
+      "ghedi_hpa": 1010.6,
+      "delta_hpa": -2.5
     },
     {
       "time": "2026-09-09T00:00:00.000Z",
-      "bolzano_hpa": 1011.9,
-      "ghedi_hpa": 1010.2,
-      "delta_hpa": -1.7
+      "bolzano_hpa": 1012.7,
+      "ghedi_hpa": 1010.4,
+      "delta_hpa": -2.3
     },
     {
       "time": "2026-09-09T01:00:00.000Z",
-      "bolzano_hpa": 1011.6,
-      "ghedi_hpa": 1010.0,
-      "delta_hpa": -1.6
+      "bolzano_hpa": 1012.5,
+      "ghedi_hpa": 1010.3,
+      "delta_hpa": -2.2
     },
     {
       "time": "2026-09-09T02:00:00.000Z",
+      "bolzano_hpa": 1012.2,
+      "ghedi_hpa": 1009.9,
+      "delta_hpa": -2.3
+    },
+    {
+      "time": "2026-09-09T03:00:00.000Z",
+      "bolzano_hpa": 1011.7,
+      "ghedi_hpa": 1009.7,
+      "delta_hpa": -2.0
+    },
+    {
+      "time": "2026-09-09T04:00:00.000Z",
       "bolzano_hpa": 1011.5,
       "ghedi_hpa": 1009.5,
       "delta_hpa": -2.0
     },
     {
-      "time": "2026-09-09T03:00:00.000Z",
-      "bolzano_hpa": 1011.3,
-      "ghedi_hpa": 1009.3,
-      "delta_hpa": -2.0
-    },
-    {
-      "time": "2026-09-09T04:00:00.000Z",
-      "bolzano_hpa": 1011.0,
-      "ghedi_hpa": 1009.2,
-      "delta_hpa": -1.8
-    },
-    {
       "time": "2026-09-09T05:00:00.000Z",
-      "bolzano_hpa": 1011.0,
-      "ghedi_hpa": 1008.8,
-      "delta_hpa": -2.2
+      "bolzano_hpa": 1011.5,
+      "ghedi_hpa": 1009.2,
+      "delta_hpa": -2.3
     },
     {
       "time": "2026-09-09T06:00:00.000Z",
-      "bolzano_hpa": 1010.8,
-      "ghedi_hpa": 1008.7,
+      "bolzano_hpa": 1011.2,
+      "ghedi_hpa": 1009.1,
       "delta_hpa": -2.1
     },
     {
       "time": "2026-09-09T07:00:00.000Z",
-      "bolzano_hpa": 1010.8,
-      "ghedi_hpa": 1008.8,
-      "delta_hpa": -2.0
-    },
-    {
-      "time": "2026-09-09T08:00:00.000Z",
-      "bolzano_hpa": 1010.9,
-      "ghedi_hpa": 1008.7,
+      "bolzano_hpa": 1011.2,
+      "ghedi_hpa": 1009.0,
       "delta_hpa": -2.2
     },
     {
+      "time": "2026-09-09T08:00:00.000Z",
+      "bolzano_hpa": 1011.2,
+      "ghedi_hpa": 1008.9,
+      "delta_hpa": -2.3
+    },
+    {
       "time": "2026-09-09T09:00:00.000Z",
-      "bolzano_hpa": 1010.6,
-      "ghedi_hpa": 1008.8,
-      "delta_hpa": -1.8
+      "bolzano_hpa": 1010.7,
+      "ghedi_hpa": 1008.7,
+      "delta_hpa": -2.0
     },
     {
       "time": "2026-09-09T10:00:00.000Z",
-      "bolzano_hpa": 1010.1,
-      "ghedi_hpa": 1008.8,
-      "delta_hpa": -1.3
+      "bolzano_hpa": 1010.5,
+      "ghedi_hpa": 1008.5,
+      "delta_hpa": -2.0
     },
     {
       "time": "2026-09-09T11:00:00.000Z",
-      "bolzano_hpa": 1009.8,
-      "ghedi_hpa": 1008.4,
-      "delta_hpa": -1.4
+      "bolzano_hpa": 1009.9,
+      "ghedi_hpa": 1008.0,
+      "delta_hpa": -1.9
     },
     {
       "time": "2026-09-09T12:00:00.000Z",
       "bolzano_hpa": 1009.3,
-      "ghedi_hpa": 1007.7,
-      "delta_hpa": -1.6
+      "ghedi_hpa": 1007.4,
+      "delta_hpa": -1.9
     },
     {
       "time": "2026-09-09T13:00:00.000Z",
-      "bolzano_hpa": 1009.0,
-      "ghedi_hpa": 1007.2,
-      "delta_hpa": -1.8
+      "bolzano_hpa": 1008.5,
+      "ghedi_hpa": 1006.9,
+      "delta_hpa": -1.6
     },
     {
       "time": "2026-09-09T14:00:00.000Z",
-      "bolzano_hpa": 1008.6,
-      "ghedi_hpa": 1006.7,
-      "delta_hpa": -1.9
+      "bolzano_hpa": 1008.5,
+      "ghedi_hpa": 1006.3,
+      "delta_hpa": -2.2
     },
     {
       "time": "2026-09-09T15:00:00.000Z",
       "bolzano_hpa": 1008.4,
-      "ghedi_hpa": 1006.3,
-      "delta_hpa": -2.1
+      "ghedi_hpa": 1006.2,
+      "delta_hpa": -2.2
     },
     {
       "time": "2026-09-09T16:00:00.000Z",
-      "bolzano_hpa": 1008.6,
-      "ghedi_hpa": 1006.2,
-      "delta_hpa": -2.4
+      "bolzano_hpa": 1007.3,
+      "ghedi_hpa": 1006.1,
+      "delta_hpa": -1.2
     },
     {
       "time": "2026-09-09T17:00:00.000Z",
-      "bolzano_hpa": 1008.8,
+      "bolzano_hpa": 1007.7,
       "ghedi_hpa": 1006.0,
-      "delta_hpa": -2.8
+      "delta_hpa": -1.7
     },
     {
       "time": "2026-09-09T18:00:00.000Z",
-      "bolzano_hpa": 1009.4,
+      "bolzano_hpa": 1008.5,
       "ghedi_hpa": 1006.2,
-      "delta_hpa": -3.2
+      "delta_hpa": -2.3
     },
     {
       "time": "2026-09-09T19:00:00.000Z",
-      "bolzano_hpa": 1009.6,
+      "bolzano_hpa": 1009.0,
       "ghedi_hpa": 1006.4,
-      "delta_hpa": -3.2
+      "delta_hpa": -2.6
     },
     {
       "time": "2026-09-09T20:00:00.000Z",
-      "bolzano_hpa": 1010.1,
+      "bolzano_hpa": 1009.4,
       "ghedi_hpa": 1006.8,
-      "delta_hpa": -3.3
+      "delta_hpa": -2.6
     },
     {
       "time": "2026-09-09T21:00:00.000Z",
-      "bolzano_hpa": 1010.6,
-      "ghedi_hpa": 1007.1,
-      "delta_hpa": -3.5
+      "bolzano_hpa": 1009.8,
+      "ghedi_hpa": 1007.0,
+      "delta_hpa": -2.8
     },
     {
       "time": "2026-09-09T22:00:00.000Z",
-      "bolzano_hpa": 1010.7,
-      "ghedi_hpa": 1007.5,
-      "delta_hpa": -3.2
+      "bolzano_hpa": 1010.1,
+      "ghedi_hpa": 1007.4,
+      "delta_hpa": -2.7
     },
     {
       "time": "2026-09-09T23:00:00.000Z",
-      "bolzano_hpa": 1010.9,
-      "ghedi_hpa": 1007.6,
-      "delta_hpa": -3.3
+      "bolzano_hpa": 1010.4,
+      "ghedi_hpa": 1007.4,
+      "delta_hpa": -3.0
     },
     {
       "time": "2026-09-10T00:00:00.000Z",
-      "bolzano_hpa": 1011.2,
-      "ghedi_hpa": 1007.7,
-      "delta_hpa": -3.5
+      "bolzano_hpa": 1010.6,
+      "ghedi_hpa": 1007.8,
+      "delta_hpa": -2.8
     },
     {
       "time": "2026-09-10T01:00:00.000Z",
-      "bolzano_hpa": 1011.1,
-      "ghedi_hpa": 1007.8,
-      "delta_hpa": -3.3
+      "bolzano_hpa": 1010.6,
+      "ghedi_hpa": 1007.9,
+      "delta_hpa": -2.7
     },
     {
       "time": "2026-09-10T02:00:00.000Z",
-      "bolzano_hpa": 1011.4,
-      "ghedi_hpa": 1008.0,
-      "delta_hpa": -3.4
-    },
-    {
-      "time": "2026-09-10T03:00:00.000Z",
       "bolzano_hpa": 1010.8,
       "ghedi_hpa": 1008.0,
       "delta_hpa": -2.8
     },
     {
-      "time": "2026-09-10T04:00:00.000Z",
-      "bolzano_hpa": 1011.1,
-      "ghedi_hpa": 1008.2,
-      "delta_hpa": -2.9
-    },
-    {
-      "time": "2026-09-10T05:00:00.000Z",
-      "bolzano_hpa": 1011.3,
-      "ghedi_hpa": 1008.6,
+      "time": "2026-09-10T03:00:00.000Z",
+      "bolzano_hpa": 1010.7,
+      "ghedi_hpa": 1008.0,
       "delta_hpa": -2.7
     },
     {
-      "time": "2026-09-10T06:00:00.000Z",
-      "bolzano_hpa": 1012.2,
-      "ghedi_hpa": 1008.9,
-      "delta_hpa": -3.3
+      "time": "2026-09-10T04:00:00.000Z",
+      "bolzano_hpa": 1011.0,
+      "ghedi_hpa": 1008.2,
+      "delta_hpa": -2.8
     },
     {
-      "time": "2026-09-10T07:00:00.000Z",
-      "bolzano_hpa": 1012.5,
-      "ghedi_hpa": 1009.3,
-      "delta_hpa": -3.2
-    },
-    {
-      "time": "2026-09-10T08:00:00.000Z",
-      "bolzano_hpa": 1012.6,
-      "ghedi_hpa": 1009.7,
-      "delta_hpa": -2.9
-    },
-    {
-      "time": "2026-09-10T09:00:00.000Z",
-      "bolzano_hpa": 1012.6,
-      "ghedi_hpa": 1010.1,
+      "time": "2026-09-10T05:00:00.000Z",
+      "bolzano_hpa": 1011.2,
+      "ghedi_hpa": 1008.7,
       "delta_hpa": -2.5
     },
     {
-      "time": "2026-09-10T10:00:00.000Z",
-      "bolzano_hpa": 1012.2,
+      "time": "2026-09-10T06:00:00.000Z",
+      "bolzano_hpa": 1012.1,
+      "ghedi_hpa": 1009.0,
+      "delta_hpa": -3.1
+    },
+    {
+      "time": "2026-09-10T07:00:00.000Z",
+      "bolzano_hpa": 1012.1,
+      "ghedi_hpa": 1009.4,
+      "delta_hpa": -2.7
+    },
+    {
+      "time": "2026-09-10T08:00:00.000Z",
+      "bolzano_hpa": 1012.3,
+      "ghedi_hpa": 1010.0,
+      "delta_hpa": -2.3
+    },
+    {
+      "time": "2026-09-10T09:00:00.000Z",
+      "bolzano_hpa": 1012.5,
       "ghedi_hpa": 1010.3,
-      "delta_hpa": -1.9
+      "delta_hpa": -2.2
+    },
+    {
+      "time": "2026-09-10T10:00:00.000Z",
+      "bolzano_hpa": 1012.0,
+      "ghedi_hpa": 1010.5,
+      "delta_hpa": -1.5
     },
     {
       "time": "2026-09-10T11:00:00.000Z",
-      "bolzano_hpa": 1011.6,
-      "ghedi_hpa": 1010.3,
-      "delta_hpa": -1.3
+      "bolzano_hpa": 1011.7,
+      "ghedi_hpa": 1010.5,
+      "delta_hpa": -1.2
     },
     {
       "time": "2026-09-10T12:00:00.000Z",
-      "bolzano_hpa": 1011.0,
+      "bolzano_hpa": 1011.3,
       "ghedi_hpa": 1010.3,
-      "delta_hpa": -0.7
+      "delta_hpa": -1.0
     },
     {
       "time": "2026-09-10T13:00:00.000Z",
@@ -826,669 +790,705 @@
     },
     {
       "time": "2026-09-10T14:00:00.000Z",
+      "bolzano_hpa": 1010.5,
+      "ghedi_hpa": 1010.1,
+      "delta_hpa": -0.4
+    },
+    {
+      "time": "2026-09-10T15:00:00.000Z",
+      "bolzano_hpa": 1010.1,
+      "ghedi_hpa": 1010.0,
+      "delta_hpa": -0.1
+    },
+    {
+      "time": "2026-09-10T16:00:00.000Z",
       "bolzano_hpa": 1010.4,
       "ghedi_hpa": 1010.1,
       "delta_hpa": -0.3
     },
     {
-      "time": "2026-09-10T15:00:00.000Z",
-      "bolzano_hpa": 1010.4,
-      "ghedi_hpa": 1010.0,
-      "delta_hpa": -0.4
-    },
-    {
-      "time": "2026-09-10T16:00:00.000Z",
-      "bolzano_hpa": 1010.6,
-      "ghedi_hpa": 1010.1,
-      "delta_hpa": -0.5
-    },
-    {
       "time": "2026-09-10T17:00:00.000Z",
-      "bolzano_hpa": 1011.0,
-      "ghedi_hpa": 1010.4,
+      "bolzano_hpa": 1011.2,
+      "ghedi_hpa": 1010.6,
       "delta_hpa": -0.6
     },
     {
       "time": "2026-09-10T18:00:00.000Z",
-      "bolzano_hpa": 1011.9,
-      "ghedi_hpa": 1010.6,
-      "delta_hpa": -1.3
+      "bolzano_hpa": 1011.7,
+      "ghedi_hpa": 1011.0,
+      "delta_hpa": -0.7
     },
     {
       "time": "2026-09-10T19:00:00.000Z",
-      "bolzano_hpa": 1012.4,
-      "ghedi_hpa": 1011.1,
+      "bolzano_hpa": 1012.8,
+      "ghedi_hpa": 1011.5,
       "delta_hpa": -1.3
     },
     {
       "time": "2026-09-10T20:00:00.000Z",
-      "bolzano_hpa": 1013.2,
-      "ghedi_hpa": 1011.5,
-      "delta_hpa": -1.7
+      "bolzano_hpa": 1013.5,
+      "ghedi_hpa": 1012.2,
+      "delta_hpa": -1.3
     },
     {
       "time": "2026-09-10T21:00:00.000Z",
-      "bolzano_hpa": 1013.6,
-      "ghedi_hpa": 1011.7,
-      "delta_hpa": -1.9
+      "bolzano_hpa": 1013.9,
+      "ghedi_hpa": 1012.2,
+      "delta_hpa": -1.7
     },
     {
       "time": "2026-09-10T22:00:00.000Z",
-      "bolzano_hpa": 1014.0,
-      "ghedi_hpa": 1012.1,
-      "delta_hpa": -1.9
+      "bolzano_hpa": 1014.3,
+      "ghedi_hpa": 1012.7,
+      "delta_hpa": -1.6
     },
     {
       "time": "2026-09-10T23:00:00.000Z",
-      "bolzano_hpa": 1014.4,
-      "ghedi_hpa": 1012.4,
-      "delta_hpa": -2.0
-    },
-    {
-      "time": "2026-09-11T00:00:00.000Z",
-      "bolzano_hpa": 1014.7,
-      "ghedi_hpa": 1012.6,
-      "delta_hpa": -2.1
-    },
-    {
-      "time": "2026-09-11T01:00:00.000Z",
       "bolzano_hpa": 1014.8,
       "ghedi_hpa": 1013.0,
       "delta_hpa": -1.8
     },
     {
+      "time": "2026-09-11T00:00:00.000Z",
+      "bolzano_hpa": 1015.1,
+      "ghedi_hpa": 1013.2,
+      "delta_hpa": -1.9
+    },
+    {
+      "time": "2026-09-11T01:00:00.000Z",
+      "bolzano_hpa": 1015.2,
+      "ghedi_hpa": 1013.6,
+      "delta_hpa": -1.6
+    },
+    {
       "time": "2026-09-11T02:00:00.000Z",
-      "bolzano_hpa": 1014.9,
-      "ghedi_hpa": 1013.1,
-      "delta_hpa": -1.8
+      "bolzano_hpa": 1015.5,
+      "ghedi_hpa": 1013.8,
+      "delta_hpa": -1.7
     },
     {
       "time": "2026-09-11T03:00:00.000Z",
-      "bolzano_hpa": 1015.1,
-      "ghedi_hpa": 1013.0,
-      "delta_hpa": -2.1
-    },
-    {
-      "time": "2026-09-11T04:00:00.000Z",
-      "bolzano_hpa": 1014.9,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": -1.7
-    },
-    {
-      "time": "2026-09-11T05:00:00.000Z",
-      "bolzano_hpa": 1015.1,
-      "ghedi_hpa": 1013.4,
-      "delta_hpa": -1.7
-    },
-    {
-      "time": "2026-09-11T06:00:00.000Z",
-      "bolzano_hpa": 1015.5,
-      "ghedi_hpa": 1013.6,
-      "delta_hpa": -1.9
-    },
-    {
-      "time": "2026-09-11T07:00:00.000Z",
-      "bolzano_hpa": 1015.6,
-      "ghedi_hpa": 1013.7,
-      "delta_hpa": -1.9
-    },
-    {
-      "time": "2026-09-11T08:00:00.000Z",
       "bolzano_hpa": 1015.7,
       "ghedi_hpa": 1014.0,
       "delta_hpa": -1.7
     },
     {
+      "time": "2026-09-11T04:00:00.000Z",
+      "bolzano_hpa": 1015.7,
+      "ghedi_hpa": 1014.1,
+      "delta_hpa": -1.6
+    },
+    {
+      "time": "2026-09-11T05:00:00.000Z",
+      "bolzano_hpa": 1015.8,
+      "ghedi_hpa": 1014.4,
+      "delta_hpa": -1.4
+    },
+    {
+      "time": "2026-09-11T06:00:00.000Z",
+      "bolzano_hpa": 1016.2,
+      "ghedi_hpa": 1014.5,
+      "delta_hpa": -1.7
+    },
+    {
+      "time": "2026-09-11T07:00:00.000Z",
+      "bolzano_hpa": 1016.2,
+      "ghedi_hpa": 1014.8,
+      "delta_hpa": -1.4
+    },
+    {
+      "time": "2026-09-11T08:00:00.000Z",
+      "bolzano_hpa": 1016.4,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -1.4
+    },
+    {
       "time": "2026-09-11T09:00:00.000Z",
-      "bolzano_hpa": 1015.0,
-      "ghedi_hpa": 1014.2,
-      "delta_hpa": -0.8
+      "bolzano_hpa": 1015.8,
+      "ghedi_hpa": 1015.4,
+      "delta_hpa": -0.4
     },
     {
       "time": "2026-09-11T10:00:00.000Z",
+      "bolzano_hpa": 1015.2,
+      "ghedi_hpa": 1015.4,
+      "delta_hpa": 0.2
+    },
+    {
+      "time": "2026-09-11T11:00:00.000Z",
+      "bolzano_hpa": 1014.3,
+      "ghedi_hpa": 1015.2,
+      "delta_hpa": 0.9
+    },
+    {
+      "time": "2026-09-11T12:00:00.000Z",
+      "bolzano_hpa": 1013.4,
+      "ghedi_hpa": 1014.8,
+      "delta_hpa": 1.4
+    },
+    {
+      "time": "2026-09-11T13:00:00.000Z",
+      "bolzano_hpa": 1012.9,
+      "ghedi_hpa": 1014.5,
+      "delta_hpa": 1.6
+    },
+    {
+      "time": "2026-09-11T14:00:00.000Z",
+      "bolzano_hpa": 1012.7,
+      "ghedi_hpa": 1014.1,
+      "delta_hpa": 1.4
+    },
+    {
+      "time": "2026-09-11T15:00:00.000Z",
+      "bolzano_hpa": 1012.9,
+      "ghedi_hpa": 1013.9,
+      "delta_hpa": 1.0
+    },
+    {
+      "time": "2026-09-11T16:00:00.000Z",
+      "bolzano_hpa": 1013.2,
+      "ghedi_hpa": 1013.7,
+      "delta_hpa": 0.5
+    },
+    {
+      "time": "2026-09-11T17:00:00.000Z",
+      "bolzano_hpa": 1013.7,
+      "ghedi_hpa": 1013.6,
+      "delta_hpa": -0.1
+    },
+    {
+      "time": "2026-09-11T18:00:00.000Z",
+      "bolzano_hpa": 1014.1,
+      "ghedi_hpa": 1013.7,
+      "delta_hpa": -0.4
+    },
+    {
+      "time": "2026-09-11T19:00:00.000Z",
       "bolzano_hpa": 1014.7,
       "ghedi_hpa": 1014.3,
       "delta_hpa": -0.4
     },
     {
-      "time": "2026-09-11T11:00:00.000Z",
-      "bolzano_hpa": 1013.9,
-      "ghedi_hpa": 1014.1,
-      "delta_hpa": 0.2
-    },
-    {
-      "time": "2026-09-11T12:00:00.000Z",
-      "bolzano_hpa": 1013.0,
-      "ghedi_hpa": 1013.5,
-      "delta_hpa": 0.5
-    },
-    {
-      "time": "2026-09-11T13:00:00.000Z",
-      "bolzano_hpa": 1012.4,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": 0.8
-    },
-    {
-      "time": "2026-09-11T14:00:00.000Z",
-      "bolzano_hpa": 1012.1,
-      "ghedi_hpa": 1013.0,
-      "delta_hpa": 0.9
-    },
-    {
-      "time": "2026-09-11T15:00:00.000Z",
-      "bolzano_hpa": 1012.4,
-      "ghedi_hpa": 1012.7,
-      "delta_hpa": 0.3
-    },
-    {
-      "time": "2026-09-11T16:00:00.000Z",
-      "bolzano_hpa": 1012.6,
-      "ghedi_hpa": 1012.5,
-      "delta_hpa": -0.1
-    },
-    {
-      "time": "2026-09-11T17:00:00.000Z",
-      "bolzano_hpa": 1013.1,
-      "ghedi_hpa": 1012.5,
-      "delta_hpa": -0.6
-    },
-    {
-      "time": "2026-09-11T18:00:00.000Z",
-      "bolzano_hpa": 1013.5,
-      "ghedi_hpa": 1012.6,
-      "delta_hpa": -0.9
-    },
-    {
-      "time": "2026-09-11T19:00:00.000Z",
-      "bolzano_hpa": 1013.9,
-      "ghedi_hpa": 1012.6,
-      "delta_hpa": -1.3
-    },
-    {
       "time": "2026-09-11T20:00:00.000Z",
-      "bolzano_hpa": 1014.1,
-      "ghedi_hpa": 1012.7,
-      "delta_hpa": -1.4
+      "bolzano_hpa": 1014.9,
+      "ghedi_hpa": 1014.5,
+      "delta_hpa": -0.4
     },
     {
       "time": "2026-09-11T21:00:00.000Z",
-      "bolzano_hpa": 1014.5,
-      "ghedi_hpa": 1013.0,
-      "delta_hpa": -1.5
-    },
-    {
-      "time": "2026-09-11T22:00:00.000Z",
-      "bolzano_hpa": 1014.8,
-      "ghedi_hpa": 1013.1,
-      "delta_hpa": -1.7
-    },
-    {
-      "time": "2026-09-11T23:00:00.000Z",
-      "bolzano_hpa": 1015.0,
-      "ghedi_hpa": 1013.1,
-      "delta_hpa": -1.9
-    },
-    {
-      "time": "2026-09-12T00:00:00.000Z",
-      "bolzano_hpa": 1015.0,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": -1.8
-    },
-    {
-      "time": "2026-09-12T01:00:00.000Z",
-      "bolzano_hpa": 1014.6,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": -1.4
-    },
-    {
-      "time": "2026-09-12T02:00:00.000Z",
-      "bolzano_hpa": 1014.5,
-      "ghedi_hpa": 1013.1,
-      "delta_hpa": -1.4
-    },
-    {
-      "time": "2026-09-12T03:00:00.000Z",
-      "bolzano_hpa": 1015.0,
-      "ghedi_hpa": 1013.1,
-      "delta_hpa": -1.9
-    },
-    {
-      "time": "2026-09-12T04:00:00.000Z",
-      "bolzano_hpa": 1015.0,
-      "ghedi_hpa": 1013.1,
-      "delta_hpa": -1.9
-    },
-    {
-      "time": "2026-09-12T05:00:00.000Z",
-      "bolzano_hpa": 1015.2,
-      "ghedi_hpa": 1013.4,
-      "delta_hpa": -1.8
-    },
-    {
-      "time": "2026-09-12T06:00:00.000Z",
       "bolzano_hpa": 1015.5,
-      "ghedi_hpa": 1013.5,
-      "delta_hpa": -2.0
-    },
-    {
-      "time": "2026-09-12T07:00:00.000Z",
-      "bolzano_hpa": 1015.7,
-      "ghedi_hpa": 1013.6,
-      "delta_hpa": -2.1
-    },
-    {
-      "time": "2026-09-12T08:00:00.000Z",
-      "bolzano_hpa": 1015.8,
-      "ghedi_hpa": 1013.7,
-      "delta_hpa": -2.1
-    },
-    {
-      "time": "2026-09-12T09:00:00.000Z",
-      "bolzano_hpa": 1015.5,
-      "ghedi_hpa": 1013.7,
-      "delta_hpa": -1.8
-    },
-    {
-      "time": "2026-09-12T10:00:00.000Z",
-      "bolzano_hpa": 1015.2,
-      "ghedi_hpa": 1013.8,
-      "delta_hpa": -1.4
-    },
-    {
-      "time": "2026-09-12T11:00:00.000Z",
-      "bolzano_hpa": 1014.3,
-      "ghedi_hpa": 1013.6,
-      "delta_hpa": -0.7
-    },
-    {
-      "time": "2026-09-12T12:00:00.000Z",
-      "bolzano_hpa": 1013.8,
-      "ghedi_hpa": 1013.3,
-      "delta_hpa": -0.5
-    },
-    {
-      "time": "2026-09-12T13:00:00.000Z",
-      "bolzano_hpa": 1013.1,
-      "ghedi_hpa": 1012.9,
-      "delta_hpa": -0.2
-    },
-    {
-      "time": "2026-09-12T14:00:00.000Z",
-      "bolzano_hpa": 1012.3,
-      "ghedi_hpa": 1012.7,
-      "delta_hpa": 0.4
-    },
-    {
-      "time": "2026-09-12T15:00:00.000Z",
-      "bolzano_hpa": 1011.9,
-      "ghedi_hpa": 1012.3,
-      "delta_hpa": 0.4
-    },
-    {
-      "time": "2026-09-12T16:00:00.000Z",
-      "bolzano_hpa": 1012.3,
-      "ghedi_hpa": 1012.2,
-      "delta_hpa": -0.1
-    },
-    {
-      "time": "2026-09-12T17:00:00.000Z",
-      "bolzano_hpa": 1012.7,
-      "ghedi_hpa": 1012.2,
-      "delta_hpa": -0.5
-    },
-    {
-      "time": "2026-09-12T18:00:00.000Z",
-      "bolzano_hpa": 1013.3,
-      "ghedi_hpa": 1012.4,
+      "ghedi_hpa": 1014.6,
       "delta_hpa": -0.9
     },
     {
+      "time": "2026-09-11T22:00:00.000Z",
+      "bolzano_hpa": 1015.7,
+      "ghedi_hpa": 1014.7,
+      "delta_hpa": -1.0
+    },
+    {
+      "time": "2026-09-11T23:00:00.000Z",
+      "bolzano_hpa": 1015.6,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -0.6
+    },
+    {
+      "time": "2026-09-12T00:00:00.000Z",
+      "bolzano_hpa": 1015.7,
+      "ghedi_hpa": 1015.1,
+      "delta_hpa": -0.6
+    },
+    {
+      "time": "2026-09-12T01:00:00.000Z",
+      "bolzano_hpa": 1015.6,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -0.6
+    },
+    {
+      "time": "2026-09-12T02:00:00.000Z",
+      "bolzano_hpa": 1015.4,
+      "ghedi_hpa": 1014.8,
+      "delta_hpa": -0.6
+    },
+    {
+      "time": "2026-09-12T03:00:00.000Z",
+      "bolzano_hpa": 1015.7,
+      "ghedi_hpa": 1014.9,
+      "delta_hpa": -0.8
+    },
+    {
+      "time": "2026-09-12T04:00:00.000Z",
+      "bolzano_hpa": 1015.5,
+      "ghedi_hpa": 1014.9,
+      "delta_hpa": -0.6
+    },
+    {
+      "time": "2026-09-12T05:00:00.000Z",
+      "bolzano_hpa": 1016.0,
+      "ghedi_hpa": 1014.9,
+      "delta_hpa": -1.1
+    },
+    {
+      "time": "2026-09-12T06:00:00.000Z",
+      "bolzano_hpa": 1016.2,
+      "ghedi_hpa": 1014.9,
+      "delta_hpa": -1.3
+    },
+    {
+      "time": "2026-09-12T07:00:00.000Z",
+      "bolzano_hpa": 1016.0,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -1.0
+    },
+    {
+      "time": "2026-09-12T08:00:00.000Z",
+      "bolzano_hpa": 1016.1,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -1.1
+    },
+    {
+      "time": "2026-09-12T09:00:00.000Z",
+      "bolzano_hpa": 1016.3,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -1.3
+    },
+    {
+      "time": "2026-09-12T10:00:00.000Z",
+      "bolzano_hpa": 1015.8,
+      "ghedi_hpa": 1015.1,
+      "delta_hpa": -0.7
+    },
+    {
+      "time": "2026-09-12T11:00:00.000Z",
+      "bolzano_hpa": 1014.6,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": 0.4
+    },
+    {
+      "time": "2026-09-12T12:00:00.000Z",
+      "bolzano_hpa": 1014.1,
+      "ghedi_hpa": 1014.7,
+      "delta_hpa": 0.6
+    },
+    {
+      "time": "2026-09-12T13:00:00.000Z",
+      "bolzano_hpa": 1013.3,
+      "ghedi_hpa": 1014.3,
+      "delta_hpa": 1.0
+    },
+    {
+      "time": "2026-09-12T14:00:00.000Z",
+      "bolzano_hpa": 1013.1,
+      "ghedi_hpa": 1014.0,
+      "delta_hpa": 0.9
+    },
+    {
+      "time": "2026-09-12T15:00:00.000Z",
+      "bolzano_hpa": 1012.7,
+      "ghedi_hpa": 1013.6,
+      "delta_hpa": 0.9
+    },
+    {
+      "time": "2026-09-12T16:00:00.000Z",
+      "bolzano_hpa": 1012.9,
+      "ghedi_hpa": 1013.5,
+      "delta_hpa": 0.6
+    },
+    {
+      "time": "2026-09-12T17:00:00.000Z",
+      "bolzano_hpa": 1013.2,
+      "ghedi_hpa": 1013.5,
+      "delta_hpa": 0.3
+    },
+    {
+      "time": "2026-09-12T18:00:00.000Z",
+      "bolzano_hpa": 1013.7,
+      "ghedi_hpa": 1013.7,
+      "delta_hpa": 0.0
+    },
+    {
       "time": "2026-09-12T19:00:00.000Z",
-      "bolzano_hpa": 1013.9,
-      "ghedi_hpa": 1012.1,
-      "delta_hpa": -1.8
+      "bolzano_hpa": 1014.2,
+      "ghedi_hpa": 1013.3,
+      "delta_hpa": -0.9
     },
     {
       "time": "2026-09-12T20:00:00.000Z",
-      "bolzano_hpa": 1014.3,
-      "ghedi_hpa": 1012.6,
-      "delta_hpa": -1.7
+      "bolzano_hpa": 1014.6,
+      "ghedi_hpa": 1013.6,
+      "delta_hpa": -1.0
     },
     {
       "time": "2026-09-12T21:00:00.000Z",
-      "bolzano_hpa": 1015.1,
-      "ghedi_hpa": 1012.7,
-      "delta_hpa": -2.4
+      "bolzano_hpa": 1015.2,
+      "ghedi_hpa": 1013.7,
+      "delta_hpa": -1.5
     },
     {
       "time": "2026-09-12T22:00:00.000Z",
-      "bolzano_hpa": 1015.2,
-      "ghedi_hpa": 1012.9,
-      "delta_hpa": -2.3
+      "bolzano_hpa": 1015.4,
+      "ghedi_hpa": 1014.0,
+      "delta_hpa": -1.4
     },
     {
       "time": "2026-09-12T23:00:00.000Z",
-      "bolzano_hpa": 1015.4,
-      "ghedi_hpa": 1012.9,
-      "delta_hpa": -2.5
+      "bolzano_hpa": 1015.6,
+      "ghedi_hpa": 1014.0,
+      "delta_hpa": -1.6
     },
     {
       "time": "2026-09-13T00:00:00.000Z",
-      "bolzano_hpa": 1015.6,
-      "ghedi_hpa": 1013.1,
-      "delta_hpa": -2.5
-    },
-    {
-      "time": "2026-09-13T01:00:00.000Z",
-      "bolzano_hpa": 1015.5,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": -2.3
-    },
-    {
-      "time": "2026-09-13T02:00:00.000Z",
-      "bolzano_hpa": 1015.6,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": -2.4
-    },
-    {
-      "time": "2026-09-13T03:00:00.000Z",
-      "bolzano_hpa": 1015.3,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": -2.1
-    },
-    {
-      "time": "2026-09-13T04:00:00.000Z",
-      "bolzano_hpa": 1015.3,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": -2.1
-    },
-    {
-      "time": "2026-09-13T05:00:00.000Z",
-      "bolzano_hpa": 1015.6,
-      "ghedi_hpa": 1013.7,
-      "delta_hpa": -1.9
-    },
-    {
-      "time": "2026-09-13T06:00:00.000Z",
-      "bolzano_hpa": 1015.7,
-      "ghedi_hpa": 1014.0,
-      "delta_hpa": -1.7
-    },
-    {
-      "time": "2026-09-13T07:00:00.000Z",
       "bolzano_hpa": 1015.8,
       "ghedi_hpa": 1014.1,
       "delta_hpa": -1.7
     },
     {
-      "time": "2026-09-13T08:00:00.000Z",
-      "bolzano_hpa": 1015.9,
-      "ghedi_hpa": 1014.3,
+      "time": "2026-09-13T01:00:00.000Z",
+      "bolzano_hpa": 1015.8,
+      "ghedi_hpa": 1014.2,
       "delta_hpa": -1.6
     },
     {
+      "time": "2026-09-13T02:00:00.000Z",
+      "bolzano_hpa": 1015.9,
+      "ghedi_hpa": 1014.2,
+      "delta_hpa": -1.7
+    },
+    {
+      "time": "2026-09-13T03:00:00.000Z",
+      "bolzano_hpa": 1015.6,
+      "ghedi_hpa": 1014.2,
+      "delta_hpa": -1.4
+    },
+    {
+      "time": "2026-09-13T04:00:00.000Z",
+      "bolzano_hpa": 1015.6,
+      "ghedi_hpa": 1014.2,
+      "delta_hpa": -1.4
+    },
+    {
+      "time": "2026-09-13T05:00:00.000Z",
+      "bolzano_hpa": 1015.9,
+      "ghedi_hpa": 1014.5,
+      "delta_hpa": -1.4
+    },
+    {
+      "time": "2026-09-13T06:00:00.000Z",
+      "bolzano_hpa": 1016.1,
+      "ghedi_hpa": 1014.8,
+      "delta_hpa": -1.3
+    },
+    {
+      "time": "2026-09-13T07:00:00.000Z",
+      "bolzano_hpa": 1016.0,
+      "ghedi_hpa": 1014.9,
+      "delta_hpa": -1.1
+    },
+    {
+      "time": "2026-09-13T08:00:00.000Z",
+      "bolzano_hpa": 1016.0,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -1.0
+    },
+    {
       "time": "2026-09-13T09:00:00.000Z",
-      "bolzano_hpa": 1016.2,
-      "ghedi_hpa": 1014.3,
-      "delta_hpa": -1.9
+      "bolzano_hpa": 1016.1,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -1.1
     },
     {
       "time": "2026-09-13T10:00:00.000Z",
       "bolzano_hpa": 1015.6,
-      "ghedi_hpa": 1014.4,
-      "delta_hpa": -1.2
+      "ghedi_hpa": 1015.1,
+      "delta_hpa": -0.5
     },
     {
       "time": "2026-09-13T11:00:00.000Z",
       "bolzano_hpa": 1014.9,
-      "ghedi_hpa": 1014.2,
-      "delta_hpa": -0.7
+      "ghedi_hpa": 1014.9,
+      "delta_hpa": 0.0
     },
     {
       "time": "2026-09-13T12:00:00.000Z",
       "bolzano_hpa": 1014.1,
-      "ghedi_hpa": 1014.4,
-      "delta_hpa": 0.3
+      "ghedi_hpa": 1014.5,
+      "delta_hpa": 0.4
     },
     {
       "time": "2026-09-13T13:00:00.000Z",
-      "bolzano_hpa": 1013.7,
-      "ghedi_hpa": 1013.9,
-      "delta_hpa": 0.2
+      "bolzano_hpa": 1013.6,
+      "ghedi_hpa": 1014.1,
+      "delta_hpa": 0.5
     },
     {
       "time": "2026-09-13T14:00:00.000Z",
       "bolzano_hpa": 1013.6,
-      "ghedi_hpa": 1013.7,
-      "delta_hpa": 0.1
-    },
-    {
-      "time": "2026-09-13T15:00:00.000Z",
-      "bolzano_hpa": 1013.2,
-      "ghedi_hpa": 1013.4,
+      "ghedi_hpa": 1013.8,
       "delta_hpa": 0.2
     },
     {
+      "time": "2026-09-13T15:00:00.000Z",
+      "bolzano_hpa": 1013.1,
+      "ghedi_hpa": 1013.6,
+      "delta_hpa": 0.5
+    },
+    {
       "time": "2026-09-13T16:00:00.000Z",
-      "bolzano_hpa": 1014.2,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": -1.0
+      "bolzano_hpa": 1013.1,
+      "ghedi_hpa": 1013.4,
+      "delta_hpa": 0.3
     },
     {
       "time": "2026-09-13T17:00:00.000Z",
-      "bolzano_hpa": 1014.1,
-      "ghedi_hpa": 1012.6,
-      "delta_hpa": -1.5
+      "bolzano_hpa": 1013.7,
+      "ghedi_hpa": 1013.3,
+      "delta_hpa": -0.4
     },
     {
       "time": "2026-09-13T18:00:00.000Z",
-      "bolzano_hpa": 1014.6,
-      "ghedi_hpa": 1012.9,
-      "delta_hpa": -1.7
+      "bolzano_hpa": 1014.2,
+      "ghedi_hpa": 1013.5,
+      "delta_hpa": -0.7
     },
     {
       "time": "2026-09-13T19:00:00.000Z",
-      "bolzano_hpa": 1015.0,
+      "bolzano_hpa": 1014.7,
       "ghedi_hpa": 1013.6,
-      "delta_hpa": -1.4
+      "delta_hpa": -1.1
     },
     {
       "time": "2026-09-13T20:00:00.000Z",
-      "bolzano_hpa": 1015.6,
-      "ghedi_hpa": 1013.9,
-      "delta_hpa": -1.7
+      "bolzano_hpa": 1015.3,
+      "ghedi_hpa": 1014.0,
+      "delta_hpa": -1.3
     },
     {
       "time": "2026-09-13T21:00:00.000Z",
-      "bolzano_hpa": 1016.1,
-      "ghedi_hpa": 1014.1,
-      "delta_hpa": -2.0
+      "bolzano_hpa": 1015.9,
+      "ghedi_hpa": 1014.2,
+      "delta_hpa": -1.7
     },
     {
       "time": "2026-09-13T22:00:00.000Z",
-      "bolzano_hpa": 1016.4,
+      "bolzano_hpa": 1016.2,
       "ghedi_hpa": 1014.5,
-      "delta_hpa": -1.9
+      "delta_hpa": -1.7
     },
     {
       "time": "2026-09-13T23:00:00.000Z",
-      "bolzano_hpa": 1016.5,
-      "ghedi_hpa": 1014.6,
-      "delta_hpa": -1.9
+      "bolzano_hpa": 1016.3,
+      "ghedi_hpa": 1014.7,
+      "delta_hpa": -1.6
     },
     {
       "time": "2026-09-14T00:00:00.000Z",
-      "bolzano_hpa": 1016.4,
-      "ghedi_hpa": 1014.6,
+      "bolzano_hpa": 1016.5,
+      "ghedi_hpa": 1014.7,
       "delta_hpa": -1.8
     },
     {
       "time": "2026-09-14T01:00:00.000Z",
-      "bolzano_hpa": 1016.5,
-      "ghedi_hpa": 1014.5,
-      "delta_hpa": -2.0
-    },
-    {
-      "time": "2026-09-14T02:00:00.000Z",
-      "bolzano_hpa": 1016.5,
-      "ghedi_hpa": 1014.4,
-      "delta_hpa": -2.1
-    },
-    {
-      "time": "2026-09-14T03:00:00.000Z",
       "bolzano_hpa": 1016.4,
-      "ghedi_hpa": 1014.4,
-      "delta_hpa": -2.0
-    },
-    {
-      "time": "2026-09-14T04:00:00.000Z",
-      "bolzano_hpa": 1016.5,
-      "ghedi_hpa": 1014.6,
+      "ghedi_hpa": 1014.5,
       "delta_hpa": -1.9
     },
     {
-      "time": "2026-09-14T05:00:00.000Z",
-      "bolzano_hpa": 1016.7,
+      "time": "2026-09-14T02:00:00.000Z",
+      "bolzano_hpa": 1016.4,
+      "ghedi_hpa": 1014.5,
+      "delta_hpa": -1.9
+    },
+    {
+      "time": "2026-09-14T03:00:00.000Z",
+      "bolzano_hpa": 1016.3,
       "ghedi_hpa": 1014.4,
-      "delta_hpa": -2.3
+      "delta_hpa": -1.9
+    },
+    {
+      "time": "2026-09-14T04:00:00.000Z",
+      "bolzano_hpa": 1016.3,
+      "ghedi_hpa": 1014.5,
+      "delta_hpa": -1.8
+    },
+    {
+      "time": "2026-09-14T05:00:00.000Z",
+      "bolzano_hpa": 1016.4,
+      "ghedi_hpa": 1014.8,
+      "delta_hpa": -1.6
     },
     {
       "time": "2026-09-14T06:00:00.000Z",
-      "bolzano_hpa": 1016.7,
-      "ghedi_hpa": 1014.6,
-      "delta_hpa": -2.1
+      "bolzano_hpa": 1016.6,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -1.6
     },
     {
       "time": "2026-09-14T07:00:00.000Z",
+      "bolzano_hpa": 1016.5,
+      "ghedi_hpa": 1015.1,
+      "delta_hpa": -1.4
+    },
+    {
+      "time": "2026-09-14T08:00:00.000Z",
+      "bolzano_hpa": 1017.0,
+      "ghedi_hpa": 1015.3,
+      "delta_hpa": -1.7
+    },
+    {
+      "time": "2026-09-14T09:00:00.000Z",
+      "bolzano_hpa": 1016.8,
+      "ghedi_hpa": 1015.2,
+      "delta_hpa": -1.6
+    },
+    {
+      "time": "2026-09-14T10:00:00.000Z",
+      "bolzano_hpa": 1016.2,
+      "ghedi_hpa": 1015.2,
+      "delta_hpa": -1.0
+    },
+    {
+      "time": "2026-09-14T11:00:00.000Z",
+      "bolzano_hpa": 1015.5,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -0.5
+    },
+    {
+      "time": "2026-09-14T12:00:00.000Z",
+      "bolzano_hpa": 1014.8,
+      "ghedi_hpa": 1014.7,
+      "delta_hpa": -0.1
+    },
+    {
+      "time": "2026-09-14T13:00:00.000Z",
+      "bolzano_hpa": 1014.3,
+      "ghedi_hpa": 1014.4,
+      "delta_hpa": 0.1
+    },
+    {
+      "time": "2026-09-14T14:00:00.000Z",
+      "bolzano_hpa": 1013.9,
+      "ghedi_hpa": 1014.2,
+      "delta_hpa": 0.3
+    },
+    {
+      "time": "2026-09-14T15:00:00.000Z",
+      "bolzano_hpa": 1013.3,
+      "ghedi_hpa": 1013.7,
+      "delta_hpa": 0.4
+    },
+    {
+      "time": "2026-09-14T16:00:00.000Z",
+      "bolzano_hpa": 1013.7,
+      "ghedi_hpa": 1013.5,
+      "delta_hpa": -0.2
+    },
+    {
+      "time": "2026-09-14T17:00:00.000Z",
+      "bolzano_hpa": 1013.9,
+      "ghedi_hpa": 1013.6,
+      "delta_hpa": -0.3
+    },
+    {
+      "time": "2026-09-14T18:00:00.000Z",
+      "bolzano_hpa": 1014.4,
+      "ghedi_hpa": 1013.7,
+      "delta_hpa": -0.7
+    },
+    {
+      "time": "2026-09-14T19:00:00.000Z",
+      "bolzano_hpa": 1015.0,
+      "ghedi_hpa": 1013.9,
+      "delta_hpa": -1.1
+    },
+    {
+      "time": "2026-09-14T20:00:00.000Z",
+      "bolzano_hpa": 1015.6,
+      "ghedi_hpa": 1014.2,
+      "delta_hpa": -1.4
+    },
+    {
+      "time": "2026-09-14T21:00:00.000Z",
+      "bolzano_hpa": 1016.2,
+      "ghedi_hpa": 1014.5,
+      "delta_hpa": -1.7
+    },
+    {
+      "time": "2026-09-14T22:00:00.000Z",
+      "bolzano_hpa": 1016.5,
+      "ghedi_hpa": 1014.7,
+      "delta_hpa": -1.8
+    },
+    {
+      "time": "2026-09-14T23:00:00.000Z",
       "bolzano_hpa": 1016.6,
       "ghedi_hpa": 1014.8,
       "delta_hpa": -1.8
     },
     {
-      "time": "2026-09-14T08:00:00.000Z",
-      "bolzano_hpa": 1017.5,
+      "time": "2026-09-15T00:00:00.000Z",
+      "bolzano_hpa": 1016.8,
       "ghedi_hpa": 1014.9,
-      "delta_hpa": -2.6
-    },
-    {
-      "time": "2026-09-14T09:00:00.000Z",
-      "bolzano_hpa": 1016.7,
-      "ghedi_hpa": 1014.8,
       "delta_hpa": -1.9
     },
     {
-      "time": "2026-09-14T10:00:00.000Z",
-      "bolzano_hpa": 1016.2,
-      "ghedi_hpa": 1014.8,
-      "delta_hpa": -1.4
-    },
-    {
-      "time": "2026-09-14T11:00:00.000Z",
-      "bolzano_hpa": 1015.5,
-      "ghedi_hpa": 1014.6,
-      "delta_hpa": -0.9
-    },
-    {
-      "time": "2026-09-14T12:00:00.000Z",
-      "bolzano_hpa": 1014.9,
-      "ghedi_hpa": 1014.3,
-      "delta_hpa": -0.6
-    },
-    {
-      "time": "2026-09-14T13:00:00.000Z",
-      "bolzano_hpa": 1014.3,
-      "ghedi_hpa": 1014.0,
-      "delta_hpa": -0.3
-    },
-    {
-      "time": "2026-09-14T14:00:00.000Z",
-      "bolzano_hpa": 1013.9,
-      "ghedi_hpa": 1013.8,
-      "delta_hpa": -0.1
-    },
-    {
-      "time": "2026-09-14T15:00:00.000Z",
-      "bolzano_hpa": 1013.5,
-      "ghedi_hpa": 1013.3,
-      "delta_hpa": -0.2
-    },
-    {
-      "time": "2026-09-14T16:00:00.000Z",
-      "bolzano_hpa": 1013.8,
-      "ghedi_hpa": 1013.2,
-      "delta_hpa": -0.6
-    },
-    {
-      "time": "2026-09-14T17:00:00.000Z",
-      "bolzano_hpa": 1014.2,
-      "ghedi_hpa": 1013.3,
-      "delta_hpa": -0.9
-    },
-    {
-      "time": "2026-09-14T18:00:00.000Z",
-      "bolzano_hpa": 1014.7,
-      "ghedi_hpa": 1013.4,
-      "delta_hpa": -1.3
-    },
-    {
-      "time": "2026-09-14T19:00:00.000Z",
-      "bolzano_hpa": 1015.2,
-      "ghedi_hpa": 1013.5,
-      "delta_hpa": -1.7
-    },
-    {
-      "time": "2026-09-14T20:00:00.000Z",
-      "bolzano_hpa": 1015.8,
-      "ghedi_hpa": 1013.7,
-      "delta_hpa": -2.1
-    },
-    {
-      "time": "2026-09-14T21:00:00.000Z",
-      "bolzano_hpa": 1016.4,
-      "ghedi_hpa": 1014.0,
-      "delta_hpa": -2.4
-    },
-    {
-      "time": "2026-09-14T22:00:00.000Z",
-      "bolzano_hpa": 1016.6,
-      "ghedi_hpa": 1014.2,
-      "delta_hpa": -2.4
-    },
-    {
-      "time": "2026-09-14T23:00:00.000Z",
-      "bolzano_hpa": 1016.6,
-      "ghedi_hpa": 1014.4,
-      "delta_hpa": -2.2
-    },
-    {
-      "time": "2026-09-15T00:00:00.000Z",
-      "bolzano_hpa": 1016.8,
-      "ghedi_hpa": 1014.4,
-      "delta_hpa": -2.4
-    },
-    {
       "time": "2026-09-15T01:00:00.000Z",
-      "bolzano_hpa": 1016.8,
-      "ghedi_hpa": 1014.6,
-      "delta_hpa": -2.2
+      "bolzano_hpa": 1016.9,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -1.9
     },
     {
       "time": "2026-09-15T02:00:00.000Z",
-      "bolzano_hpa": 1016.8,
-      "ghedi_hpa": 1014.6,
-      "delta_hpa": -2.2
+      "bolzano_hpa": 1016.9,
+      "ghedi_hpa": 1015.0,
+      "delta_hpa": -1.9
     },
     {
       "time": "2026-09-15T03:00:00.000Z",
-      "bolzano_hpa": 1016.7,
-      "ghedi_hpa": 1014.5,
-      "delta_hpa": -2.2
+      "bolzano_hpa": 1016.8,
+      "ghedi_hpa": 1014.9,
+      "delta_hpa": -1.9
     },
     {
       "time": "2026-09-15T04:00:00.000Z",
       "bolzano_hpa": 1016.9,
-      "ghedi_hpa": 1014.5,
-      "delta_hpa": -2.4
+      "ghedi_hpa": 1014.9,
+      "delta_hpa": -2.0
+    },
+    {
+      "time": "2026-09-15T05:00:00.000Z",
+      "bolzano_hpa": 1017.3,
+      "ghedi_hpa": 1016.2,
+      "delta_hpa": -1.1
+    },
+    {
+      "time": "2026-09-15T06:00:00.000Z",
+      "bolzano_hpa": 1017.4,
+      "ghedi_hpa": 1016.2,
+      "delta_hpa": -1.2
+    },
+    {
+      "time": "2026-09-15T07:00:00.000Z",
+      "bolzano_hpa": 1017.3,
+      "ghedi_hpa": 1016.4,
+      "delta_hpa": -0.9
+    },
+    {
+      "time": "2026-09-15T08:00:00.000Z",
+      "bolzano_hpa": 1017.8,
+      "ghedi_hpa": 1016.6,
+      "delta_hpa": -1.2
+    },
+    {
+      "time": "2026-09-15T09:00:00.000Z",
+      "bolzano_hpa": 1017.6,
+      "ghedi_hpa": 1016.6,
+      "delta_hpa": -1.0
+    },
+    {
+      "time": "2026-09-15T10:00:00.000Z",
+      "bolzano_hpa": 1017.0,
+      "ghedi_hpa": 1016.6,
+      "delta_hpa": -0.4
     }
   ]
 }
