@@ -1,5 +1,3 @@
-2026-08-18 13:28Z  torbole: OK (icon2i: si')
-2026-08-18 13:28Z  malcesine: OK (icon2i: si')
 2026-08-18 15:05Z  torbole: OK (icon2i: si')
 2026-08-18 15:05Z  malcesine: OK (icon2i: si')
 2026-08-18 16:01Z  torbole: OK (icon2i: si')
@@ -498,3 +496,5 @@
 2026-09-08 10:04Z  malcesine: OK (icon2i: si')
 2026-09-08 14:45Z  torbole: OK (icon2i: si')
 2026-09-08 14:45Z  malcesine: OK (icon2i: si')
+2026-09-08 18:57Z  torbole: OK (icon2i: si')
+2026-09-08 18:57Z  malcesine: OK (icon2i: si')
